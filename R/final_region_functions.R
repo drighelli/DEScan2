@@ -1,3 +1,42 @@
+merge_overlapping_intervals <- function(s) {
+
+  avg_vec <- as.numeric(s[,4])
+  count_vec <- as.numeric(s[,5])
+  s <- cbind(as.numeric(s[, 2]) - 200,
+             as.numeric(s[, 3]) + 200)
+
+  if (is.null(avg_vec)) {
+    avg_vec <- rep(0, nrow(s))
+  }
+  if (is.null(count_vec)) {
+    count_vec <- c(1:nrow(s))
+  }
+
+  s2 <- matrix(nrow = 0, ncol = 4)
+  n <- nrow(s)
+  i <- 1
+  j <- 2
+  while (i <= n) {
+    if (i %% 100 == 0) cat(i, "\n")
+    interval <- s[i, ]
+    avg_over <- avg_vec[i]
+    count_over <- count_vec[i]
+
+    while (j <= n && s[j, 1] <= interval[2]) {
+      interval <- c(interval[1], max(interval[2], s[j, 2]))
+      avg_over <- c(avg_over, avg_vec[j])
+      count_over <- c(count_over, count_vec[j])
+      j <- j + 1
+    }
+    avg <- mean(avg_over, na.rm = TRUE)
+    count <- unique(count_over)
+    s2 <- rbind(s2, c(interval, avg, length(count)))
+    i <- j
+    j <- i + 1
+  }
+  as.data.frame(s2)
+}
+
 finalRegions <- function(sall, zthresh = 30, min_carriers = 2,
                          savefile = "RData") {
   sall_sorted <- matrix(nrow = 0, ncol = ncol(sall[[1]]) + 1)
@@ -6,7 +45,7 @@ finalRegions <- function(sall, zthresh = 30, min_carriers = 2,
     sall_sorted <- rbind(sall_sorted, cbind(sall[[i]][sel,], rep(i, length(sel))))
   }
   chr <- unique(sall_sorted[,1])
-  ord <- order(sall_sorted[, 1], sall_sorted[,2])
+  ord <- order(as.numeric(sall_sorted[,2]))
   sall_sorted <- sall_sorted[ord,]
 
   common_regions <- merge_overlapping_intervals(sall_sorted)
@@ -83,7 +122,6 @@ catRegions <- function(path = "FinalRegions", type = "RData", keep_files = T) {
     }
     final_regions_allchr <- rbind(final_regions_allchr, final_regions)
   }
-
   write.table(final_regions_allchr,
               file = paste0(path, "/FinalRegions_allChr.bed"),
               sep = "\t", col.names = F, row.names = F, quote = F)
@@ -93,42 +131,4 @@ catRegions <- function(path = "FinalRegions", type = "RData", keep_files = T) {
   }
 }
 
-merge_overlapping_intervals <- function(s) {
-
-  avg_vec <- as.numeric(s[,4])
-  count_vec <- as.numeric(s[,5])
-  s <- cbind(as.numeric(s[, 2]) - 200,
-             as.numeric(s[, 3]) + 200)
-
-  if (is.null(avg_vec)) {
-    avg_vec <- rep(0, nrow(s))
-  }
-  if (is.null(count_vec)) {
-    count_vec <- c(1:nrow(s))
-  }
-
-  s2 <- matrix(nrow = 0, ncol = 4)
-  n <- nrow(s)
-  i <- 1
-  j <- 2
-  while (i <= n) {
-    if (i %% 100 == 0) cat(i, "\n")
-    interval <- s[i, ]
-    avg_over <- avg_vec[i]
-    count_over <- count_vec[i]
-
-    while (j <= n && s[j, 1] <= interval[2]) {
-      interval <- c(interval[1], max(interval[2], s[j, 2]))
-      avg_over <- c(avg_over, avg_vec[j])
-      count_over <- c(count_over, count_vec[j])
-      j <- j + 1
-    }
-    avg <- mean(avg_over, na.rm = TRUE)
-    count <- unique(count_over)
-    s2 <- rbind(s2, c(interval, avg, length(count)))
-    i <- j
-    j <- i + 1
-  }
-  as.data.frame(s2)
-}
 
