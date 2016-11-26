@@ -1,9 +1,72 @@
+#' Align peaks to form common regions then filter regions for presence in multiple replicates
+#'
+#' @param peak_path Path to peak files.
+#' @param zthresh Integer indicating minimum z-score considered significant
+#' @param min_carriers Integer indiciating the minimum number of replicates a region must be present in to be retained for testing
+#' @param savefile Character indicating whether to save region files in the "bed" or "RData" format.
+#' @param keep_files Logical indicating whether to erase chromosome files after concatenating into a genome wide file.
+#' @param chromosome Integer indicating which chromsomes to align. Defaults to all chromosomes.
+#' @return Matrix containing the regions as rows with columns for genomic coordinates, z-score and number of carriers.
+#' @export
+#' @importFrom utils read.table write.table
+finalRegions <- function(peak_path, zthresh = 30, min_carriers = 2, chromosome = 1:19,
+                         savefile = FALSE, keep_files = TRUE) {
+  if (length(chromosome) == 1) {
+    single_chromosome <- TRUE
+  } else { single_chromosome <- FALSE }
+
+  for (i in chromosome) {
+    chr <- paste0("chr", i)
+    print(paste(peak_path, chr, sep = "/"))
+    sall <- loadPeaks(paste(peak_path, chr, sep = "/"))
+    sall_sorted <- matrix(nrow = 0, ncol = ncol(sall[[1]]) + 1)
+    for (i in 1:length(sall)) {
+      sel <- which(as.numeric(sall[[i]][, 4]) >= zthresh)
+      sall_sorted <- rbind(sall_sorted, cbind(sall[[i]][sel,], rep(i, length(sel))))
+    }
+    chr <- unique(sall_sorted[,1])
+    ord <- order(as.numeric(sall_sorted[,2]))
+    sall_sorted <- sall_sorted[ord,]
+
+    common_regions <- merge_overlapping_intervals(sall_sorted)
+    names(common_regions) <- c("Start","End","AvgZ","NumCarriers")
+
+    sel <- which(common_regions[, 4] >= min_carriers)
+    final_regions <- common_regions[sel,]
+    final_regions <- cbind(rep(chr, nrow(final_regions)), final_regions)
+    len <- final_regions[, 3] - final_regions[, 4]
+    cat("Regions scanned: ", nrow(final_regions), "\n")
+    cat("Bases scanned (in MB): ", sum(len)/1000000, "\n")
+
+    if (savefile == "RData") {
+      save(final_regions, chr,
+           file = paste0("FinalRegions/FinalRegions_", chr, ".RData"))
+    }
+    if (savefile == "bed") {
+      utils::write.table(x = final_regions,
+                         file = paste0("FinalRegions/FinalRegions_", chr, ".bed"),
+                         sep = "\t", col.names = FALSE, row.names = FALSE, quote = FALSE)
+    }
+  }
+  if (single_chromosome == FALSE) {
+    final_regions <- catRegions(path = "FinalRegions", type = savefile,
+                                keep_files = keep_files)
+  }
+  colnames(final_regions) <- c("Chr", "Start", "End", "AvgZ", "NumCarriers")
+  return(final_regions)
+}
+
+#' merge overlapping peaks across replicates.
+#'
+#' @param s.
+#' @return s2.
+#' @keywords internal
 merge_overlapping_intervals <- function(s) {
 
   avg_vec <- as.numeric(s[,4])
   count_vec <- as.numeric(s[,5])
-  s <- cbind(as.numeric(s[, 2]) - 200,
-             as.numeric(s[, 3]) + 200)
+  s <- cbind(as.numeric(s[, 2]) - 200, #200
+             as.numeric(s[, 3]) + 200) #mess
 
   if (is.null(avg_vec)) {
     avg_vec <- rep(0, nrow(s))
@@ -34,49 +97,20 @@ merge_overlapping_intervals <- function(s) {
     i <- j
     j <- i + 1
   }
-  as.data.frame(s2)
+  return(as.data.frame(s2))
 }
 
-finalRegions <- function(sall, zthresh = 30, min_carriers = 2,
-                         savefile = "RData") {
-  sall_sorted <- matrix(nrow = 0, ncol = ncol(sall[[1]]) + 1)
-  for (i in 1:length(sall)) {
-    sel <- which(as.numeric(sall[[i]][, 4]) >= zthresh)
-    sall_sorted <- rbind(sall_sorted, cbind(sall[[i]][sel,], rep(i, length(sel))))
-  }
-  chr <- unique(sall_sorted[,1])
-  ord <- order(as.numeric(sall_sorted[,2]))
-  sall_sorted <- sall_sorted[ord,]
-
-  common_regions <- merge_overlapping_intervals(sall_sorted)
-  names(common_regions) <- c("Start","End","AvgZ","NumCarriers")
-
-  sel <- which(common_regions[, 4] >= min_carriers)
-  final_regions <- common_regions[sel,]
-  final_regions <- cbind(rep(chr, nrow(final_regions)), final_regions)
-  len <- final_regions[, 3] - final_regions[, 4]
-  cat("Regions scanned: ", nrow(final_regions), "\n")
-  cat("Bases scanned (in MB): ", sum(len)/1000000, "\n")
-
-  if (savefile == "RData") {
-    save(final_regions, chr,
-         file = paste0("FinalRegions/FinalRegions_", chr, ".RData"))
-  }
-  if (savefile == "bed") {
-    write.table(x = final_regions,
-                file = paste0("FinalRegions/FinalRegions_", chr, ".bed"),
-                sep = "\t", col.names = F, row.names = F, quote = F)
-  }
-  final_regions
-}
-
+#' load peak files.
+#'
+#' @param peakdirname
+#' @return sall.
+#' @keywords internal
 loadPeaks <- function(peakdirname) {
   all.files <- list.files(peakdirname, pattern = "Peaks")
   cat("Found", length(all.files),"peak files.\n")
   sall <- vector("list", length(all.files))
   for (i in 1:length(all.files)) {
     load(paste0(peakdirname, "/", all.files[i]))
-    #s <- S
     if (ncol(s) == 3) {
       chr <- strsplit(peakdirname, split = "/")[[1]][2]
       s <- cbind(rep(chr, nrow(s)), s)
@@ -87,48 +121,35 @@ loadPeaks <- function(peakdirname) {
   sall
 }
 
-catPeaks <- function(path = "Peaks", keep_files = T) {
-
-  files <- list.files(path, recursive = T, full.names = T)
-
-  basenames <- unique(unlist(lapply(basename(files),
-                       function(x) {strsplit(x, split = "_")[[1]][2]})))
-  for (basename in basenames) {
-    s_allchr <- NULL
-    for (f in files[grep(basename, files)]) {
-      load(f)
-      s_allchr <- rbind(s_allchr, s)
-    }
-    s <- s_allchr
-    save(s, fraglen, rlen, zthresh, min_win, max_win,
-         file = paste0("Peaks/", basename, "_Peaks_allChr.RData"))
-  }
-  if (keep_files == F) {
-    file.remove(files)
-    unlink(list.dirs(path)[-1], recursive = T)
-  }
-}
-
-catRegions <- function(path = "FinalRegions", type = "RData", keep_files = T) {
-  files <- list.files(path, recursive = T, full.names = T, pattern = type)
+#' concatenate region files from various chromosomes into a genome wide region file.
+#'
+#' @param path.
+#' @param type.
+#' @param keep_files
+#' @return c.
+#' @keywords internal
+#' @importFrom utils read.table write.table
+catRegions <- function(path = "FinalRegions", type = "RData", keep_files = TRUE) {
+  files <- list.files(path, recursive = TRUE, full.names = TRUE, pattern = type)
   final_regions_allchr <- NULL
   for (f in files) {
     if (type == "RData") {
       load(f)
     }
     if (type == "bed") {
-      final_regions <- read.table(f, sep = "\t", header = F)
+      final_regions <- utils::read.table(f, sep = "\t", header = FALSE)
       colnames(final_regions) <- c("chr","start","end","AvgZ","NumCarriers")
     }
     final_regions_allchr <- rbind(final_regions_allchr, final_regions)
   }
-  write.table(final_regions_allchr,
+  utils::write.table(final_regions_allchr,
               file = paste0(path, "/FinalRegions_allChr.bed"),
-              sep = "\t", col.names = F, row.names = F, quote = F)
-  if (keep_files == F) {
+              sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+  if (keep_files == FALSE) {
     file.remove(files)
-    unlink(list.dirs(path)[-1], recursive = T)
+    unlink(list.dirs(path)[-1], recursive = TRUE)
   }
+  return(final_regions_allchr)
 }
 
 

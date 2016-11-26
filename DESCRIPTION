@@ -1,0 +1,26 @@
+Package: DEScan
+Type: Package
+Title: Differential Enrichment Scan
+Version: 0.1
+Date: 2016-08-19
+Author: Authors@R: as.person(c(
+    "John Koberstein <jnkoberstein@gmail.com> [aut]",
+    "Lucia Peixoto <lucia.peixoto@wsu.edu> [aut]"
+    "Nancy Zhang < nzh@wharton.upenn.edu> [aut]"
+    "Davide Risso <risso.davide@gmail.com> [aut]"
+  ))
+Maintainer: "Davide Risso <risso.davide@gmail.com>
+Description: integrated peak and differential caller, specifically designed for broad epigenomic signals.
+License: CC0
+LazyData: TRUE
+biocViews: PeakDetection, Epigenetics, Software
+Imports:
+    Rsamtools,
+    GenomeInfoDb,
+    GenomicRanges,
+    IRanges,
+    GenomicAlignments,
+    Rsubread,
+    utils
+RoxygenNote: 5.0.1
+Suggests: testthat

@@ -1,26 +1,46 @@
+#' find peaks.
+#'
+#' @param files Character vector containing paths of files to be analyzed.
+#' @param chr Integer specifying which chromosme to limit analysis to.
+#' @param fraglen Integer indicating the average DNA fragment length in bp
+#' @param rlen Integer indicating the read length in bp
+#' @param min_win Integer indicating the minimum window size to be used in constructing grid
+#' @param max_win Integer indicating the maximum window size to be used in constructing grid
+#' @param blocksize Integer indicating how large of a chunk of the chromosome will be analyzed at a time
+#' @param zthresh Z-score threshold over which peaks will be retained.
+#' @param min_count Double indicating a small amount to use as minimum count instead of zero.
+#' @param grid Numeric vector grid
+#' @param filetype Character, either "bam" or "bed"
+#' @param save Boolean, save files.
+#' @return s.
+#' @export
+#' @importFrom utils read.table write.table
+#' @examples
+#' bam <- system.file("extdata", "test.bam", package = "DEScan")
+#' peaks <- findPeaks(bam, chr = 1, filetype = "bam")
+#' head(peaks)
 findPeaks <- function(files, chr = 1:19, fraglen = 200, rlen = 100, min_win = 1,
                       max_win = 100, blocksize = 10000, zthresh = 5,
-                      min_count = 0.1, grid = NA, filetype = "bam") {
+                      min_count = 0.1, grid = NA, filetype = "bam", save = FALSE) {
   for (file in files) {
-
-    if (is.character(chr) != T) {
+    if (is.character(chr) != TRUE) {
       chr <- paste0("chr", chr)
     }
     if (filetype == "bam") {
       bed <- read_bam(file, chr)
     }
     if (filetype == "bed") {
-      bed <- read.table(file, sep = "\t", header = F)[, c(1:3, 6)]
+      bed <- utils::read.table(file, sep = "\t", header = FALSE)[, c(1:3, 6)]
       colnames(bed) <- c("seqnames","start","end","strand")
       bed <- bed[bed[,1] == chr,]
     }
 
-    grid <- makeGrid(bed, fraglen, rlen, min_bin = min_win * 50)
+    grid <- make_grid(bed, fraglen, rlen, min_bin = min_win * 50)
     ngrid <- length(grid)
     gsize <- grid[2] - grid[1]
 
-    fr = sort(bed[which(bed[,4] == "+"),2])
-    rr = sort(bed[which(bed[,4] == "-"),2])
+    fr <- sort(bed[which(bed[, 4] == "+"), 2])
+    rr <- sort(bed[which(bed[, 4] == "-"), 2])
     tot_rds <- length(fr) + length(rr)
     tot_base <- max(rr[length(rr)], fr[length(fr)]) - min(fr[1], rr[1])
 
@@ -28,35 +48,40 @@ findPeaks <- function(files, chr = 1:19, fraglen = 200, rlen = 100, min_win = 1,
     finalblock <- FALSE
     s <- matrix(ncol = 3, nrow = 0, data = 0)
     while (TRUE) {
+      blocksize_i <- blocksize
       ptm <- proc.time()
 
       if (block[1] > ngrid) break
       if (block[2] >= ngrid) {
         block[2] <- min(block[2], ngrid)
-        blocksize <- block[2] - block[1] + 1
+        blocksize_i <- block[2] - block[1] + 1
         finalblock <- TRUE
       }
       cat("Doing block ", block[1], " to ", block[2], " out of ", ngrid, "\n")
       grid0 <- grid[block[1]:block[2]]
 
       cat("\tComputing coverage stats...\n")
-      c <- window_coverage(fr, rr, grid0, fraglen = fraglen, rlen = rlen,
-                           max_win = max_win, min_win = min_win,
+      c <- window_coverage(Fr = fr, Rr = rr, grid = grid0, fraglen = fraglen,
+                           rlen = rlen, max_win = max_win, min_win = min_win,
                            verbose = FALSE)
 
       # Get lambdalocal.
+
+      # compute coverage using a 5kb window
       headstart <- ceiling(5000 / gsize) * gsize
       grid05k <- c(seq(grid0[1] - headstart, grid0[1], by = gsize), grid0)
       offset5k <- length(grid05k) - length(grid0)
       c5k <- window_coverage(fr, rr, grid05k, fraglen = fraglen,
                                     rlen = rlen, max_win = 5000, min_win = 5000,
                                     verbose = FALSE)
+      # compute coverage using a 10kb window
       headstart <- ceiling(10000 / gsize) * gsize
       grid010k <- c(seq(grid0[1] - headstart, grid0[1], by = gsize), grid0)
       offset10k <- length(grid010k) - length(grid0)
       c10k <- window_coverage(fr, rr, grid010k, fraglen = fraglen,
                                      rlen = rlen, max_win = 10000,
                                      min_win = 10000, verbose = FALSE)
+      # determine lambda for 5k, 10k windows and baseline
       lamloc <- matrix(nrow = nrow(c), ncol = ncol(c), data = 0)
       lam5k <- matrix(nrow = nrow(c), ncol = ncol(c), data = 0)
       lam10k <- matrix(nrow = nrow(c), ncol = ncol(c), data = 0)
@@ -72,10 +97,12 @@ findPeaks <- function(files, chr = 1:19, fraglen = 200, rlen = 100, min_win = 1,
       z <- sqrt(2) * sign(c - lamloc) *
         sqrt(c * log(pmax(c, min_count) / lamloc) - (c - lamloc))
 
-      new_s <- get_disjoint_max_win(z0 = z[1:blocksize, ],
-                                          sigwin = fraglen / gsize, nmax = 200,
+      # find supratheshold z scores keeping one per max window
+      new_s <- get_disjoint_max_win(z0 = z[1:blocksize_i, ],
+                                          sigwin = fraglen / gsize, nmax = Inf,
                                           zthresh = zthresh, two_sided = FALSE,
                                           verbose = FALSE)
+     # convert new_s bins and width into genomic coordinates and append to s
       if (nrow(new_s) >= 1) {
         new_s[, 1] <- new_s[, 1] + block[1] - 1
         new_s <- cbind(grid[new_s[, 1, drop = FALSE]],
@@ -89,27 +116,42 @@ findPeaks <- function(files, chr = 1:19, fraglen = 200, rlen = 100, min_win = 1,
       cat("\tDone. That took ", format(elapsed[3] / 60, digits = 1),
           " minutes.\n")
       if (finalblock) break
-      block <- c(block[1] + blocksize, block[2] + blocksize)
+      block <- c(block[1] + blocksize_i, block[2] + blocksize_i)
     }
-
-    if (dir.exists("Peaks") == F) {
-      dir.create("Peaks")
-    }
-    if (dir.exists(paste0("Peaks/", chr)) == F) {
-      dir.create(paste0("Peaks/", chr))
-    }
-    fname <- strsplit(basename(file), split = ".", fixed = T)[[1]][1]
-    fileprefix = paste0("Peaks/", chr, "/Peaks_", fname, "_", chr)
 
     s <- cbind(rep(chr, dim(s)[1]), s)
-    save(s, fraglen, rlen, zthresh, min_win, max_win,
-         file = paste0(fileprefix, ".RData"))
+    if (save == TRUE) {
+      if (dir.exists("Peaks") == FALSE) {
+        dir.create("Peaks")
+      }
+      if (dir.exists(paste0("Peaks/", chr)) == FALSE) {
+        dir.create(paste0("Peaks/", chr))
+      }
+      fname <- strsplit(basename(file), split = ".", fixed = TRUE)[[1]][1]
+      fileprefix = paste0("Peaks/", chr, "/Peaks_", fname)
+
+
+      save(s, fraglen, rlen, zthresh, min_win, max_win,
+           file = paste0(fileprefix, ".RData"))
+    }
   }
+  return(s)
 }
 
+#' read a bam file into a bed like format.
+#'
+#' @param file Character indicating path to bam file.
+#' @param chr Integer indicating which chromosome to read in.
+#' @return bed.
+#' @keywords internal
+#' @import GenomicRanges
+#' @import Rsamtools
+#' @import GenomeInfoDb
+#' @import GenomicAlignments
+#' @import IRanges
 read_bam <- function(file, chr) {
 
-  if (file.exists(paste0(file,".bai")) == F) {
+  if (file.exists(paste0(file,".bai")) == FALSE) {
     Rsamtools::indexBam(file)
   }
   bf <- Rsamtools::BamFile(file)
@@ -119,13 +161,25 @@ read_bam <- function(file, chr) {
   which <- GenomicRanges::GRanges(chr, IRanges::IRanges(1, sl[chr]))
   param <- Rsamtools::ScanBamParam(what = "mapq", which = which)
   ga <- GenomicAlignments::readGAlignments(file, index = file,
-                                           param = param, use.names = F)
+                                           param = param, use.names = FALSE)
   bed <- as.data.frame(ga)[, c("seqnames", "start", "end" ,"strand")]
   bed <- droplevels.data.frame(bed)
   bed$start <- bed$start - 1 #1-based indexing used instead of 0-based
   bed
 }
 
+#' compute window coverage.
+#'
+#' @param Fr forward reads.
+#' @param Rr reverse reads.
+#' @param grid
+#' @param fraglen
+#' @param rlen
+#' @param min_win
+#' @param max_win
+#' @param verbose
+#' @return c.
+#' @keywords internal
 window_coverage <- function(Fr, Rr, grid, fraglen = 200, rlen = 100,
                                     min_win = 1, max_win = 100,
                                     verbose = TRUE) {
@@ -134,13 +188,18 @@ window_coverage <- function(Fr, Rr, grid, fraglen = 200, rlen = 100,
   fragbins <- fraglen / bin_size # the number of bins covered by each fragment.
   ngrid <- length(grid)
 
+  # initialize fragment count matrices for forward and reverse reads
   ffragctmat <- matrix(nrow = length(grid), ncol = max_win - min_win + 1,
                        data = 0)
   rfragctmat <- matrix(nrow = length(grid), ncol = max_win - min_win + 1,
                        data = 0)
   tot <- 0
-
+  # index forward reads within the current grid
   ix <- which(Fr > grid[1] - fraglen & Fr < grid[length(grid)])
+
+  # for each forward read within the given grid convert the base position to
+  # bin units and add +1 count to the fragment count matrix (bins are rows,
+  # window sizes are columns)
   if (length(ix) > 0) {
     for (i in 1:length(ix)) {
       if (verbose && i %% 1000 == 0) {
@@ -150,8 +209,8 @@ window_coverage <- function(Fr, Rr, grid, fraglen = 200, rlen = 100,
       # bin containing start of fragment
       binst <- floor((fragst - grid_st) / bin_size) + 1
       for (j in min_win:max_win) {
-        st <- max(binst - j + 1, 1)
-        ed <- min(binst + fragbins - 1, ngrid)
+        st <- max(binst - j + 1, 1) # lower limit bin adjusted by window size j
+        ed <- min(binst + fragbins - 1, ngrid) # upper limit bin
         ffragctmat[st:ed, j - min_win + 1] <- ffragctmat[st:ed, j -
                                                            min_win + 1] + 1
       }
@@ -180,7 +239,17 @@ window_coverage <- function(Fr, Rr, grid, fraglen = 200, rlen = 100,
   c
 }
 
-get_disjoint_max_win <- function(z0, sigwin = 20, nmax = 20,
+#' find significant maximum z score windows.
+#'
+#' @param z0 Matrix containing z scores with bins as rows and windows size as columns
+#' @param sigwin Integer indicating how many bins per fragment
+#' @param nmax Integer indicating the maximum number of windows to return
+#' @param zthresh Integer indicating the minimum z-score considered significant
+#' @param two_sided
+#' @param verbose
+#' @return s.
+#' @keywords internal
+get_disjoint_max_win <- function(z0, sigwin = 20, nmax = Inf,
                                          zthresh = -Inf, two_sided = FALSE,
                                          verbose = TRUE) {
   s <- matrix(ncol = 3, nrow = 0)
@@ -189,57 +258,61 @@ get_disjoint_max_win <- function(z0, sigwin = 20, nmax = 20,
     z0 <- abs(z0)
   }
   while (TRUE) {
-    inds <- which.max(z0)
+    inds <- which.max(z0) # find max z
     if (length(inds) == 0) break
-    w <- ceiling(inds / nrow(z0))
-    t <- inds %% nrow(z0)
+    w <- ceiling(inds / nrow(z0)) # determine row
+    t <- inds %% nrow(z0) # determine column
     if (t == 0) t <- nrow(z0)
-    if (z0[t, w] < zthresh) break
+    if (z0[t, w] < zthresh) break # break loop once as max z below thresh
     s <- rbind(s, c(t, w, z0[t, w]))
     if (verbose) {
       cat("Maximizing window: ", t, ",", w, " Score=", z0[t, w], "\n")
     }
-    for (i in 1:maxwin) {
-      st <- max(1, t - sigwin - i + 1)
-      ed <- min(t + w + sigwin - 1, nrow(z0))
-      z0[st:ed, ] <- -Inf
-    }
+    # remove surrounding max window around max z from consideration
+    st <- max(1, t - sigwin - maxwin + 1)
+    ed <- min(t + w + sigwin - 1, nrow(z0))
+    z0[st:ed, ] <- -Inf
+
     if (nrow(s) >= nmax) break
   }
   s
 }
 
-makeGrid <- function(bed, fraglen, rlen, min_bin = 10, min_rds = 0,
+#' make grid for enrichment scan.
+#'
+#' @param path Path to alignement files.
+#' @param chr Integer specifying which chromosme to limit analysis to.
+#' @param fraglen Integer indicating the average DNA fragment length in bp
+#' @param rlen Integer indicating the read length in bp
+#' @param min_win Integer indicating the minimum window size to be used in constructing grid
+#' @param max_win Integer indicating the maximum window size to be used in constructing grid
+#' @param blocksize Integer indicating how large of a chunk of the chromosome will be analyzed at a time
+#' @return grid.
+#' @keywords internal
+make_grid <- function(bed, fraglen, rlen, min_bin = 10, min_rds = 0,
                      grid_st = NA, grid_ed = NA) {
 
-  fr = sort(bed[which(bed[,4] == "+"),2])
-  rr = sort(bed[which(bed[,4] == "-"),2])
+  fr <- sort(bed[which(bed[, 4] == "+"), 2])
+  rr <- sort(bed[which(bed[, 4] == "-"), 2])
 
   if (is.na(grid_st)) {
-    grid_st <- Inf
-    for (i in 1:length(fr)) grid_st <- min(grid_st, fr[[i]][1])
-    for (i in 1:length(rr)) grid_st <- min(grid_st, rr[[i]][1] + rlen - fraglen)
+    grid_st <- min(fr, (rr + rlen - fraglen))
   }
   if (is.na(grid_ed)) {
-    grid_ed <- -Inf
-    for (i in 1:length(fr)) {
-      grid_ed <- max(grid_ed, fr[[i]][length(fr[[i]])] + fraglen)
-    }
-    for (i in 1:length(rr)) {
-      grid_ed <- max(grid_ed, rr[[i]][length(rr[[i]])] + rlen)
-    }
+    grid_ed <- max((fr + fraglen), (rr + rlen))
   }
 
   # Initial grid is even spaced:
   grid0 <- seq(grid_st, grid_ed, min_bin)
 
-  if (min_rds > 0) {
+  if (min_rds > 0) { # this portion of the code does not work!
     # Get the number of fragments that cover each bin.
     # fragct[i] is the number of fragments with positive overlap with
     # grid0[i]:grid0[i+1]
     ffragct <- matrix(nrow = length(grid0), ncol = length(fr), data = 0)
+    # Error: cannot allocate vector of size 2056.4 Gb #########################
     rfragct <- matrix(nrow = length(grid0), ncol = length(fr), data = 0)
-    for (k in 1:length(fr)) {
+    for (k in seq_along(fr)) {
       for (i in 1:length(fr[[k]])) {
         if (i %% 10000 == 0) cat("Sample ", k, "Forward reads : ", i, "\n")
         fragst <- fr[[k]][i]
