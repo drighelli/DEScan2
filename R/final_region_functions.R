@@ -115,9 +115,7 @@ merge_overlapping_intervals <- function(s) {
 #' @keywords internal
 loadPeaks <- function(peakdirname) {
     all.files <- list.files(peakdirname, pattern = "Peaks")
-    if (verbose) {
     cat("Found", length(all.files),"peak files.\n")
-    }
     sall <- vector("list", length(all.files))
     for (i in 1:length(all.files)) {
       load(paste0(peakdirname, "/", all.files[i]))
