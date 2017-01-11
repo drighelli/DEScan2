@@ -25,7 +25,7 @@ finalRegions <- function(peak_path, zthresh = 30, min_carriers = 2,
     for (i in chr) {
       chromosome <- paste0("chr", i)
       print(paste(peak_path, chromosome, sep = "/"))
-      sall <- loadPeaks(paste(peak_path, chromosome, sep = "/"))
+      sall <- loadPeaks(paste(peak_path, chromosome, sep = "/"), verbose = verbose)
       sall_sorted <- matrix(nrow = 0, ncol = ncol(sall[[1]]) + 1)
       for (i in 1:length(sall)) {
         sel <- which(as.numeric(sall[[i]][, 4]) >= zthresh)
@@ -113,10 +113,12 @@ merge_overlapping_intervals <- function(s) {
 #' @param peakdirname
 #' @return sall.
 #' @keywords internal
-loadPeaks <- function(peakdirname) {
+loadPeaks <- function(peakdirname, verbose = verbose) {
     all.files <- list.files(peakdirname, pattern = "Peaks")
-    cat("Found", length(all.files),"peak files.\n")
-    sall <- vector("list", length(all.files))
+    if (verbose) {
+      cat("Found", length(all.files),"peak files.\n")
+    }
+      sall <- vector("list", length(all.files))
     for (i in 1:length(all.files)) {
       load(paste0(peakdirname, "/", all.files[i]))
       if (ncol(s) == 3) {
@@ -125,7 +127,7 @@ loadPeaks <- function(peakdirname) {
       }
       sall[[i]] <- s
       if (verbose) {
-      cat("File: ", all.files[i], " number of regions:", nrow(s), "\n")
+        cat("File: ", all.files[i], " number of regions:", nrow(s), "\n")
       }
     }
     sall
