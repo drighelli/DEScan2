@@ -1,6 +1,6 @@
 #' count reads falling within the final regions.
 #'
-#' @param regions regions of interest to count reads across.
+#' @param region_file path to regions of interest to count reads across.
 #' @param bam_file_path path to bam files to be used for read counting.
 #' @param min_carriers integer indicating minumum number of replicates a region
 #'   must appear in to be utilized for count matrix construction.
@@ -9,11 +9,11 @@
 #' @export
 #' @importFrom utils read.table write.table
 #' @import Rsubread
-countFinalRegions <- function(regions, bam_file_path, min_carriers = 2) {
+countFinalRegions <- function(region_file, bam_file_path, min_carriers = 2) {
     bam_files <- list.files(bam_file_path, full.names = TRUE)
     bam_files <- bam_files[-grep("bai", bam_files)]
 
-    #final_regions <- read.table(region_file, sep = "\t", header = TRUE)
+    regions <- read.table(region_file, sep = "\t", header = TRUE)
     regions <- regions[regions[[5]] >= min_carriers, ]
     region_anno <- cbind("GeneID" = rownames(regions), regions[,1:3],
                        "Strand" = rep("*", dim(regions)[1]))
