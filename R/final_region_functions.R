@@ -119,6 +119,7 @@ loadPeaks <- function(peakdirname, verbose = verbose) {
       cat("Found", length(all.files),"peak files.\n")
     }
       sall <- vector("list", length(all.files))
+      s <- peaks
     for (i in 1:length(all.files)) {
       load(paste0(peakdirname, "/", all.files[i]))
       if (ncol(s) == 3) {
