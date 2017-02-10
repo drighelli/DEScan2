@@ -5,7 +5,7 @@
 #' @param zthresh Integer indicating minimum z-score considered significant
 #' @param min_carriers Integer indiciating the minimum number of replicates a
 #'   region must be present in to be retained for testing
-#' @param savefile Character indicating whether to save region files in the
+#' @param save_file Character indicating whether to save region files in the
 #'   "bed" or "RData" format.
 #' @param keep_files Logical indicating whether to erase chromosome files after
 #'   concatenating into a genome wide file.
@@ -58,7 +58,7 @@ finalRegions <- function(peak_path, zthresh = 30, min_carriers = 2,
       }
     }
     if (single_chromosome == FALSE) {
-      final_regions <- catRegions(path = "FinalRegions", type = savefile,
+      final_regions <- catRegions(path = "FinalRegions", type = save_file,
                                   keep_files = keep_files)
     }
     colnames(final_regions) <- c("Chr", "Start", "End", "AvgZ", "NumCarriers")
