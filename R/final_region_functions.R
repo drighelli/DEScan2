@@ -5,7 +5,7 @@
 #' @param zthresh Integer indicating minimum z-score considered significant
 #' @param min_carriers Integer indiciating the minimum number of replicates a
 #'   region must be present in to be retained for testing
-#' @param savefile Character indicating whether to save region files in the
+#' @param save_file Character indicating whether to save region files in the
 #'   "bed" or "RData" format.
 #' @param keep_files Logical indicating whether to erase chromosome files after
 #'   concatenating into a genome wide file.
@@ -24,7 +24,7 @@ finalRegions <- function(peak_path, zthresh = 30, min_carriers = 2,
 
     for (i in chr) {
       chromosome <- paste0("chr", i)
-      print(paste(peak_path, chromosome, sep = "/"))
+      #print(paste(peak_path, chromosome, sep = "/"))
       sall <- loadPeaks(paste(peak_path, chromosome, sep = "/"), verbose = verbose)
       sall_sorted <- matrix(nrow = 0, ncol = ncol(sall[[1]]) + 1)
       for (i in 1:length(sall)) {
@@ -35,7 +35,7 @@ finalRegions <- function(peak_path, zthresh = 30, min_carriers = 2,
       ord <- order(as.numeric(sall_sorted[,2]))
       sall_sorted <- sall_sorted[ord,]
 
-      common_regions <- merge_overlapping_intervals(sall_sorted)
+      common_regions <- merge_overlapping_intervals(sall_sorted, verbose = verbose)
       names(common_regions) <- c("Start","End","AvgZ","NumCarriers")
 
       sel <- which(common_regions[, 4] >= min_carriers)
@@ -43,8 +43,10 @@ finalRegions <- function(peak_path, zthresh = 30, min_carriers = 2,
       final_regions <- cbind(rep(chromosome, nrow(final_regions)),
                              final_regions)
       len <- final_regions[, 3] - final_regions[, 4]
+      if (verbose) {
       cat("Regions scanned: ", nrow(final_regions), "\n")
       cat("Bases scanned (in MB): ", sum(len)/1000000, "\n")
+      }
 
       if (save_file == "RData") {
         save(final_regions, chromosome,
@@ -58,7 +60,7 @@ finalRegions <- function(peak_path, zthresh = 30, min_carriers = 2,
       }
     }
     if (single_chromosome == FALSE) {
-      final_regions <- catRegions(path = "FinalRegions", type = savefile,
+      final_regions <- catRegions(path = "FinalRegions", type = save_file,
                                   keep_files = keep_files)
     }
     colnames(final_regions) <- c("Chr", "Start", "End", "AvgZ", "NumCarriers")
@@ -70,7 +72,7 @@ finalRegions <- function(peak_path, zthresh = 30, min_carriers = 2,
 #' @param s.
 #' @return s2.
 #' @keywords internal
-merge_overlapping_intervals <- function(s) {
+merge_overlapping_intervals <- function(s, verbose) {
     avg_vec <- as.numeric(s[,4])
     count_vec <- as.numeric(s[,5])
     s <- cbind(as.numeric(s[, 2]) - 200, #200
@@ -88,7 +90,7 @@ merge_overlapping_intervals <- function(s) {
     i <- 1
     j <- 2
     while (i <= n) {
-      if (i %% 100 == 0) cat(i, "\n")
+      if (i %% 100 == 0 & verbose) cat(i, "\n")
       interval <- s[i, ]
       avg_over <- avg_vec[i]
       count_over <- count_vec[i]
@@ -121,13 +123,13 @@ loadPeaks <- function(peakdirname, verbose = verbose) {
       sall <- vector("list", length(all.files))
     for (i in 1:length(all.files)) {
       load(paste0(peakdirname, "/", all.files[i]))
-      if (ncol(s) == 3) {
+      if (ncol(peaks) == 3) {
         chr <- strsplit(peakdirname, split = "/")[[1]][2]
-        s <- cbind(rep(chr, nrow(s)), s)
+        s <- cbind(rep(chr, nrow(peaks)), peaks)
       }
-      sall[[i]] <- s
+      sall[[i]] <- peaks
       if (verbose) {
-        cat("File: ", all.files[i], " number of regions:", nrow(s), "\n")
+        cat("File: ", all.files[i], " number of regions:", nrow(peaks), "\n")
       }
     }
     sall
