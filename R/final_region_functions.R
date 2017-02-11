@@ -90,7 +90,7 @@ merge_overlapping_intervals <- function(s, verbose) {
     i <- 1
     j <- 2
     while (i <= n) {
-      if (i %% 100 == 0 & verbose) cat(i, "\n")
+      #if (i %% 100 == 0 & verbose) cat(i, "\n")
       interval <- s[i, ]
       avg_over <- avg_vec[i]
       count_over <- count_vec[i]
