@@ -120,20 +120,19 @@ loadPeaks <- function(peakdirname, verbose = verbose) {
     if (verbose) {
       cat("Found", length(all.files),"peak files.\n")
     }
-      sall <- vector("list", length(all.files))
-      s <- peaks
+    peaks_all <- vector("list", length(all.files))
     for (i in 1:length(all.files)) {
       load(paste0(peakdirname, "/", all.files[i]))
       if (ncol(peaks) == 3) {
         chr <- strsplit(peakdirname, split = "/")[[1]][2]
-        s <- cbind(rep(chr, nrow(peaks)), peaks)
+        peaks <- cbind(rep(chr, nrow(peaks)), peaks)
       }
-      sall[[i]] <- peaks
+      peaks_all[[i]] <- peaks
       if (verbose) {
         cat("File: ", all.files[i], " number of regions:", nrow(peaks), "\n")
       }
     }
-    sall
+    peaks_all
 }
 
 #' concatenate region files from various chromosomes into a genome
