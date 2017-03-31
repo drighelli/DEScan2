@@ -6,7 +6,7 @@
 #' @param min_carriers Integer indiciating the minimum number of replicates a
 #'   region must be present in to be retained for testing
 #' @param save_file Character indicating whether to save region files in the
-#'   "bed" or "RData" format.
+#'   "bed" or "RData" format. Default is "bed".
 #' @param keep_files Logical indicating whether to erase chromosome files after
 #'   concatenating into a genome wide file.
 #' @param chromosome Integer indicating which chromsomes to align. Defaults to
@@ -16,7 +16,7 @@
 #' @export
 #' @importFrom utils read.table write.table
 finalRegions <- function(peak_path, zthresh = 30, min_carriers = 2,
-                         chr = 1:19, save_file = FALSE,
+                         chr = 1:19, save_file = "bed",
                          keep_files = TRUE, verbose = FALSE) {
     if (length(chr) == 1) {
       single_chromosome <- TRUE
