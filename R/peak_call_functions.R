@@ -10,6 +10,8 @@
 #' @param rlen Integer indicating the read lengths of experiment in bp.
 #' @param min_win Integer indicating the minimum window size in units of 50 bp,
 #' i.e., min_win = 2 resulting in a 100 bp window.
+#'
+#' @param min_bin Integer size in base pairs of the minimum window for scanning, 50 is the default.
 #' @param max_win Integer indicating the maximum allowed window size in units of
 #'  50 bp.
 #' @param blocksize Integer indicating how much of the chromosome
@@ -18,7 +20,8 @@
 #'  will be retained.
 #' @param min_count A small constant (usually no larger than one) to be added to
 #' the counts prior to the log transformation to avoid problems with log(0).
-
+#' @param output_name A string, Name of the folder to save the Peaks (optional), if the directory 
+#' doesn't exist, it will be created. default is "Peaks"
 #' @param save Boolean, if TRUE files will be saved in a "./Peaks/chr*"
 #' directory created (if not already present) in the current working directory.
 #' @return a matrix with peaks as rows and 4 columns describing the genomic
@@ -30,8 +33,8 @@
 #' peaks <- findPeaks(bam, chr = 1, filetype = "bam")
 #' head(peaks)
 findPeaks <- function(files, filetype = "bam", chr = 1:19, fraglen = 200,
-                      rlen = 100, min_win = 1, max_win = 100, blocksize = 10000,
-                      zthresh = 5, min_count = 0.1, save = TRUE, verbose = FALSE) {
+                      rlen = 100, min_bin = 50, min_win = 1, max_win = 20, blocksize = 10000,
+                      zthresh = 5, min_count = 0.1, output_name = "Peaks", save = TRUE, verbose = FALSE) {
     for (file in files) {
       if (is.character(chr) != TRUE) {
         chr <- paste0("chr", chr)
@@ -47,7 +50,7 @@ findPeaks <- function(files, filetype = "bam", chr = 1:19, fraglen = 200,
 
       # grid = vector of integers describing the start coordinates for each
       # bin
-      grid <- make_grid(bed, fraglen, rlen, min_bin = min_win * 50)
+      grid <- make_grid(bed, fraglen, rlen, min_bin = min_bin)
       ngrid <- length(grid)
       gsize <- grid[2] - grid[1]
 
@@ -146,14 +149,14 @@ findPeaks <- function(files, filetype = "bam", chr = 1:19, fraglen = 200,
 
       peaks <- cbind(rep(chr, dim(s)[1]), s)
       if (save == TRUE) {
-        if (dir.exists("Peaks") == FALSE) {
-          dir.create("Peaks")
+        if (dir.exists(output_name) == FALSE) {
+          dir.create(output_name)
         }
-        if (dir.exists(paste0("Peaks/", chr)) == FALSE) {
-          dir.create(paste0("Peaks/", chr))
+        if (dir.exists(paste0(output_name,"/", chr)) == FALSE) {
+          dir.create(paste0(output_name,"/", chr))
         }
         fname <- strsplit(basename(file), split = ".", fixed = TRUE)[[1]][1]
-        fileprefix <- paste0("Peaks/", chr, "/Peaks_", fname)
+        fileprefix <- paste0(output_name,"/", chr, "/Peaks_", fname)
 
 
         save(peaks, fraglen, rlen, zthresh, min_win, max_win,
