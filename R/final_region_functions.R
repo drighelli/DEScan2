@@ -15,13 +15,17 @@
 #'   coordinates, z-score and number of carriers.
 #' @export
 #' @importFrom utils read.table write.table
-finalRegions <- function(peak_path, zthresh = 30, min_carriers = 2,
+finalRegions <- function(peak_path, zthresh = 20, min_carriers = 2,
                          chr = 1:19, save_file = "bed",
-                         keep_files = TRUE, verbose = FALSE) {
+                         keep_files = FALSE, verbose = FALSE) {
     if (length(chr) == 1) {
       single_chromosome <- TRUE
     } else { single_chromosome <- FALSE }
 
+    if (dir.exists("FinalRegions") == FALSE) {
+        dir.create("FinalRegions")
+    }
+  
     for (i in chr) {
       chromosome <- paste0("chr", i)
       #print(paste(peak_path, chromosome, sep = "/"))
