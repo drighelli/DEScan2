@@ -43,6 +43,10 @@ findPeaks <- function(files, filetype = "bam", chr = 1:19, fraglen = 200,
         bed <- read_bam(file, chr)
       }
       if (filetype == "bed") {
+        if (tools::file_ext(file) == "zip") {
+            tmp <- unzip(file, list = T)$Name
+            file <- unz(file, tmp)
+        }
         bed <- utils::read.table(file, sep = "\t", header = FALSE)[, c(1:3, 6)]
         colnames(bed) <- c("seqnames","start","end","strand")
         bed <- bed[bed[,1] == chr,]
