@@ -9,8 +9,7 @@
 #' @export
 #' @importFrom utils read.table write.table
 #' @import Rsubread
-countFinalRegions <- function(region_file, bam_file_path, min_carriers = 2, 
-                              verbose = TRUE) {
+countFinalRegions <- function(region_file, bam_file_path, min_carriers = 2, verbose = TRUE) {
     bam_files <- list.files(bam_file_path, full.names = TRUE)
     bam_files <- bam_files[-grep("bai", bam_files)]
 
@@ -23,8 +22,12 @@ countFinalRegions <- function(region_file, bam_file_path, min_carriers = 2,
                     paste(region_anno$Start, region_anno$End, sep = "-"),
                     sep = ":")
     rownames(region_anno) <- rnames
-    count <- Rsubread::featureCounts(bam_files, annot.ext = region_anno,
-                                     nthreads = 8, verbose = verbose)
+    if (verbose == FALSE) {
+        dummy <- capture.output(
+            count <- Rsubread::featureCounts(bam_files, annot.ext = region_anno)
+            )
+    }
+    else {count <- Rsubread::featureCounts(bam_files, annot.ext = region_anno)}
     countmat <- count$counts
     rownames(countmat) <- rnames
     countmat <- countmat[, sort(colnames(countmat))]
