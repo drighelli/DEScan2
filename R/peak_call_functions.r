@@ -40,10 +40,10 @@
 # bam.path <- "testData/bams"
 # bam.files <- list.files(bam.path, full.names = TRUE)
 #
-# files; filetype="bam"; chr=1:19; fragmentLength=200;
+# filetype="bam"; chr=1:19; fragmentLength=200;
 # readLength=100;  minBin=50; minWin=1; maxWin=20;
 # blocksize=10000; zthresh=5; minCount=0.1;
-# outputName="Peaks"; save=TRUE; verbose=FALSE
+# outputName="Peaks"; save=FALSE; verbose=TRUE
 
 findPeaks <- function(files, filetype="bam", chr=1:19, fragmentLength=200,
                       readLength=100,  minBin=50, minWin=1, maxWin=20,
@@ -62,10 +62,10 @@ findPeaks <- function(files, filetype="bam", chr=1:19, fragmentLength=200,
             }
 
             if (filetype == "bam") {
-                bed <- readBamAsBed(file, chr)
+                bed <- readBamAsBed(file=file, chr=chr)
             }
             if (filetype == "bed") {
-                bed <- readBedFile(file=file, chr=chr)
+                bed <- readBedFile(filename=file, chr=chr)
             }
 
             # grid=vector of integers describing the start
@@ -110,27 +110,33 @@ findPeaks <- function(files, filetype="bam", chr=1:19, fragmentLength=200,
                 }
                 ## cmat=coverage matrix with bins as rows and window sizes as
                 ## columns
-                cmat <- window_coverage(Fr=fr, Rr=rr, grid=grid0, fragmentLength=fragmentLength,
-                                      readLength=readLength, maxWin=maxWin,
-                                      minWin=minWin, verbose=FALSE)
+                cmat <- window_coverage(Fr=fr, Rr=rr, grid=grid0,
+                                        fragmentLength=fragmentLength,
+                                        readLength=readLength, maxWin=maxWin,
+                                        minWin=minWin, verbose=FALSE) ############### reinventing wheel?
 
                 # Get lambdalocal.
 
                 # compute coverage using a 5kb window
                 headstart <- ceiling(5000 / gsize) * gsize
-                grid05k <- c(seq(grid0[1] - headstart, grid0[1], by=gsize), grid0)
+                grid05k <- c(seq(grid0[1] - headstart,
+                                 grid0[1], by=gsize), grid0)
                 offset5k <- length(grid05k) - length(grid0)
-                c5k <- window_coverage(fr, rr, grid05k, fragmentLength=fragmentLength,
-                                     readLength=readLength, maxWin=5000, minWin=5000,
-                                     verbose=FALSE)
+                c5k <- window_coverage(fr, rr, grid05k,
+                                       fragmentLength=fragmentLength,
+                                       readLength=readLength,
+                                       maxWin=5000, minWin=5000, verbose=FALSE) ############### reinventing wheel?
+
                 # compute coverage using a 10kb window
                 headstart <- ceiling(10000 / gsize) * gsize
                 grid010k <- c(seq(grid0[1] - headstart, grid0[1], by=gsize),
-                            grid0)
+                              grid0)
                 offset10k <- length(grid010k) - length(grid0)
-                c10k <- window_coverage(fr, rr, grid010k, fragmentLength=fragmentLength,
-                                      readLength=readLength, maxWin=10000,
-                                      minWin=10000, verbose=FALSE)
+                c10k <- window_coverage(fr, rr, grid010k,
+                                        fragmentLength=fragmentLength,
+                                        readLength=readLength, maxWin=10000,
+                                        minWin=10000, verbose=FALSE) ############### reinventing wheel?
+
                 # determine lambda for 5k, 10k windows and baseline
                 lamloc <- matrix(nrow=nrow(cmat), ncol=ncol(cmat), data=0)
                 lam5k <- matrix(nrow=nrow(cmat), ncol=ncol(cmat), data=0)
@@ -140,6 +146,7 @@ findPeaks <- function(files, filetype="bam", chr=1:19, fragmentLength=200,
                     lam5k[, win - minWin + 1] <- c5k[offset5k +
                                                 c(1:length(grid0)) -
                                                 floor(win / 2)] * win / 5000
+
                     lam10k[, win - minWin + 1] <- c10k[offset10k +
                                                  c(1:length(grid0)) -
                                                  floor(win / 2)] * win / 10000
@@ -153,7 +160,7 @@ findPeaks <- function(files, filetype="bam", chr=1:19, fragmentLength=200,
 
                 ## find high z scores keeping one with no intersecting other
                 ## bin/windows
-                new_s <- get_disjoint_maxWin(z0=z[1:blocksize_i, ],
+                new_s <- get_disjoint_max_win(z0=z[1:blocksize_i, ],
                                               sigwin=fragmentLength / gsize, nmax=Inf,
                                               zthresh=zthresh, two_sided=FALSE,
                                               verbose=FALSE)
@@ -213,7 +220,8 @@ findPeaks <- function(files, filetype="bam", chr=1:19, fragmentLength=200,
 #' @keywords internal
 makeGrid <- function(bed, fragmentLength, readLength,
                      minBin=10, minRds=0,
-                     gridStart=NA, gridEnd=NA) {
+                     gridStart=NA, gridEnd=NA,
+                     verbose=FALSE) {
 
     fr <- bed@ranges@start[which(bed@strand=="+")]
     rr <- bed@ranges@start[which(bed@strand=="-")]
@@ -297,23 +305,25 @@ makeGrid <- function(bed, fragmentLength, readLength,
 #' @param verbose
 #' @return cmat.
 #' @keywords internal
-window_coverage <- function(Fr, Rr, grid, fraglen=200, rlen=100,
-                            min_win=1, max_win=100, verbose=TRUE) {
+#'
+#'
+window_coverage <- function(Fr, Rr, grid, fragmentLength=200, readLength=100,
+                            minWin=1, maxWin=100, verbose=TRUE) {
         grid_st <- min(grid)
         ## Assume even grid. ! only if min_rds=0
         bin_size <- grid[2] - grid[1]
         ## the number of bins covered by each fragment
-        fragbins <- fraglen / bin_size
+        fragbins <- fragmentLength / bin_size
         ngrid <- length(grid)
 
         ## initialize fragment count matrices for forward and reverse reads
-        ffragctmat <- matrix(nrow=length(grid), ncol=max_win - min_win + 1,
+        ffragctmat <- matrix(nrow=length(grid), ncol=maxWin - minWin + 1,
                                                  data=0)
-        rfragctmat <- matrix(nrow=length(grid), ncol=max_win - min_win + 1,
+        rfragctmat <- matrix(nrow=length(grid), ncol=maxWin - minWin + 1,
                                                  data=0)
 
         ## index forward reads within the current grid
-        forward_index <- which(Fr > grid[1] - fraglen & Fr < grid[length(grid)])
+        forward_index <- which(Fr > grid[1] - fragmentLength & Fr < grid[length(grid)])
 
         ## for each forward read within the given grid convert the base position
         ## to bin and add +1 count to the fragment count matrix (bins as rows,
@@ -327,17 +337,17 @@ window_coverage <- function(Fr, Rr, grid, fraglen=200, rlen=100,
                 fragst <- Fr[forward_index[i]]    # start of fragment
                 # which bin contains start of fragment
                 binst <- floor((fragst - grid_st) / bin_size) + 1
-                for (j in min_win:max_win) {
+                for (j in minWin:maxWin) {
                     # lower limit adj by current window size
                     st <- max(binst - j + 1, 1)
                     ed <- min(binst + fragbins - 1, ngrid) # upper limit
-                    ffragctmat[st:ed, j - min_win + 1] <- ffragctmat[st:ed, j -
-                                                                min_win + 1] + 1
+                    ffragctmat[st:ed, j - minWin + 1] <- ffragctmat[st:ed, j -
+                                                                minWin + 1] + 1
                 }
             }
         }
 
-        reverse_index <- which(Rr > grid[1] - rlen & (Rr + rlen - fraglen) <
+        reverse_index <- which(Rr > grid[1] - readLength & (Rr + readLength - fragmentLength) <
                                  grid[length(grid)])
 
         if (length(reverse_index) > 0) {
@@ -346,14 +356,14 @@ window_coverage <- function(Fr, Rr, grid, fraglen=200, rlen=100,
                     cat("Reverse reads: ", i, "out of", length(reverse_index), "\n") ## use message instead
                 }
                 ## start of fragment
-                fragst <- Rr[reverse_index[i]] + rlen - fraglen
+                fragst <- Rr[reverse_index[i]] + readLength - fragmentLength
                 ## bin containing start of fragment
                 binst <- floor((fragst - grid_st) / bin_size) + 1
-                for (j in min_win:max_win) {
+                for (j in minWin:maxWin) {
                     st <- max(binst - j + 1, 1)
                     ed <- min(binst + fragbins - 1, ngrid)
-                    rfragctmat[st:ed, j - min_win + 1] <- rfragctmat[st:ed, j -
-                                                                min_win + 1] + 1
+                    rfragctmat[st:ed, j - minWin + 1] <- rfragctmat[st:ed, j -
+                                                                minWin + 1] + 1
                 }
             }
         }
@@ -452,7 +462,7 @@ readBamAsBed <- function(file, chr) {
 readBedFile <- function(filename, chr) {
 
     if (tools::file_ext(filename) == "zip") {
-        tmp <- unzip(filename, list=T)$Name
+        tmp <- utils::unzip(filename, list=T)$Name
         file <- unz(filename, tmp)
     } else {
         file <- filename
@@ -470,6 +480,4 @@ readBedFile <- function(filename, chr) {
                    strand=bed@strand)
     return(bed)
 }
-
-
 

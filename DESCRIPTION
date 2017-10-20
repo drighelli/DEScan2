@@ -22,6 +22,7 @@ Imports:
     IRanges,
     GenomicAlignments,
     Rsubread,
+    rtracklayer,
     utils
 RoxygenNote: 6.0.1
 Suggests: BiocStyle, knitr, rmarkdown

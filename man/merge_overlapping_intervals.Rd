@@ -4,7 +4,7 @@
 \alias{merge_overlapping_intervals}
 \title{merge overlapping peaks across replicates.}
 \usage{
-merge_overlapping_intervals(s)
+merge_overlapping_intervals(s, verbose)
 }
 \value{
 s2.
@@ -13,4 +13,3 @@ s2.
 merge overlapping peaks across replicates.
 }
 \keyword{internal}
-

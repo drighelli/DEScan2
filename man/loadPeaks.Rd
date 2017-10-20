@@ -4,7 +4,7 @@
 \alias{loadPeaks}
 \title{load peak files.}
 \usage{
-loadPeaks(peakdirname)
+loadPeaks(peakdirname, verbose = verbose)
 }
 \value{
 sall.
@@ -13,4 +13,3 @@ sall.
 load peak files.
 }
 \keyword{internal}
-

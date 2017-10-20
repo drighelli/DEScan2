@@ -4,19 +4,21 @@
 \alias{countFinalRegions}
 \title{count reads falling within the final regions.}
 \usage{
-countFinalRegions(regions, bam_file_path, min_carriers = 2)
+countFinalRegions(region_file, bam_file_path, min_carriers = 2,
+  verbose = TRUE)
 }
 \arguments{
-\item{regions}{regions of interest to count reads across.}
+\item{region_file}{path to regions of interest to count reads across.}
 
 \item{bam_file_path}{path to bam files to be used for read counting.}
 
-\item{min_carriers}{integer indicating minumum number of replicates a region must appear in to be utilized for count matrix construction.}
+\item{min_carriers}{integer indicating minumum number of replicates a region
+must appear in to be utilized for count matrix construction.}
 }
 \value{
-Matrix containing read counts with regions as rows and samples as columns.
+Matrix containing read counts with regions as rows and samples as
+    columns.
 }
 \description{
 count reads falling within the final regions.
 }
-

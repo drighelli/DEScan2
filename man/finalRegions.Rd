@@ -2,28 +2,34 @@
 % Please edit documentation in R/final_region_functions.R
 \name{finalRegions}
 \alias{finalRegions}
-\title{Align peaks to form common regions then filter regions for presence in multiple replicates}
+\title{Align peaks to form common regions then filter regions for presence in
+multiple replicates}
 \usage{
-finalRegions(peak_path, zthresh = 30, min_carriers = 2, chromosome = 1:19,
-  savefile = FALSE, keep_files = TRUE)
+finalRegions(peak_path, zthresh = 20, min_carriers = 2, chr = 1:19,
+  save_file = "bed", keep_files = FALSE, verbose = FALSE)
 }
 \arguments{
 \item{peak_path}{Path to peak files.}
 
 \item{zthresh}{Integer indicating minimum z-score considered significant}
 
-\item{min_carriers}{Integer indiciating the minimum number of replicates a region must be present in to be retained for testing}
+\item{min_carriers}{Integer indiciating the minimum number of replicates a
+region must be present in to be retained for testing}
 
-\item{chromosome}{Integer indicating which chromsomes to align. Defaults to all chromosomes.}
+\item{save_file}{Character indicating whether to save region files in the
+"bed" or "RData" format. Default is "bed".}
 
-\item{savefile}{Character indicating whether to save region files in the "bed" or "RData" format.}
+\item{keep_files}{Logical indicating whether to erase chromosome files after
+concatenating into a genome wide file.}
 
-\item{keep_files}{Logical indicating whether to erase chromosome files after concatenating into a genome wide file.}
+\item{chromosome}{Integer indicating which chromsomes to align. Defaults to
+all chromosomes.}
 }
 \value{
-Matrix containing the regions as rows with columns for genomic coordinates, z-score and number of carriers.
+Matrix containing the regions as rows with columns for genomic
+    coordinates, z-score and number of carriers.
 }
 \description{
-Align peaks to form common regions then filter regions for presence in multiple replicates
+Align peaks to form common regions then filter regions for presence in
+multiple replicates
 }
-

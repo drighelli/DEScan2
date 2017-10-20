@@ -2,7 +2,8 @@
 % Please edit documentation in R/final_region_functions.R
 \name{catRegions}
 \alias{catRegions}
-\title{concatenate region files from various chromosomes into a genome wide region file.}
+\title{concatenate region files from various chromosomes into a genome
+wide region file.}
 \usage{
 catRegions(path = "FinalRegions", type = "RData", keep_files = TRUE)
 }
@@ -10,7 +11,7 @@ catRegions(path = "FinalRegions", type = "RData", keep_files = TRUE)
 c.
 }
 \description{
-concatenate region files from various chromosomes into a genome wide region file.
+concatenate region files from various chromosomes into a genome
+wide region file.
 }
 \keyword{internal}
-
