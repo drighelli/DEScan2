@@ -3,6 +3,7 @@
 export(countFinalRegions)
 export(finalRegions)
 export(findPeaks)
+export(findPeaksOld)
 import(GenomeInfoDb)
 import(GenomicAlignments)
 import(GenomicRanges)

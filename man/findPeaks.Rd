@@ -3,7 +3,8 @@
 \name{findPeaks}
 \alias{findPeaks}
 \title{This function calls peaks from bed or bam inputs using a variable window scan
-with a poisson model using the surrounding 10kb as background.}
+with a poisson model using the surrounding 10kb as background.
+files, filetype="bam", chr=1:19, fragmentLength=200,}
 \usage{
 findPeaks(files, filetype = "bam", chr = 1:19, fragmentLength = 200,
   readLength = 100, minBin = 50, minWin = 1, maxWin = 20,
@@ -19,33 +20,33 @@ file.}
 \item{chr}{An integer vector specifying which chromosomes to limit analysis
 to.}
 
+\item{fragmentLength}{Integer indicating the average DNA fragment length in bp.}
+
+\item{readLength}{Integer indicating the read lengths of experiment in bp.}
+
+\item{minBin}{Integer size in base pairs of the minimum window for scanning,
+50 is the default.}
+
+\item{minWin}{Integer indicating the minimum window size in units of 50 bp,
+i.e., min_win=2 resulting in a 100 bp window.}
+
+\item{maxWin}{Integer indicating the maximum allowed window size in units of
+50 bp.}
+
 \item{blocksize}{Integer indicating how much of the chromosome
 will be analyzed at a time in order to avoid memory issues.}
 
 \item{zthresh}{Cuttoff value for z-scores. Only windows with greater z-scores
 will be retained.}
 
-\item{save}{Boolean, if TRUE files will be saved in a "./Peaks/chr*"
-directory created (if not already present) in the current working directory.}
-
-\item{fraglen}{Integer indicating the average DNA fragment length in bp.}
-
-\item{rlen}{Integer indicating the read lengths of experiment in bp.}
-
-\item{min_win}{Integer indicating the minimum window size in units of 50 bp,
-i.e., min_win=2 resulting in a 100 bp window.}
-
-\item{min_bin}{Integer size in base pairs of the minimum window for scanning,
-50 is the default.}
-
-\item{max_win}{Integer indicating the maximum allowed window size in units of
-50 bp.}
-
-\item{min_count}{A small constant (usually no larger than one) to be added to
+\item{minCount}{A small constant (usually no larger than one) to be added to
 the counts prior to the log transformation to avoid problems with log(0).}
 
-\item{output_name}{A string, Name of the folder to save the Peaks (optional),
+\item{outputName}{A string, Name of the folder to save the Peaks (optional),
 if the directory doesn't exist, it will be created. default is "Peaks"}
+
+\item{save}{Boolean, if TRUE files will be saved in a "./Peaks/chr*"
+directory created (if not already present) in the current working directory.}
 }
 \value{
 a matrix with peaks as rows and 4 columns describing the genomic
@@ -54,6 +55,7 @@ coordinates (chr, start, end) as well as the associated z-score.
 \description{
 This function calls peaks from bed or bam inputs using a variable window scan
 with a poisson model using the surrounding 10kb as background.
+files, filetype="bam", chr=1:19, fragmentLength=200,
 }
 \examples{
 bam <- system.file("extdata", "test.bam", package="DEScan")
