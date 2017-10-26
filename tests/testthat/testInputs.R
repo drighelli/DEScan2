@@ -1,3 +1,5 @@
+library("DEScan")
+context("Input reading")
 test_that("Loading same data bed and bam file produces the same object", {
     bed.path <- system.file("extdata/Bed/", package = "DEScan")
     bed.files <- list.files(bed.path, full.names = TRUE)

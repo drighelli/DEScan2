@@ -1,38 +1,5 @@
-#' This function calls peaks from bed or bam inputs using a variable window scan
-#' with a poisson model using the surrounding 10kb as background.
-#'
-#' @param files Character vector containing paths of files to be analyzed.
-#' @param filetype Character, either "bam" or "bed" indicating format of input
-#' file.
-#' @param chr An integer vector specifying which chromosomes to limit analysis
-#' to.
-#' @param fraglen Integer indicating the average DNA fragment length in bp.
-#' @param rlen Integer indicating the read lengths of experiment in bp.
-#' @param min_win Integer indicating the minimum window size in units of 50 bp,
-#' i.e., min_win = 2 resulting in a 100 bp window.
-#'
-#' @param min_bin Integer size in base pairs of the minimum window for scanning, 50 is the default.
-#' @param max_win Integer indicating the maximum allowed window size in units of
-#'  50 bp.
-#' @param blocksize Integer indicating how much of the chromosome
-#' will be analyzed at a time in order to avoid memory issues.
-#' @param zthresh Cuttoff value for z-scores. Only windows with greater z-scores
-#'  will be retained.
-#' @param min_count A small constant (usually no larger than one) to be added to
-#' the counts prior to the log transformation to avoid problems with log(0).
-#' @param output_name A string, Name of the folder to save the Peaks (optional), if the directory
-#' doesn't exist, it will be created. default is "Peaks"
-#' @param save Boolean, if TRUE files will be saved in a "./Peaks/chr*"
-#' directory created (if not already present) in the current working directory.
-#' @return a matrix with peaks as rows and 4 columns describing the genomic
-#' coordinates (chr, start, end) as well as the associated z-score.
-#' @export
-#' @importFrom utils read.table write.table
-#' @examples
-#' bam <- system.file("extdata", "test.bam", package = "DEScan")
-#' peaks <- findPeaks(bam, chr = 1, filetype = "bam")
-#' head(peaks)
-findPeaksOld <- function(files, filetype = "bam", chr = 1:19, fraglen = 200,
+
+find_Peaks_Old <- function(files, filetype = "bam", chr = 1:19, fraglen = 200,
                       rlen = 100, min_bin = 50, min_win = 1, max_win = 20, blocksize = 10000,
                       zthresh = 5, min_count = 0.1, output_name = "Peaks", save = TRUE, verbose = FALSE) {
     for (file in files) {
@@ -89,7 +56,7 @@ findPeaksOld <- function(files, filetype = "bam", chr = 1:19, fraglen = 200,
                 cat("\tComputing coverage stats...\n")
             }
             # cmat = coverage matrix with bins as rows and window sizes as columns
-            cmat <- window_coverage(Fr = fr, Rr = rr, grid = grid0, fraglen = fraglen,
+            cmat <- window_coverage_old(Fr = fr, Rr = rr, grid = grid0, fraglen = fraglen,
                                     rlen = rlen, max_win = max_win, min_win = min_win,
                                     verbose = FALSE)
 
@@ -99,13 +66,13 @@ findPeaksOld <- function(files, filetype = "bam", chr = 1:19, fraglen = 200,
             headstart <- ceiling(5000 / gsize) * gsize
             grid05k <- c(seq(grid0[1] - headstart, grid0[1], by = gsize), grid0)
             offset5k <- length(grid05k) - length(grid0)
-            c5k <- window_coverage(fr, rr, grid05k, fraglen = fraglen, rlen = rlen,
+            c5k <- window_coverage_old(fr, rr, grid05k, fraglen = fraglen, rlen = rlen,
                                    max_win = 5000, min_win = 5000, verbose = FALSE)
             # compute coverage using a 10kb window
             headstart <- ceiling(10000 / gsize) * gsize
             grid010k <- c(seq(grid0[1] - headstart, grid0[1], by = gsize), grid0)
             offset10k <- length(grid010k) - length(grid0)
-            c10k <- window_coverage(fr, rr, grid010k, fraglen = fraglen,
+            c10k <- window_coverage_old(fr, rr, grid010k, fraglen = fraglen,
                                     rlen = rlen, max_win = 10000,
                                     min_win = 10000, verbose = FALSE)
             # determine lambda for 5k, 10k windows and baseline
@@ -126,7 +93,7 @@ findPeaksOld <- function(files, filetype = "bam", chr = 1:19, fraglen = 200,
                 sqrt(cmat * log(pmax(cmat, min_count) / lamloc) - (cmat - lamloc))
 
             # find high z scores keeping one with no intersecting other bin/windows
-            new_s <- get_disjoint_max_win(z0 = z[1:blocksize_i, ],
+            new_s <- get_disjoint_max_win_old(z0 = z[1:blocksize_i, ],
                                           sigwin = fraglen / gsize, nmax = Inf,
                                           zthresh = zthresh, two_sided = FALSE,
                                           verbose = FALSE)
@@ -183,7 +150,7 @@ findPeaksOld <- function(files, filetype = "bam", chr = 1:19, fraglen = 200,
 #' @return grid.
 #' @keywords internal
 make_grid <- function(bed, fraglen, rlen, min_bin = 10, min_rds = 0,
-                      grid_st = NA, grid_ed = NA) {
+                      grid_st = NA, grid_ed = NA, verbose=FALSE) {
     fr <- sort(bed[which(bed[, 4] == "+"), 2])
     rr <- sort(bed[which(bed[, 4] == "-"), 2])
 
@@ -259,7 +226,7 @@ make_grid <- function(bed, fraglen, rlen, min_bin = 10, min_rds = 0,
 #' @param verbose
 #' @return cmat.
 #' @keywords internal
-window_coverage <- function(Fr, Rr, grid, fraglen = 200, rlen = 100,
+window_coverage_old <- function(Fr, Rr, grid, fraglen = 200, rlen = 100,
                             min_win = 1, max_win = 100,
                             verbose = TRUE) {
     grid_st <- min(grid)
@@ -329,7 +296,7 @@ window_coverage <- function(Fr, Rr, grid, fraglen = 200, rlen = 100,
 #' @param verbose
 #' @return s.
 #' @keywords internal
-get_disjoint_max_win <- function(z0, sigwin = 20, nmax = Inf,
+get_disjoint_max_win_old <- function(z0, sigwin = 20, nmax = Inf,
                                  zthresh = -Inf, two_sided = FALSE,
                                  verbose = TRUE) {
     s <- matrix(ncol = 3, nrow = 0)
@@ -384,6 +351,6 @@ read_bam <- function(file, chr) {
                                              param = param, use.names = FALSE)
     bed <- as.data.frame(ga)[, c("seqnames", "start", "end" ,"strand")]
     bed <- droplevels.data.frame(bed)
-    bed$start <- bed$start - 1 #1-based indexing used instead of 0-based
+    # bed$start <- bed$start - 1 #1-based indexing used instead of 0-based
     bed
 }
