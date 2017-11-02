@@ -12,12 +12,7 @@ readBamAsBed <- function(file) {
     message("processing ", filename)
     ga <- GenomicAlignments::readGAlignments(file, index=file)
     gr <- GenomicRanges::granges(x = ga)
-    # gr <- gr[which( as.vector(gr@seqnames) %in% chr),]
 
-    # if(length(gr) == 0) {
-    #     stop( file, " bam file doesn't contain ",
-    #           chr, " chromosome(s).\nExiting." )
-    # }
     return(gr)
 }
 
@@ -40,15 +35,7 @@ readBedFile <- function(filename) {
     }
 
     bed <- rtracklayer::import.bed(con = file)
-    # bed <- bed[which( as.vector(bed@seqnames) %in% chr), ]
-    # if(length(bed) == 0) {
-    #     stop( filename, " bed file doesn't contain ",
-    #           chr, " chromosome(s).\nExiting." )
-    # }
-#
-#     bed <- GRanges(seqnames=bed@seqnames,
-#                    ranges=bed@ranges,
-#                    strand=bed@strand)
+
     return(bed)
 }
 
