@@ -35,17 +35,21 @@ readBedFile <- function(filename) {
     }
 
     bed <- rtracklayer::import.bed(con = file)
-
+    bed <- GRanges(seqnames=bed@seqnames,
+                   ranges=bed@ranges,
+                   strand=bed@strand)
     return(bed)
 }
 
 
 
-#' Constructs a GRanges object from a bam/bed file
+#' Constructs a GRanges object from a bam/bed file in a consistent way
 #'
 #' @param filename the complete file path of a bam?bed file
 #' @param filetype the file type bam/bed
 #' @param genomeName the name of the genome used to map the reads (i.e. mm9)
+#'                   N.B. if NOT NULL the GRanges Seqinfo will be forced to
+#'                   genomeName Seqinfo
 #'
 #' @return bedRanges a GRanges object
 #' @export
@@ -58,35 +62,42 @@ constructBedRanges <- function(filename
     filetype <- match.arg(filetype)
 
     if(filetype == "bam") {
-        bedRanges <- readBamAsBed(filename)
+        bedGRanges <- readBamAsBed(filename)
     } else {
-        bedRanges <- readBedFile(filename)
+        bedGRanges <- readBedFile(filename)
     }
-    # checking bed seqnames, useful in peak calling algorithm
-    if( sum(is.na(seqinfo(bedRanges)@seqlengths)) > 0 )
-    {
-        message("No seqlengths present in file ", filename)
-        if( !is.null(genomeName) )
-        {
-            genomeInfo <- Seqinfo(genome=genomeName)
-            ## insert also the possibility to download the seqinfo on request
-            seqNamesIdx <- which(genomeInfo@seqnames %in%
-                                     seqinfo(bedRanges)@seqnames)
-            if(length(seqNamesIdx) != 0)
-            {
-                bedRanges@seqinfo <-genomeInfo[genomeInfo@seqnames[seqNamesIdx]]
-            }
-            else
-            {
-                bedRanges@seqinfo <- genomeInfo
-            }
 
+    uniqueSeqnames <- droplevels(unique(bedGRanges@seqnames))
+
+    if( !is.null(genomeName) )
+    {
+
+        message("Taking seqlengths from genome ", genomeName)
+        genomeInfo <- Seqinfo(genome=genomeName)
+        seqNamesIdx <- which(genomeInfo@seqnames %in% uniqueSeqnames)
+        if(length(seqNamesIdx) != 0)
+        {
+            bedGRanges@seqinfo<-genomeInfo[genomeInfo@seqnames[seqNamesIdx]]
         }
         else
         {
-            stop("Please provide a genomeName in order to setup the GRanges!")
+            stop("Cannot find the ", uniqueSeqnames, " in genome ", genomeName)
         }
+        return(bedGRanges)
     }
 
-    return(bedRanges)
+    # checking bed seqnames, useful in peak calling algorithm
+    if( (sum(is.na(seqinfo(bedGRanges)@seqlengths)) > 0) ||
+        (length(seqinfo(bedGRanges)@seqnames) == 0 ))
+    {
+        stop("No seqlengths present in file ", filename,
+             "\nPlease provide the correct genomeName to setup the GRanges!")
+    }
+    else if(length(uniqueSeqnames) < length(seqinfo(bedGRanges)@seqnames))
+    {
+        message("Keeping just necessary seqInfos")
+        bedGRanges@seqinfo <- bedGRanges@seqinfo[as.character(uniqueSeqnames)]
+    }
+
+    return(bedGRanges)
 }
