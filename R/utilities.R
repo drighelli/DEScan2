@@ -1,7 +1,6 @@
 #' read a bam file into a bed like format.
 #'
 #' @param file Character indicating path to bam file.
-#' @param chr Integer indicating which chromosome to read in.
 #' @return GenomicRanges object.
 #' @keywords internal
 #' @import GenomicRanges
@@ -9,15 +8,16 @@
 #' @import GenomeInfoDb
 #' @import GenomicAlignments
 #' @import IRanges
-readBamAsBed <- function(file, chr) {
+readBamAsBed <- function(file) {
+    message("processing ", filename)
     ga <- GenomicAlignments::readGAlignments(file, index=file)
     gr <- GenomicRanges::granges(x = ga)
-    gr <- gr[which( as.vector(gr@seqnames) %in% chr),]
+    # gr <- gr[which( as.vector(gr@seqnames) %in% chr),]
 
-    if(length(gr) == 0) {
-        stop( file, " bam file doesn't contain ",
-              chr, " chromosome(s).\nExiting." )
-    }
+    # if(length(gr) == 0) {
+    #     stop( file, " bam file doesn't contain ",
+    #           chr, " chromosome(s).\nExiting." )
+    # }
     return(gr)
 }
 
@@ -25,14 +25,13 @@ readBamAsBed <- function(file, chr) {
 #' read a bed file into a GenomicRanges like format.
 #'
 #' @param file Character indicating path to bam file.
-#' @param chr Integer indicating which chromosome(s) to read in.
 #' @return GenomicRanges object
 #' @keywords internal
 #' @import tools
 #' @import GenomicRanges
 #' @import rtracklayer
-readBedFile <- function(filename, chr) {
-
+readBedFile <- function(filename) {
+    message("processing ", filename)
     if (tools::file_ext(filename) == "zip") {
         tmp <- utils::unzip(filename, list=T)$Name
         file <- unz(filename, tmp)
@@ -41,14 +40,66 @@ readBedFile <- function(filename, chr) {
     }
 
     bed <- rtracklayer::import.bed(con = file)
-    bed <- bed[which( as.vector(bed@seqnames) %in% chr), ]
-    if(length(bed) == 0) {
-        stop( filename, " bed file doesn't contain ",
-              chr, " chromosome(s).\nExiting." )
+    # bed <- bed[which( as.vector(bed@seqnames) %in% chr), ]
+    # if(length(bed) == 0) {
+    #     stop( filename, " bed file doesn't contain ",
+    #           chr, " chromosome(s).\nExiting." )
+    # }
+#
+#     bed <- GRanges(seqnames=bed@seqnames,
+#                    ranges=bed@ranges,
+#                    strand=bed@strand)
+    return(bed)
+}
+
+
+
+#' Constructs a GRanges object from a bam/bed file
+#'
+#' @param filename the complete file path of a bam?bed file
+#' @param filetype the file type bam/bed
+#' @param genomeName the name of the genome used to map the reads (i.e. mm9)
+#'
+#' @return bedRanges a GRanges object
+#' @export
+#'
+#' @examples
+constructBedRanges <- function(filename
+                               , filetype=c("bam", "bed")
+                               , genomeName=NULL)
+{
+    filetype <- match.arg(filetype)
+
+    if(filetype == "bam") {
+        bedRanges <- readBamAsBed(filename)
+    } else {
+        bedRanges <- readBedFile(filename)
+    }
+    # checking bed seqnames, useful in peak calling algorithm
+    if( sum(is.na(seqinfo(bedRanges)@seqlengths)) > 0 )
+    {
+        message("No seqlengths present in file ", filename)
+        if( !is.null(genomeName) )
+        {
+            genomeInfo <- Seqinfo(genome=genomeName)
+            ## insert also the possibility to download the seqinfo on request
+            seqNamesIdx <- which(genomeInfo@seqnames %in%
+                                     seqinfo(bedRanges)@seqnames)
+            if(length(seqNamesIdx) != 0)
+            {
+                bedRanges@seqinfo <-genomeInfo[genomeInfo@seqnames[seqNamesIdx]]
+            }
+            else
+            {
+                bedRanges@seqinfo <- genomeInfo
+            }
+
+        }
+        else
+        {
+            stop("Please provide a genomeName in order to setup the GRanges!")
+        }
     }
 
-    bed <- GRanges(seqnames=bed@seqnames,
-                   ranges=bed@ranges,
-                   strand=bed@strand)
-    return(bed)
+    return(bedRanges)
 }
