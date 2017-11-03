@@ -625,7 +625,6 @@ oddRunSum<-function(x, k, endrule = c("drop", "constant"), na.rm = FALSE)
     # k <- normargRunK(k = k, n = n, endrule = endrule)
     ans <- S4Vectors::.Call2("Rle_runsum", x, as.integer(k), as.logical(na.rm),
                              PACKAGE="S4Vectors")
-    ans
     if (endrule == "constant") {
         j <- (k + 1L) %/% 2L
 
