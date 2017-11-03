@@ -252,9 +252,16 @@ computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=1,
     ## computing coverage per each bin on chromosome
     message("Computing coverage on Chromosome ", chrBedGRanges@seqinfo@seqnames,
             " binned by ", binWidth, " bin dimension")
-    binnedCovChr <- binnedSum(bins=binnedChromosome,
-                              numvar=chrCoverage,
-                              mcolname="bin_cov")
+    # binnedCovChr <- binnedSum(bins=binnedChromosome,
+    #                           numvar=chrCoverage,
+    #                           mcolname="bin_cov")
+    binnedCovChr <- binnedSumOnly(bins=binnedChromosome,
+                                    numvar=chrCoverage,
+                                    mcolname="bin_cov")
+
+    # ## coercing coverage to Rle
+    # chrCovRle <- as(binnedCovChr$bin_cov,"Rle")
+
 
     ## computing bin in base ranges to add as rownames
     endBinRanges <- seq(from=binWidth-1,
@@ -270,8 +277,7 @@ computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=1,
     ## computing the start of regions
     startBinRanges <- endBinRanges-(binWidth-1)
 
-    ## coercing coverage to Rle
-    chrCovRle <- as(binnedCovChr$bin_cov,"Rle")
+
 
     # runWinRleList <- RleList()
     for(win in minWinWidth:maxWinWidth) {
@@ -581,7 +587,7 @@ get_disjoint_max_win <- function(z0, sigwin=20, nmax=Inf,
 
 
 #' Title
-#'
+#' http://crazyhottommy.blogspot.com/2016/02/compute-averagessums-on-granges-or.html
 #' @param bins
 #' @param numvar
 #' @param mcolname
@@ -604,7 +610,26 @@ binnedSum <- function(bins, numvar, mcolname)
                         })
     new_mcol <- unsplit(sums_list, as.factor(seqnames(bins)))
     mcols(bins)[[mcolname]] <- new_mcol
-    bins
+
+    return(bins)
+}
+
+#' Title
+#'
+#' @param bins
+#' @param numvar
+#' @param mcolname
+#'
+#' @return
+#' @export
+#'
+#' @examples
+binnedSumOnly <- function(bins, numvar, mcolname)
+{
+    binsGRanges <- binnedSum(bins=bins, numvar=numvar, mcolname=mcolname)
+    ## coercing just the binned coverage to Rle
+    chrCovRle <- as(mcols(binsGRanges)[[mcolname]],"Rle")
+    return(chrCovRle)
 }
 
 #' Title
