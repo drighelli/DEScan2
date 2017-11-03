@@ -34,16 +34,20 @@
 #' head(peaks)
 
 #### ONLY FOR SELF TEST
-# bed.path <- 'testData/Bed/chr19'
-# bed.files <- list.files(bed.path, full.names = TRUE)
-# bam.path <- "testData/bams"
-# bam.files <- list.files(bam.path, full.names = TRUE)
+#bed.path <- 'testData/Bed/chr19'
+#bed.files <- list.files(bed.path, full.names = TRUE)
+#bam.path <- "testData/bams"
+#bam.files <- list.files(bam.path, full.names = TRUE)
 #
-# filetype="bam"; chr=19; fragmentLength=200;
-# readLength=100;  binSize=50; minWin=1; maxWin=20;
+#filetype="bam";
+# chr=19; fragmentLength=200;
+# readLength=100;
+#binSize=50;
+#minWin=1; maxWin=20;
 # blocksize=10000; zthresh=5; minCount=0.1;
 # outputName="Peaks"; save=FALSE; verbose=TRUE
-# file <- bam.files[1]
+#file <- bam.files[1]
+#genomeName=NULL
 findPeaks <- function(files, filetype="bam", chr=1:19,
                       genomeName=NULL, fragmentLength=200,
                       readLength=100,  binSize=50, minWin=1, maxWin=20,
@@ -266,15 +270,13 @@ computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=1,
     ## computing the start of regions
     startBinRanges <- endBinRanges-(binWidth-1)
 
-
-
     ## coercing coverage to Rle
     chrCovRle <- as(binnedCovChr$bin_cov,"Rle")
 
-    runWinRleList <- RleList()
+    # runWinRleList <- RleList()
     for(win in minWinWidth:maxWinWidth) {
         message("Running window ", win, " of ", maxWinWidth)
-        runWinRleList[[win]] <- oddRunSum(chrCovRle, k=win, endrule="constant")
+        runWinRle <- oddRunSum(chrCovRle, k=win, endrule="constant")
 
         # maxRuns <- max(maxRuns, sum(runLength(runwinRleList[[win]])) ) ##as control
         # message("maxRuns: ", maxRuns)
@@ -282,16 +284,16 @@ computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=1,
         ## chromosome bases divided by the binSize value as expected
         if(win == minWinWidth)
         {
-            rleBinCov <- DelayedArray::RleArray(runWinRleList[[win]],
-                                                dim=c(length(runWinRleList[[win]]), 1))
+            rleBinCov <- DelayedArray::RleArray(runWinRle,
+                                                dim=c(length(runWinRle), 1))
             rownames(rleBinCov) <- startBinRanges
 
         }
         else
         {
             rleBinCov <- cbind(rleBinCov,
-                               DelayedArray::RleArray(runWinRleList[[win]],
-                                                      dim=c(length(runWinRleList[[win]]), 1)))
+                               DelayedArray::RleArray(runWinRle,
+                                                dim=c(length(runWinRle), 1)))
         }
 
     }

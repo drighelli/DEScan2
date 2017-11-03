@@ -9,7 +9,7 @@
 #' @import GenomicAlignments
 #' @import IRanges
 readBamAsBed <- function(file) {
-    message("processing ", filename)
+    message("processing ", file)
     ga <- GenomicAlignments::readGAlignments(file, index=file)
     gr <- GenomicRanges::granges(x = ga)
 
@@ -55,16 +55,16 @@ readBedFile <- function(filename) {
 #' @export
 #'
 #' @examples
-constructBedRanges <- function(filename
-                               , filetype=c("bam", "bed")
-                               , genomeName=NULL)
+constructBedRanges <- function(filename,
+                               filetype=c("bam", "bed"),
+                               genomeName=NULL)
 {
     filetype <- match.arg(filetype)
 
     if(filetype == "bam") {
-        bedGRanges <- readBamAsBed(filename)
+        bedGRanges <- readBamAsBed(file=filename)
     } else {
-        bedGRanges <- readBedFile(filename)
+        bedGRanges <- readBedFile(filename=filename)
     }
 
     uniqueSeqnames <- droplevels(unique(bedGRanges@seqnames))
@@ -95,8 +95,9 @@ constructBedRanges <- function(filename
     }
     else if(length(uniqueSeqnames) < length(seqinfo(bedGRanges)@seqnames))
     {
-        message("Keeping just necessary seqInfos")
+        message("Keeping only necessary seqInfos")
         bedGRanges@seqinfo <- bedGRanges@seqinfo[as.character(uniqueSeqnames)]
+        bedGRanges@seqnames <- droplevels(bedGRanges@seqnames)
     }
 
     return(bedGRanges)
