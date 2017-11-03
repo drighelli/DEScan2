@@ -255,7 +255,7 @@ computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=1,
     # binnedCovChr <- binnedSum(bins=binnedChromosome,
     #                           numvar=chrCoverage,
     #                           mcolname="bin_cov")
-    binnedCovChr <- binnedSumOnly(bins=binnedChromosome,
+    chrCovRle <- binnedSumOnly(bins=binnedChromosome,
                                     numvar=chrCoverage,
                                     mcolname="bin_cov")
 
