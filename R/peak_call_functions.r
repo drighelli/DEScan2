@@ -34,40 +34,44 @@
 #' head(peaks)
 
 #### ONLY FOR SELF TEST
-#bed.path <- 'testData/Bed/chr19'
-#bed.files <- list.files(bed.path, full.names = TRUE)
-#bam.path <- "testData/bams"
-#bam.files <- list.files(bam.path, full.names = TRUE)
+# bed.path <- 'testData/Bed/chr19'
+# bed.files <- list.files(bed.path, full.names = TRUE)
+# bam.path <- "testData/bams"
+# bam.files <- list.files(bam.path, full.names = TRUE)
 #
-#filetype="bam";
-# chr=19; fragmentLength=200;
-# readLength=100;
-# binSize=50;
+# filetype="bam";
 # minWin=1; maxWin=20;
-# blocksize=10000; zthresh=5; minCount=0.1;
-# outputName="Peaks"; save=FALSE; verbose=TRUE
+# binSize=50;
 # file <- bam.files[1]
 # genomeName=NULL
-findPeaks <- function(files, filetype="bam", chr=1:19,
-                      genomeName=NULL, fragmentLength=200,
-                      readLength=100,  binSize=50, minWin=1, maxWin=20,
-                      blocksize=10000, zthresh=5, minCount=0.1,
-                      outputName="Peaks", save=TRUE, verbose=FALSE) {
+# minCompWinWidth=5000
+# maxCompWinWidth=10000
+#
+# # chr=19; fragmentLength=200;
+# # readLength=100;
+# # blocksize=10000; zthresh=5; minCount=0.1;
+# # outputName="Peaks"; save=FALSE; verbose=TRUE
+
+findPeaks <- function(files, filetype="bam",
+                      genomeName=NULL,
+                      binSize=50, minWin=1, maxWin=20,
+                      zthresh=5, minCount=0.1,
+                      minCompWinWidth=5000,
+                      maxCompWinWidth=10000,
+                      outputName="Peaks", save=TRUE, verbose=FALSE
+
+                      # chr=1:19,
+                      #  fragmentLength=200,
+                      # readLength=100,
+                      # blocksize=10000,
+                      ) {
 
         if(length(files) == 0) {
             stop("You have to provide one or more input files!\nExiting.")
         }
 
         for (file in files) {
-            # if ( !is.character(chr) ) {
-            #     chr <- paste0("chr", chr)
-            # }
-            # if (filetype == "bam") {
-            #     bed <- readBamAsBed(file=file)#, chr=chr)
-            # }
-            # if (filetype == "bed") {
-            #     bed <- readBedFile(filename=file)#, chr=chr)
-            # }
+
             bedGRanges <- constructBedRanges(filename=file, filetype=filetype,
                                              genomeName=genomeName)
 
@@ -77,38 +81,84 @@ findPeaks <- function(files, filetype="bam", chr=1:19,
                                                           maxWinWidth=maxWin,
                                                           binWidth=binSize)
 
-            chrRleListW5K <- computeCoverageMovingWindow(bedGRanges=bedGRanges,
-                                                          minWinWidth=5000,
-                                                          maxWinWidth=5000,
-                                                          binWidth=binSize)
+            chrRleListMINWComp <- computeCoverageMovingWindow(
+                                                    bedGRanges=bedGRanges,
+                                                    minWinWidth=minCompWinWidth,
+                                                    maxWinWidth=minCompWinWidth,
+                                                    binWidth=binSize)
 
-            chrRleListW10K <- computeCoverageMovingWindow(bedGRanges=bedGRanges,
-                                                         minWinWidth=10000,
-                                                         maxWinWidth=10000,
-                                                         binWidth=binSize)
+            chrRleListMAXWComp <- computeCoverageMovingWindow(
+                                                    bedGRanges=bedGRanges,
+                                                    minWinWidth=maxCompWinWidth,
+                                                    maxWinWidth=maxCompWinWidth,
+                                                    binWidth=binSize)
 
-            # Get lambdalocal.
 
-            # # compute coverage using a 5kb window
-            # headstart <- ceiling(5000 / gsize) * gsize
-            # grid05k <- c(seq(grid0[1] - headstart,
-            #                  grid0[1], by=gsize), grid0)
-            # offset5k <- length(grid05k) - length(grid0)
-            # c5k <- window_coverage(bed=bed, Fr=fr, Rr=rr, chr=chr, grid=grid05k,
-            #                        fragmentLength=fragmentLength,
-            #                        readLength=readLength,
-            #                        maxWin=5000, minWin=5000, verbose=FALSE)
-            #
-            # # compute coverage using a 10kb window
-            # headstart <- ceiling(10000 / gsize) * gsize
-            # grid010k <- c(seq(grid0[1] - headstart, grid0[1], by=gsize),
-            #               grid0)
-            # offset10k <- length(grid010k) - length(grid0)
-            # c10k <- window_coverage(bed=bed, Fr=fr, Rr=rr, grid=grid010k,
-            #                         fragmentLength=fragmentLength, chr=chr,
-            #                         readLength=readLength, maxWin=10000,
-            #                         minWin=10000, verbose=FALSE)
-            #
+            computeLambdasOnChr <- function(chrGRanges,
+                                            minChrRleWComp,
+                                            minCompWinWidth=5000,
+                                            maxChrRleWComp,
+                                            maxCompWinWidth=10000)
+            {
+
+                chrTotRds <- length(chrGRanges@ranges@start)
+                chrTotBases <- (chrGRanges@ranges@start+chrGRanges@ranges@width)[chrTotRds] - chrGRanges@ranges@start[1]
+                winVector <- minWin:maxWin
+
+                chrLamMinWComp <- as.vector(minChrRleWComp) %*% t(winVector) / minCompWinWidth
+                chrLamMinWCompRleList <- apply(chrLamMinWComp, 2, S4Vectors::Rle)
+
+
+#                 maxChrLamWComp <- as.vector(maxChrRleWComp) %*% t(winVector) / maxCompWinWidth
+#                 maxChrLamWCompRleList <- apply(maxChrLamWComp, 2, S4Vectors::Rle)
+
+                # chrLamb <- S4Vectors::Rle(chrTotRds %*% t(winVector) / chrTotBases)
+
+                # lambl <- RleArray(rep(chrLamb, each=nrow(chrLamMinWComp)),
+                                  # dim=c(nrow(chrLamMinWComp), ncol(chrLamMinWComp)))
+#
+#                 lambl <- RleList(lapply(1:ncol(chrLamMinWComp), function(x) {rep(chrLamb, each=nrow(chrLamMinWComp))}) )
+#
+#                 lamloc <- pmax(chrLamMinWComp, chrLamMaxWComp, lambl) ##pmax should work on rlelist
+
+            }
+
+            computeLambdasOnGenome <- function(bedGRanges,
+                                    chrRleListMinWComp, minCompWinWidth=5000,
+                                    chrRleListMaxWComp, maxCompWinWidth=10000)
+            {
+                bedGrangesChrsList <- cutGRangesPerChromosome(bedGRanges)
+
+                # chrRleMatricesList <- lapply(X=bedGrangesChrsList,
+                #                              computeLambdasOnChr) ##TO PARALLELIZE
+                # return(chrRleMatricesList)
+
+            }
+
+            # ## check! davide
+            # fr <- chrGRanges@ranges@start[which( as.vector(bedGRanges@strand) == "+")]
+            # rr <- chrGRanges@ranges@start[which( as.vector(bedGRanges@strand) == "-")]
+
+            # tot_rds <- length(fr) + length(rr)
+            # tot_base <- max(rr[length(rr)], fr[length(fr)]) - min(fr[1], rr[1])
+
+            ## here, rewrite as a function for each chromosome
+            # lam5k <- lapply(chrRleListW5K, function(w5k) {
+            #         w5k %*% t(minWin:maxWin) / 5000
+            # })
+
+            # lam10k <- lapply(chrRleListW5K, function(w5k) {
+            #     w5k %*% t(minWin:maxWin) / 10000
+            # })
+
+            # lambl_num <- Rle(tot_rds %*% t(minWin:maxWin) / tot_base)
+
+            ## here only chr19
+            lambl <- DelayedArray::RleArray(rep(lambl_num, each=nrow(lam5k$chr19)),
+                              dim=c(nrow(lam5k$chr19), ncol(lam5k$chr19)))
+
+
+
             # # determine lambda for 5k, 10k windows and baseline
             # lamloc <- matrix(nrow=nrow(cmat), ncol=ncol(cmat), data=0)
             # lam5k <- matrix(nrow=nrow(cmat), ncol=ncol(cmat), data=0)
@@ -120,27 +170,6 @@ findPeaks <- function(files, filetype="bam", chr=1:19,
             #     lambl[, win - minWin + 1] <- tot_rds * win / tot_base
             # }
 
-            ## check!
-            fr <- bedGRanges@ranges@start[which( as.vector(bedGRanges@strand) == "+")]
-            rr <- bedGRanges@ranges@start[which( as.vector(bedGRanges@strand) == "-")]
-
-            tot_rds <- length(fr) + length(rr)
-            tot_base <- max(rr[length(rr)], fr[length(fr)]) - min(fr[1], rr[1])
-
-            ## here, rewrite as a function for each chromosome
-            lam5k <- lapply(chrRleListW5K, function(w5k) {
-                    w5k %*% t(minWin:maxWin) / 5000
-            })
-
-            lam10k <- lapply(chrRleListW5K, function(w5k) {
-                w5k %*% t(minWin:maxWin) / 10000
-            })
-
-            lambl_num <- Rle(tot_rds %*% t(minWin:maxWin) / tot_base)
-
-            ## here only chr19
-            lambl <- RleArray(rep(lambl_num, each=nrow(lam5k$chr19)),
-                              dim=c(nrow(lam5k$chr19), ncol(lam5k$chr19)))
 
             lamloc <- pmax(lam5k$chr19, lam10k$chr19, lambl)
             ## calculate z score for each bin x window combination
@@ -222,65 +251,38 @@ computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=1,
     ## computing coverage per each bin on chromosome
     message("Computing coverage on Chromosome ", chrBedGRanges@seqinfo@seqnames,
             " binned by ", binWidth, " bin dimension")
-    # binnedCovChr <- binnedSum(bins=binnedChromosome,
-    #                           numvar=chrCoverage,
-    #                           mcolname="bin_cov")
+
     chrCovRle <- binnedSumOnly(bins=binnedChromosome,
                                     numvar=chrCoverage,
                                     mcolname="bin_cov")
 
-    # ## coercing coverage to Rle
-    # chrCovRle <- as(binnedCovChr$bin_cov,"Rle")
 
-
-    ## computing bin in base ranges to add as rownames
-    endBinRanges <- seq(from=binWidth-1,
-                        to=chrBedGRanges@seqinfo@seqlengths[1],
-                        by=binWidth)
-
-    if(chrBedGRanges@seqinfo@seqlengths != endBinRanges[length(endBinRanges)])
-    {
-        ## it can only be lesser than the length of the chromosome
-        ## adding the last missing bin
-        endBinRanges <- c(endBinRanges, (chrBedGRanges@seqinfo@seqlengths[1]-1))
-    }
-    ## computing the start of regions
-    startBinRanges <- endBinRanges-(binWidth-1)
-
-    idx <- minWinWidth:maxWinWidth
-    runWinRleList <- RleList(lapply(idx, function(win) {
+    wins <- minWinWidth:maxWinWidth
+    runWinRleList <- IRanges::RleList(lapply(wins, function(win) {
+        message("Running window ", win, " of ", maxWinWidth)
         oddRunSum(chrCovRle, k=win, endrule="constant")
     }))
 
-    rleBinCov <- RleArray(unlist(runWinRleList),
-                       dim=c(length(runWinRleList[[1]]), length(runWinRleList)))
+    # rleBinCov <- DelayedArray::RleArray(unlist(runWinRleList),
+    #                    dim=c(length(runWinRleList[[1]]), length(runWinRleList)))
 
-    # # runWinRleList <- RleList()
-    # for(win in minWinWidth:maxWinWidth) {
-    #     message("Running window ", win, " of ", maxWinWidth)
-    #     runWinRle <- oddRunSum(chrCovRle, k=win, endrule="constant")
+    ## computing bin in base ranges to add as rownames
+    # endBinRanges <- seq(from=binWidth-1,
+    #                     to=chrBedGRanges@seqinfo@seqlengths[1],
+    #                     by=binWidth)
     #
-    #     # maxRuns <- max(maxRuns, sum(runLength(runwinRleList[[win]])) ) ##as control
-    #     # message("maxRuns: ", maxRuns)
-    #     ## maxRuns is equal to the number of bins ans is the number of
-    #     ## chromosome bases divided by the binSize value as expected
-    #     if(win == minWinWidth)
-    #     {
-    #         rleBinCov <- DelayedArray::RleArray(runWinRle,
-    #                                             dim=c(length(runWinRle), 1))
-    #         rownames(rleBinCov) <- startBinRanges
-    #
-    #     }
-    #     else
-    #     {
-    #         rleBinCov <- cbind(rleBinCov,
-    #                            DelayedArray::RleArray(runWinRle,
-    #                                             dim=c(length(runWinRle), 1)))
-    #     }
-    #
+    # if(chrBedGRanges@seqinfo@seqlengths != endBinRanges[length(endBinRanges)])
+    # {
+    #     ## it can only be lesser than the length of the chromosome
+    #     ## adding the last missing bin
+    #     endBinRanges <- c(endBinRanges, (chrBedGRanges@seqinfo@seqlengths[1]-1))
     # }
+    # ## computing the start of regions
+    # startBinRanges <- endBinRanges-(binWidth-1)
+    #
+    # rownames(rleBinCov) <- startBinRanges
 
-    return(rleBinCov)
+    return(runWinRleList)
 }
 
 
