@@ -61,7 +61,7 @@ findPeaks <- function(files, filetype="bam",
                       outputName="Peaks", save=TRUE, verbose=FALSE
 
                       # chr=1:19,
-                      #  fragmentLength=200,
+                       # fragmentLength=200,
                       # readLength=100,
                       # blocksize=10000,
                       ) {
@@ -106,69 +106,99 @@ findPeaks <- function(files, filetype="bam",
                                                     maxWinWidth=maxCompWinWidth,
                                                     binWidth=binSize
                                     )
-            lambdaChrRleList <- computeLambdaOnChr(chrGRanges=chrGRanges,
+
+            lambdaChrRleList <- computeLambdaOnChr(
+                                       chrGRanges=chrGRanges,
                                        winVector=winVector,
                                        minChrRleWComp=minCompRunWinRleList[[1]],
                                        minCompWinWidth=minCompWinWidth,
                                        maxChrRleWComp=maxCompRunWinRleList[[1]],
                                        maxCompWinWidth=maxCompWinWidth
-                        )
+                                 )
+            # runWinRleM <- RleListToRleMatrix(runWinRleList)
+            # lambdaChrRleM <- RleListToRleMatrix(lambdaChrRleList)
 
+            lambdaChrRleMm <- matrix(unlist(lambdaChrRleList), ncol = 20, byrow = TRUE)
+
+            runWinRleMm <- matrix(unlist(runWinRleList), ncol = 20, byrow = TRUE)
+
+            z <- sqrt(2) * sign(runWinRleMm - lambdaChrRleMm) *
+                sqrt(runWinRleMm *
+                         log(pmax(runWinRleMm, minCount) / lambdaChrRleMm) -
+                         (runWinRleMm - lambdaChrRleMm))
+            z <- binToChrCoordMatRowNames(binMatrix=z,
+                                       chrLength=chrGRanges@seqinfo@seqlengths,
+                                       binWidth=binSize)
+
+            gsize = length(lambdaChrRleList[[1]])
+            new_s <- get_disjoint_max_win(z0=z,
+                                        sigwin=200/gsize, nmax=Inf,
+                                        zthresh=zthresh, two_sided=FALSE,
+                                        verbose=FALSE)
         })
 
 
-        ## calculate z score for each bin x window combination
-        z <- sqrt(2) * sign(cmat - lamloc) *
-            sqrt(cmat * log(pmax(cmat, minCount) / lamloc) -
-                     (cmat - lamloc))
-
-        ## find high z scores keeping one with no intersecting other
-        ## bin/windows
-        new_s <- get_disjoint_max_win(z0=z[1:blocksize_i, ],
-                                      sigwin=fragmentLength / gsize, nmax=Inf,
-                                      zthresh=zthresh, two_sided=FALSE,
-                                      verbose=TRUE)
-        ## convert new_s bins and width into genomic coordinates and
-        ## append to s
-        if (nrow(new_s) >= 1) {
-            new_s[, 1] <- new_s[, 1] + block[1] - 1
-            new_s <- cbind(grid[new_s[, 1, drop=FALSE]],
-                           grid[new_s[, 1, drop=FALSE] +
-                                    new_s[, 2, drop=FALSE] - 1],
-                           new_s[, 3, drop=FALSE])
-            s <- rbind(s, new_s)
-        }
-
-        elapsed <- proc.time() - ptm
-        if (verbose) {
-            cat("\tDone. That took ", format(elapsed[3] / 60, digits=1),
-                " minutes.\n")
-        }
-        if (finalblock) break
-
-        # shift block by blocksize and repeat
-        block <- c(block[1] + blocksize_i, block[2] + blocksize_i)
+    #     ## find high z scores keeping one with no intersecting other
+    #     ## bin/windows
+    #     new_s <- get_disjoint_max_win(z0=z[1:blocksize_i, ],
+    #                                   sigwin=fragmentLength / gsize, nmax=Inf,
+    #                                   zthresh=zthresh, two_sided=FALSE,
+    #                                   verbose=TRUE)
+    #     ## convert new_s bins and width into genomic coordinates and
+    #     ## append to s
+    #     if (nrow(new_s) >= 1) {
+    #         new_s[, 1] <- new_s[, 1] + block[1] - 1
+    #         new_s <- cbind(grid[new_s[, 1, drop=FALSE]],
+    #                        grid[new_s[, 1, drop=FALSE] +
+    #                                 new_s[, 2, drop=FALSE] - 1],
+    #                        new_s[, 3, drop=FALSE])
+    #         s <- rbind(s, new_s)
+    #     }
+    #
+    #     elapsed <- proc.time() - ptm
+    #     if (verbose) {
+    #         cat("\tDone. That took ", format(elapsed[3] / 60, digits=1),
+    #             " minutes.\n")
+    #     }
+    #     if (finalblock) break
+    #
+    #     # shift block by blocksize and repeat
+    #     block <- c(block[1] + blocksize_i, block[2] + blocksize_i)
     }
+    #
+    # peaks <- cbind(rep(chr, dim(s)[1]), s)
+    # if (save == TRUE) {
+    #     if (dir.exists(outputName) == FALSE) {
+    #         dir.create(outputName)
+    #     }
+    #     if (dir.exists(paste0(outputName,"/", chr)) == FALSE) {
+    #         dir.create(paste0(outputName,"/", chr))
+    #     }
+    #     fname <- strsplit(basename(file), split=".", fixed=TRUE)[[1]][1]
+    #     fileprefix <- paste0(outputName,"/", chr, "/Peaks_", fname)
+    #
+    #
+    #     save(peaks, fragmentLength, readLength, zthresh, minWin, maxWin,
+    #          file=paste0(fileprefix, ".RData"))
+    # }
 
-    peaks <- cbind(rep(chr, dim(s)[1]), s)
-    if (save == TRUE) {
-        if (dir.exists(outputName) == FALSE) {
-            dir.create(outputName)
-        }
-        if (dir.exists(paste0(outputName,"/", chr)) == FALSE) {
-            dir.create(paste0(outputName,"/", chr))
-        }
-        fname <- strsplit(basename(file), split=".", fixed=TRUE)[[1]][1]
-        fileprefix <- paste0(outputName,"/", chr, "/Peaks_", fname)
-
-
-        save(peaks, fragmentLength, readLength, zthresh, minWin, maxWin,
-             file=paste0(fileprefix, ".RData"))
-    }
-
-        return(peaks)
+        # return(peaks)
 }
 
+RleListToRleMatrix <- function(RleList, dimnames=NULL)
+{
+    if(!is.null(dimnames)) {
+        rlem <- DelayedArray::RleArray(rle=unlist(RleList),
+                              dim=c(length(RleList[[1]]), length(RleList)),
+                              dimnames=dimnames
+                              )
+    } else {
+        rlem <- DelayedArray::RleArray(rle=unlist(RleList),
+                              dim=c(length(RleList[[1]]), length(RleList)))
+    }
+    return(rlem)
+
+}
 
 computeLambdaOnChr <- function(chrGRanges,
                                 winVector=c(1:20),
@@ -197,12 +227,12 @@ computeLambdaOnChr <- function(chrGRanges,
     maxChrLamWCompRleList <- apply(maxChrLamWComp, 2, S4Vectors::Rle)
 
 
-    lamlocRleList <- lapply(winVector, function(idx) {
+    lamlocRleList <-  IRanges::RleList(lapply(winVector, function(idx) {
                                               pmax(maxChrLamWCompRleList[[idx]],
                                                    chrLamMinWCompRleList[[idx]],
                                                    lamblRleList[[idx]])
-                                        }
-                           )
+                                              })
+                                       )
     return(lamlocRleList)
 
 }
@@ -268,6 +298,28 @@ computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=1,
     return(runWinRleList)
 }
 
+binToChrCoordMatRowNames <- function(binMatrix, chrLength, binWidth=50)
+{
+
+    ## computing bin in base ranges to add as rownames
+    endBinRanges <- seq(from=binWidth-1, to=chrLength, by=binWidth)
+
+    if(chrLength != endBinRanges[length(endBinRanges)])
+    {
+        ## it can only be lesser than the length of the chromosome
+        ## adding the last missing bin
+        endBinRanges <- c(endBinRanges, (chrLength-1))
+    }
+    ## computing the start of regions
+    startBinRanges <- endBinRanges-(binWidth-1)
+    if(dim(binMatrix)[1] != length(startBinRanges))
+    {
+        stop("something went wrong! matrix row dimension
+             different than expected")
+    }
+    rownames(binMatrix) <- startBinRanges
+    return(binMatrix)
+}
 
 
 #' Title
@@ -309,21 +361,36 @@ cutGRangesPerChromosome <- function(bedGRanges)
 #' @keywords internal
 get_disjoint_max_win <- function(z0, sigwin=20, nmax=Inf,
                                 zthresh=-Inf, two_sided=FALSE,
-                                verbose=TRUE) {
+                                verbose=FALSE) {
         s <- matrix(ncol=3, nrow=0)
         maxwin <- ncol(z0)
         if (two_sided) {
             z0 <- abs(z0)
         }
+
+        stuck <- 0
+        zz <- to <- wo <- -Inf
+
         while (TRUE) {
             inds <- which.max(z0) # find max z
             if (length(inds) == 0) break
             w <- ceiling(inds / nrow(z0)) # determine row
-            t <- inds %% nrow(z0) # determine column
+
+            t <- inds %% nrow(z0) # determine column ################
+
             if (t == 0) t <- nrow(z0)
+            # cat("inds: ", inds, "t: ", t, "w: ", w, "zmax: ", z0[t,w], "\n")
             ## break loop once as max z below thresh
             if (z0[t, w] < zthresh) break
-            s <- rbind(s, c(t, w, z0[t, w]))
+
+
+            s <- rbind(s, c(rownames(z0)[t], w, z0[t, w]))
+            # print(s)
+            # s <- rbind(s, c(t, w, z0[t, w]))
+            if ((to == t) && (wo == w) && (zz == z0[t, w]) ) {stuck <- stuck+1}
+
+            if(stuck == 300) {s <- s[1:(dim(s)[1]-300),]; break}
+
             if (verbose) {
                 cat("Maximizing window: ", t, ",", w, " Score=", z0[t, w], "\n")
             }
@@ -331,7 +398,10 @@ get_disjoint_max_win <- function(z0, sigwin=20, nmax=Inf,
             st <- max(1, t - sigwin - maxwin + 1)
             ed <- min(t + w + sigwin - 1, nrow(z0))
             z0[st:ed, ] <- -Inf
-
+            # print(z0)
+            wo <- w
+            to <- t
+            zz <- z0[t, w]
             if (nrow(s) >= nmax) break
         }
         return(s)
