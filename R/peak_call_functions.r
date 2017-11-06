@@ -66,144 +66,89 @@ findPeaks <- function(files, filetype="bam",
                       # blocksize=10000,
                       ) {
 
-        if(length(files) == 0) {
-            stop("You have to provide one or more input files!\nExiting.")
-        }
+    if(length(files) == 0) {
+        stop("You have to provide one or more input files!\nExiting.")
+    }
+    winVector <- c(minWin:maxWin)
 
-        for (file in files) {
+    for (file in files) {
 
-            bedGRanges <- constructBedRanges(filename=file, filetype=filetype,
-                                             genomeName=genomeName)
+        bedGRanges <- constructBedRanges(filename=file, filetype=filetype,
+                                         genomeName=genomeName)
+
+        bedGrangesChrsList <- cutGRangesPerChromosome(bedGRanges)
 
 
-            chrRleListAllW <- computeCoverageMovingWindow(bedGRanges=bedGRanges,
-                                                          minWinWidth=minWin,
-                                                          maxWinWidth=maxWin,
-                                                          binWidth=binSize)
+        lapply( bedGrangesChrsList, function(chrGRanges) {
+            ### FOR TESTING
+            # chrGRanges=chrGRanges;
+            # winVector=winVector;
+            # minChrRleWComp=minCompRunWinRleList[[1]];
+            # minCompWinWidth=minCompWinWidth;
+            # maxChrRleWComp=maxCompRunWinRleList[[1]];
+            # maxCompWinWidth=maxCompWinWidth
 
-            chrRleListMINWComp <- computeCoverageMovingWindow(
-                                                    bedGRanges=bedGRanges,
+            runWinRleList <- computeCoverageMovingWindowOnChr(
+                                                       chrBedGRanges=chrGRanges,
+                                                       minWinWidth=minWin,
+                                                       maxWinWidth=maxWin,
+                                                       binWidth=binSize
+                              )
+            minCompRunWinRleList <- computeCoverageMovingWindowOnChr(
+                                                    chrBedGRanges=chrGRanges,
                                                     minWinWidth=minCompWinWidth,
                                                     maxWinWidth=minCompWinWidth,
-                                                    binWidth=binSize)
-
-            chrRleListMAXWComp <- computeCoverageMovingWindow(
-                                                    bedGRanges=bedGRanges,
+                                                    binWidth=binSize
+                                    )
+            maxCompRunWinRleList <- computeCoverageMovingWindowOnChr(
+                                                    chrBedGRanges=chrGRanges,
                                                     minWinWidth=maxCompWinWidth,
                                                     maxWinWidth=maxCompWinWidth,
-                                                    binWidth=binSize)
+                                                    binWidth=binSize
+                                    )
+            lambdaChrRleList <- computeLambdaOnChr(chrGRanges=chrGRanges,
+                                       winVector=winVector,
+                                       minChrRleWComp=minCompRunWinRleList[[1]],
+                                       minCompWinWidth=minCompWinWidth,
+                                       maxChrRleWComp=maxCompRunWinRleList[[1]],
+                                       maxCompWinWidth=maxCompWinWidth
+                        )
+
+        })
 
 
-            computeLambdasOnChr <- function(chrGRanges,
-                                            minChrRleWComp,
-                                            minCompWinWidth=5000,
-                                            maxChrRleWComp,
-                                            maxCompWinWidth=10000)
-            {
+        ## calculate z score for each bin x window combination
+        z <- sqrt(2) * sign(cmat - lamloc) *
+            sqrt(cmat * log(pmax(cmat, minCount) / lamloc) -
+                     (cmat - lamloc))
 
-                chrTotRds <- length(chrGRanges@ranges@start)
-                chrTotBases <- (chrGRanges@ranges@start+chrGRanges@ranges@width)[chrTotRds] - chrGRanges@ranges@start[1]
-                winVector <- minWin:maxWin
-
-                chrLamMinWComp <- as.vector(minChrRleWComp) %*% t(winVector) / minCompWinWidth
-                chrLamMinWCompRleList <- apply(chrLamMinWComp, 2, S4Vectors::Rle)
-
-
-#                 maxChrLamWComp <- as.vector(maxChrRleWComp) %*% t(winVector) / maxCompWinWidth
-#                 maxChrLamWCompRleList <- apply(maxChrLamWComp, 2, S4Vectors::Rle)
-
-                # chrLamb <- S4Vectors::Rle(chrTotRds %*% t(winVector) / chrTotBases)
-
-                # lambl <- RleArray(rep(chrLamb, each=nrow(chrLamMinWComp)),
-                                  # dim=c(nrow(chrLamMinWComp), ncol(chrLamMinWComp)))
-#
-#                 lambl <- RleList(lapply(1:ncol(chrLamMinWComp), function(x) {rep(chrLamb, each=nrow(chrLamMinWComp))}) )
-#
-#                 lamloc <- pmax(chrLamMinWComp, chrLamMaxWComp, lambl) ##pmax should work on rlelist
-
-            }
-
-            computeLambdasOnGenome <- function(bedGRanges,
-                                    chrRleListMinWComp, minCompWinWidth=5000,
-                                    chrRleListMaxWComp, maxCompWinWidth=10000)
-            {
-                bedGrangesChrsList <- cutGRangesPerChromosome(bedGRanges)
-
-                # chrRleMatricesList <- lapply(X=bedGrangesChrsList,
-                #                              computeLambdasOnChr) ##TO PARALLELIZE
-                # return(chrRleMatricesList)
-
-            }
-
-            # ## check! davide
-            # fr <- chrGRanges@ranges@start[which( as.vector(bedGRanges@strand) == "+")]
-            # rr <- chrGRanges@ranges@start[which( as.vector(bedGRanges@strand) == "-")]
-
-            # tot_rds <- length(fr) + length(rr)
-            # tot_base <- max(rr[length(rr)], fr[length(fr)]) - min(fr[1], rr[1])
-
-            ## here, rewrite as a function for each chromosome
-            # lam5k <- lapply(chrRleListW5K, function(w5k) {
-            #         w5k %*% t(minWin:maxWin) / 5000
-            # })
-
-            # lam10k <- lapply(chrRleListW5K, function(w5k) {
-            #     w5k %*% t(minWin:maxWin) / 10000
-            # })
-
-            # lambl_num <- Rle(tot_rds %*% t(minWin:maxWin) / tot_base)
-
-            ## here only chr19
-            lambl <- DelayedArray::RleArray(rep(lambl_num, each=nrow(lam5k$chr19)),
-                              dim=c(nrow(lam5k$chr19), ncol(lam5k$chr19)))
-
-
-
-            # # determine lambda for 5k, 10k windows and baseline
-            # lamloc <- matrix(nrow=nrow(cmat), ncol=ncol(cmat), data=0)
-            # lam5k <- matrix(nrow=nrow(cmat), ncol=ncol(cmat), data=0)
-            # lam10k <- matrix(nrow=nrow(cmat), ncol=ncol(cmat), data=0)
-            # lambl <- matrix(nrow=nrow(cmat), ncol=ncol(cmat), data=0)
-            # for (win in minWin:maxWin) {
-            #     lam5k[, win - minWin + 1] <- c5k[offset5k + c(1:length(grid0)) - floor(win / 2)] * win / 5000
-            #     lam10k[, win - minWin + 1] <- c10k[offset10k + c(1:length(grid0)) - floor(win / 2)] * win / 10000
-            #     lambl[, win - minWin + 1] <- tot_rds * win / tot_base
-            # }
-
-
-            lamloc <- pmax(lam5k$chr19, lam10k$chr19, lambl)
-            ## calculate z score for each bin x window combination
-            z <- sqrt(2) * sign(cmat - lamloc) *
-                sqrt(cmat * log(pmax(cmat, minCount) / lamloc) -
-                         (cmat - lamloc))
-
-            ## find high z scores keeping one with no intersecting other
-            ## bin/windows
-            new_s <- get_disjoint_max_win(z0=z[1:blocksize_i, ],
-                                          sigwin=fragmentLength / gsize, nmax=Inf,
-                                          zthresh=zthresh, two_sided=FALSE,
-                                          verbose=TRUE)
-            ## convert new_s bins and width into genomic coordinates and
-            ## append to s
-            if (nrow(new_s) >= 1) {
-                new_s[, 1] <- new_s[, 1] + block[1] - 1
-                new_s <- cbind(grid[new_s[, 1, drop=FALSE]],
-                               grid[new_s[, 1, drop=FALSE] +
-                                        new_s[, 2, drop=FALSE] - 1],
-                               new_s[, 3, drop=FALSE])
-                s <- rbind(s, new_s)
-            }
-
-            elapsed <- proc.time() - ptm
-            if (verbose) {
-                cat("\tDone. That took ", format(elapsed[3] / 60, digits=1),
-                    " minutes.\n")
-            }
-            if (finalblock) break
-
-            # shift block by blocksize and repeat
-            block <- c(block[1] + blocksize_i, block[2] + blocksize_i)
+        ## find high z scores keeping one with no intersecting other
+        ## bin/windows
+        new_s <- get_disjoint_max_win(z0=z[1:blocksize_i, ],
+                                      sigwin=fragmentLength / gsize, nmax=Inf,
+                                      zthresh=zthresh, two_sided=FALSE,
+                                      verbose=TRUE)
+        ## convert new_s bins and width into genomic coordinates and
+        ## append to s
+        if (nrow(new_s) >= 1) {
+            new_s[, 1] <- new_s[, 1] + block[1] - 1
+            new_s <- cbind(grid[new_s[, 1, drop=FALSE]],
+                           grid[new_s[, 1, drop=FALSE] +
+                                    new_s[, 2, drop=FALSE] - 1],
+                           new_s[, 3, drop=FALSE])
+            s <- rbind(s, new_s)
         }
+
+        elapsed <- proc.time() - ptm
+        if (verbose) {
+            cat("\tDone. That took ", format(elapsed[3] / 60, digits=1),
+                " minutes.\n")
+        }
+        if (finalblock) break
+
+        # shift block by blocksize and repeat
+        block <- c(block[1] + blocksize_i, block[2] + blocksize_i)
+    }
 
     peaks <- cbind(rep(chr, dim(s)[1]), s)
     if (save == TRUE) {
@@ -222,6 +167,44 @@ findPeaks <- function(files, filetype="bam",
     }
 
         return(peaks)
+}
+
+
+computeLambdaOnChr <- function(chrGRanges,
+                                winVector=c(1:20),
+                                minChrRleWComp,
+                                minCompWinWidth=5000,
+                                maxChrRleWComp,
+                                maxCompWinWidth=10000)
+{
+    message("Computing lambdas")
+    chrTotRds <- length(chrGRanges@ranges@start)
+    chrTotBases <- (chrGRanges@ranges@start+chrGRanges@ranges@width)[chrTotRds]
+                    - chrGRanges@ranges@start[1]
+
+    chrLamb <- chrTotRds %*% t(winVector) / chrTotBases ## shouldn't it be for the size of bin? (bases size of a window)
+
+    lamblMat <- rbind(chrLamb)[rep(1,length(minChrRleWComp)), ]
+
+    lamblRleList <- IRanges::RleList(apply(X=lamblMat, MARGIN=2,
+                                           function(x){as(x,"Rle")}))
+
+    chrLamMinWComp <- as.vector(minChrRleWComp) %*% t(winVector)/minCompWinWidth
+    chrLamMinWCompRleList <- apply(chrLamMinWComp, 2, S4Vectors::Rle)
+
+
+    maxChrLamWComp <- as.vector(maxChrRleWComp) %*% t(winVector)/maxCompWinWidth
+    maxChrLamWCompRleList <- apply(maxChrLamWComp, 2, S4Vectors::Rle)
+
+
+    lamlocRleList <- lapply(winVector, function(idx) {
+                                              pmax(maxChrLamWCompRleList[[idx]],
+                                                   chrLamMinWCompRleList[[idx]],
+                                                   lamblRleList[[idx]])
+                                        }
+                           )
+    return(lamlocRleList)
+
 }
 
 
@@ -286,31 +269,6 @@ computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=1,
 }
 
 
-#' Title
-#'
-#' @param bedGRanges
-#' @param minWinWidth
-#' @param maxWinWidth
-#' @param binWidth
-#'
-#' @return
-#' @export
-#'
-#' @examples
-computeCoverageMovingWindow <- function(bedGRanges, minWinWidth=1,
-                                        maxWinWidth=20, binWidth=50)
-{
-    bedGrangesChrsList <- cutGRangesPerChromosome(bedGRanges)
-
-    chrRleMatricesList <- lapply(X=bedGrangesChrsList,
-                                 computeCoverageMovingWindowOnChr,
-                                 minWinWidth=minWinWidth,
-                                 maxWinWidth=maxWinWidth,
-                                 binWidth=binWidth) ##TO PARALLELIZE
-    return(chrRleMatricesList)
-}
-
-
 
 #' Title
 #'
@@ -337,190 +295,6 @@ cutGRangesPerChromosome <- function(bedGRanges)
     return(bedGRList)
 }
 
-
-#' compute window coverage.
-#'
-#' @param Fr forward reads.
-#' @param Rr reverse reads.
-#' @param grid
-#' @param fraglen
-#' @param rlen
-#' @param min_win
-#' @param max_win
-#' @param verbose
-#' @return cmat.
-#' @keywords internal
-#'
-#'
-# window_coverage <- function(Fr, Rr, grid, fragmentLength=200, readLength=100,
-# minWin=1, maxWin=100, verbose=TRUE) {
-window_coverage <- function(bed, Fr, Rr, grid, fragmentLength=200, readLength=100,
-                            minWin=1, maxWin=100, chr, verbose=TRUE) {
-
-    # cmat <- matrix(nrow=length(grid), ncol=maxWin - minWin + 1, data=0)
-    # # dim(cmat)
-    # for(i in minWin:maxWin) {
-    #     bedCoverageWind <- GenomicRanges::coverage(x=bed, shift=(i-1), width=length(grid))# + 2*(i-1)))
-    #
-    #     bedCoverageWindChr <- bedCoverageWind[which(names(bedCoverageWind) %in% chr)]
-    #
-    #     print(bedCoverageWindChr$chr19)
-    #
-    #     bedCoverageSum <- S4Vectors::runsum(x=bedCoverageWindChr$chr19, k=i, endrule="drop")
-    #
-    #
-    #     # cmat[,i] <- bedCoverageSum
-    # }
-
-
-    grid_st <- min(grid)
-    ## Assume even grid. ! only if min_rds=0
-    bin_size <- grid[2] - grid[1]
-    ## the number of bins covered by each fragment
-    fragbins <- fragmentLength / bin_size
-    ngrid <- length(grid)
-
-    ## initialize fragment count matrices for forward and reverse reads
-    ffragctmat <- matrix(nrow=length(grid), ncol=maxWin - minWin + 1, data=0)
-    rfragctmat <- matrix(nrow=length(grid), ncol=maxWin - minWin + 1, data=0)
-
-    ## index forward reads within the current grid
-    forward_index <- which(Fr > grid[1] - fragmentLength & Fr < grid[length(grid)])
-
-    ## for each forward read within the given grid convert the base position
-    ## to bin and add +1 count to the fragment count matrix (bins as rows,
-    ## window size as columns) while moving window right along bins and
-    ## extending left
-    if (length(forward_index) > 0) {
-        for (i in 1:length(forward_index)) {
-            if (verbose && i %% 1000 == 0) {
-                cat("Forward reads: ", i, "out of", length(forward_index), "\n") ## use message instead
-            }
-            fragst <- Fr[forward_index[i]]    # start of fragment
-            # which bin contains start of fragment
-            binst <- floor((fragst - grid_st) / bin_size) + 1
-            for (j in minWin:maxWin) {
-
-                st <- max(binst - j + 1, 1) # lower limit adj by current window size
-                ed <- min(binst + fragbins - 1, ngrid) # upper limit
-                ffragctmat[st:ed, j - minWin + 1] <- ffragctmat[st:ed, j -
-                                                                minWin + 1] + 1
-            }
-        }
-    }
-
-    reverse_index <- which(Rr > grid[1] - readLength & (Rr + readLength - fragmentLength) <
-                               grid[length(grid)])
-
-    if (length(reverse_index) > 0) {
-        for (i in 1:length(reverse_index)) {
-            if (verbose && i %% 1000 == 0) {
-                cat("Reverse reads: ", i, "out of", length(reverse_index), "\n") ## use message instead
-            }
-            ## start of fragment
-            fragst <- Rr[reverse_index[i]] + readLength - fragmentLength
-            ## bin containing start of fragment
-            binst <- floor((fragst - grid_st) / bin_size) + 1
-            for (j in minWin:maxWin) {
-                st <- max(binst - j + 1, 1)
-                ed <- min(binst + fragbins - 1, ngrid)
-                rfragctmat[st:ed, j - minWin + 1] <- rfragctmat[st:ed, j -
-                                                                minWin + 1] + 1
-            }
-        }
-    }
-    cmat <- ffragctmat + rfragctmat
-    return(cmat)
-}
-
-
-
-#' make grid for enrichment scan.
-#'
-#' @param path Path to alignement files.
-#' @param fraglen Integer indicating the average DNA fragment length in bp
-#' @param rlen Integer indicating the read length in bp
-#' @param min_bin Integer indicating the minimum window size to be used in
-#'     constructing grid
-#' @param min_rds This argument is currently not used.
-#' @param gridStart Genomic Position to start the grid
-#' @param grid_ed Genomic Position to end the grid
-#' @return grid.
-#' @keywords internal
-makeGrid <- function(bed, fragmentLength, readLength,
-                     binSize=10, minRds=0,
-                     gridStart=NA, gridEnd=NA,
-                     verbose=FALSE) {
-
-    fr <- bed@ranges@start[which( as.vector(bed@strand) == "+")]
-    rr <- bed@ranges@start[which( as.vector(bed@strand) == "-")]
-
-    if (is.na(gridStart)) {
-        gridStart <- min(fr, (rr + readLength - fragmentLength))
-    }
-    if (is.na(gridEnd)) {
-        gridEnd <- max((fr + fragmentLength), (rr + readLength))
-    }
-
-    # Initial grid is even spaced:
-    grid0 <- seq(gridStart, gridEnd, binSize)
-    ## all ok till here!!! dr
-
-    # Needs work
-    if (minRds > 0) { # this portion of the code does not work!
-        # Get the number of fragments that cover each bin.
-        # fragct[i] is the number of fragments with positive overlap with
-        # grid0[i]:grid0[i+1]
-        ffragct <- matrix(nrow=length(grid0), ncol=length(fr), data=0)
-        # Error: cannot allocate vector of size 2056.4 Gb #####################
-        rfragct <- matrix(nrow=length(grid0), ncol=length(fr), data=0)
-        for (k in seq_along(fr)) {
-            for (i in 1:length(fr[[k]])) {
-                if (i %% 10000 == 0) {
-                    cat("Sample ", k, "Forward reads : ", i, "\n")
-                }
-                fragst <- fr[[k]][i]
-                fraged <- fr[[k]][i] + fragmentLength - 1
-                binst <- floor((fragst - gridStart) / binSize) + 1
-                bined <- floor((fraged - gridStart) / binSize) + 1
-                ffragct[binst:bined, k] <- ffragct[binst:bined, k] + 1
-            }
-        }
-        for (k in 1:length(rr)) {
-            for (i in 1:length(rr[[k]])) {
-                if (i %% 10000 == 0) {
-                    cat("Sample ", k, "Reverse reads : ", i, "\n")
-                }
-                fragst <- rr[[k]][i] + readLength - fragmentLength
-                fraged <- rr[[k]][i] + readLength - 1
-                binst <- floor((fragst - gridStart) / binSize) + 1
-                bined <- floor((fraged - gridStart) / binSize) + 1
-                rfragct[binst:bined, k] <- rfragct[binst:bined, k] + 1
-            }
-        }
-
-        # Starting from the left most bin, join bins whose total fragment
-        # coverage across all samples is less than minRds.
-        totcov <- rowSums(ffragct) + rowSums(rfragct)
-        remove_tick <- rep(FALSE, length(totcov))
-        cursum <- 0
-        for (i in 1:length(totcov)) {
-            if (i %% 100000 == 0 && verbose) {
-                cat(i, " out of ", length(totcov), "\n")
-            }
-            cursum <- cursum + totcov[i]
-            if (cursum < minRds) {
-                remove_tick[i] <- TRUE
-            } else {
-                cursum <- 0
-            }
-        }
-        grid <- grid0[which(!remove_tick)]
-    } else {
-        grid <- grid0
-    }
-    return(grid)
-}
 
 #' find significant z score windows keeping the max value without intersections
 #'
