@@ -34,7 +34,39 @@ test_that("Test if the new findPeaks is consistent with the older one", {
                                 min_count = 0.1,
                                 filetype = "bam", save = FALSE)
 
-    bamPeaksNew <- DEScan::findPeaks(files=testBam, chr = 19, fragmentLength = 200, readLength = 100, minWin = 1, maxWin = 100, blocksize = 10000, zthresh = 5, minCount = 0.1, filetype = "bam", save = FALSE)
+
+
+
+
+
+
+    bamPeaksNew <- findPeaks(files=testBam,
+                             genomeName="mm9",
+                             fragmentLength = 200,
+                             minWin = 1, maxWin = 100,
+                             zthresh = 5, minCount = 0.1,
+                             filetype = "bam", save = FALSE)
 
     expect_equal(bamPeaksOld, bamPeaksNew)
 })
+
+
+# ### ONLY FOR SELF TEST
+# bed.path <- 'testData/Bed/chr19'
+# bed.files <- list.files(bed.path, full.names = TRUE)
+# bam.path <- "testData/bams"
+# bam.files <- list.files(bam.path, full.names = TRUE)
+# minCount=0.1;
+# filetype="bam";
+# minWin=1; maxWin=20;
+# binSize=50;
+# file <- bam.files[1]
+# genomeName=NULL
+# minCompWinWidth=5000
+# maxCompWinWidth=10000
+# fragmentLength=200;
+# zthresh=5
+# # chr=19;
+# # readLength=100;
+# # blocksize=10000; zthresh=5;
+# # outputName="Peaks"; save=FALSE; verbose=TRUE
