@@ -63,7 +63,7 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
         bedGrangesChrsList <- cutGRangesPerChromosome(bedGRanges)
 
         chrZRangesList <- GenomicRanges::GRangesList(
-            lapply(bedGrangesChrsList, function(chrGRanges) { ## to parallelize
+            lapply(bedGrangesChrsList, function(chrGRanges) { ########## to parallelize
 
             runWinRleList <- computeCoverageMovingWindowOnChr(
                                                        chrBedGRanges=chrGRanges,
