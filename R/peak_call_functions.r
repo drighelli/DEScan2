@@ -92,7 +92,7 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
                           chrLength=chrGRanges@seqinfo@seqlengths,
                           minCount=minCount, binSize=50
                           )
-            new_s <- get_disjoint_max_win(z0=z[1:5000,], ###############################
+            new_s <- get_disjoint_max_win(z0=z,#[1:5000,], ###############################
                                           sigwin=fragmentLength/binSize,
                                           nmax=Inf, zthresh=zthresh,
                                           two_sided=FALSE, verbose=FALSE
