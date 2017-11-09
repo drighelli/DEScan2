@@ -57,7 +57,7 @@ readBedFile <- function(filename) {
 #' @examples
 constructBedRanges <- function(filename,
                                filetype=c("bam", "bed"),
-                               genomeName=NULL)
+                               genomeName=NULL, onlyStdChrs=FALSE)
 {
     filetype <- match.arg(filetype)
 
@@ -72,16 +72,18 @@ constructBedRanges <- function(filename,
     if( !is.null(genomeName) )
     {
 
-        message("Taking seqlengths from genome ", genomeName)
+        message("Get seqlengths from genome ", genomeName)
         genomeInfo <- Seqinfo(genome=genomeName)
         seqNamesIdx <- which(genomeInfo@seqnames %in% uniqueSeqnames)
         if(length(seqNamesIdx) != 0)
         {
-            bedGRanges@seqinfo<-genomeInfo[genomeInfo@seqnames[seqNamesIdx]]
+            bedGRanges@seqinfo <- genomeInfo[genomeInfo@seqnames[seqNamesIdx]]
         }
         else
         {
-            stop("Cannot find the ", uniqueSeqnames, " in genome ", genomeName)
+            stop("Cannot find the ", glue::collapse(uniqueSeqnames, " "),
+                 " in genome ", genomeName, "
+                 Maybe a problem of chromosome labels")
         }
         return(bedGRanges)
     }
@@ -102,3 +104,16 @@ constructBedRanges <- function(filename,
 
     return(bedGRanges)
 }
+
+
+
+saveGRangesAsBed <- function(GRanges, filepath, filename)
+{
+    stopifnot(is(GRanges, "GRanges"))
+    ## add some parameters
+    filePathName <- file.path(filepath, paste0(filename, "_peaks.bed"))
+    if(file.exists(filePathName)) {stop(filePathName, " already exists!
+                                        Not overwriting!")}
+    rtracklayer::export.bed(object=GRanges, con=filePathName)
+}
+

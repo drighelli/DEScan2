@@ -30,9 +30,7 @@
 #' @importFrom utils read.table write.table
 #' @examples
 #'
-
-
-findPeaks <- function(files, filetype="bam",
+findPeaks <- function(files, filetype=c("bam", "bed"),
                       genomeName=NULL,
                       binSize=50, minWin=1, maxWin=20,
                       zthresh=5, minCount=0.1,
@@ -47,8 +45,10 @@ findPeaks <- function(files, filetype="bam",
         stop("You have to provide one or more input files!\nExiting.")
     }
 
+    filetype <- match.arg(filetype)
+
     winVector <- c(minWin:maxWin)
-    # file="/home/dario/SRR3595211_sorted.bam"
+
     for (file in files) {
 
         bedGRanges <- constructBedRanges(filename=file, filetype=filetype,
@@ -56,7 +56,7 @@ findPeaks <- function(files, filetype="bam",
 
         bedGrangesChrsList <- cutGRangesPerChromosome(bedGRanges)
         # chrGRanges <- bedGrangesChrsList[[1]]
-        bedGrangesChrsList<-bedGrangesChrsList[c(1,2)]
+        # bedGrangesChrsList<-bedGrangesChrsList[c(1,2)]
         # chrGRanges=bedGrangesChrsList[[2]]
         chrZRangesList <- GenomicRanges::GRangesList(
             lapply(bedGrangesChrsList, function(chrGRanges) { ## to parallelize
@@ -92,7 +92,7 @@ findPeaks <- function(files, filetype="bam",
                           chrLength=chrGRanges@seqinfo@seqlengths,
                           minCount=minCount, binSize=50
                           )
-            new_s <- get_disjoint_max_win(z0=z[1:5000,],
+            new_s <- get_disjoint_max_win(z0=z[1:5000,], ###############################
                                           sigwin=fragmentLength/binSize,
                                           nmax=Inf, zthresh=zthresh,
                                           two_sided=FALSE, verbose=FALSE
@@ -107,28 +107,14 @@ findPeaks <- function(files, filetype="bam",
             return(chrZRanges)
             })
         )
-        ## check GRANGES INFO and LEVELS
+
         zGRanges <- unlist(chrZRangesList)
-
+        saveGRangesAsBed(GRanges=zGRanges, filepath=outputName, filename=file)
+        fileGRangesList <- c(fileGRangesList, zGRanges)
     }
+    names(fileGRangesList) <- files
 
-    # peaks <- cbind(rep(chr, dim(s)[1]), s)
-    # if (save == TRUE) {
-    #     if (dir.exists(outputName) == FALSE) {
-    #         dir.create(outputName)
-    #     }
-    #     if (dir.exists(paste0(outputName,"/", chr)) == FALSE) {
-    #         dir.create(paste0(outputName,"/", chr))
-    #     }
-    #     fname <- strsplit(basename(file), split=".", fixed=TRUE)[[1]][1]
-    #     fileprefix <- paste0(outputName,"/", chr, "/Peaks_", fname)
-    #
-    #
-    #     save(peaks, fragmentLength, readLength, zthresh, minWin, maxWin,
-    #          file=paste0(fileprefix, ".RData"))
-    # }
-
-        # return(peaks)
+    return(fileGRangesList)
 }
 
 
@@ -515,10 +501,10 @@ oddRunSum<-function(x, k, endrule = c("drop", "constant"), na.rm = FALSE)
     if (endrule == "constant") {
         j <- (k + 1L) %/% 2L
 
-        runLength(ans)[1L] <- runLength(ans)[1L] + (j - 1L)
+        S4Vectors::runLength(ans)[1L] <- S4Vectors::runLength(ans)[1L]+(j - 1L)
         if( (k %% 2L) == 0 ) j=j+1
-        runLength(ans)[S4Vectors::nrun(ans)] <-
-            runLength(ans)[S4Vectors::nrun(ans)] + (j - 1L)
+        S4Vectors::runLength(ans)[S4Vectors::nrun(ans)] <-
+                        S4Vectors::runLength(ans)[S4Vectors::nrun(ans)]+(j - 1L)
     }
     return(ans)
 }

@@ -1,4 +1,4 @@
-library("DEScan")
+# library("DEScan")
 context("Input reading")
 test_that("Loading same data bed and bam file produces the same object", {
     bed.path <- system.file("extdata/Bed/", package = "DEScan")
@@ -7,8 +7,8 @@ test_that("Loading same data bed and bam file produces the same object", {
     bam.files <- list.files(bam.path, full.names = TRUE)
     bam.file <- bam.files[1]
     bed.file <- bed.files[1]
-    bamRange <- readBamAsBed(file=bam.file, chr="chr19")
-    bedRange <- readBedFile(filename=bed.file, chr="chr19")
+    bamRange <- readBamAsBed(file=bam.file)
+    bedRange <- readBedFile(filename=bed.file)
     expect_identical(bamRange@ranges, bedRange@ranges)
 })
 
