@@ -251,32 +251,6 @@ get_disjoint_max_win <- function(z0, sigwin=20, nmax=Inf,
     return(s)
 }
 
-
-
-#' Title
-#'
-#' @param RleList
-#' @param dimnames
-#'
-#' @return
-#' @export
-#'
-#' @examples
-RleListToRleMatrix <- function(RleList, dimnames=NULL)
-{
-    if(!is.null(dimnames)) {
-        rlem <- DelayedArray::RleArray(rle=unlist(RleList),
-                              dim=c(length(RleList[[1]]), length(RleList)),
-                              dimnames=dimnames
-                              )
-    } else {
-        rlem <- DelayedArray::RleArray(rle=unlist(RleList),
-                              dim=c(length(RleList[[1]]), length(RleList)))
-    }
-    return(rlem)
-
-}
-
 #' Title
 #'
 #' @param chrGRanges
@@ -359,29 +333,25 @@ computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=1,
                                     numvar=chrCoverage,
                                     mcolname="bin_cov")
 
-
     wins <- minWinWidth:maxWinWidth
     runWinRleList <- IRanges::RleList(lapply(wins, function(win) {
         message("Running window ", win, " of ", maxWinWidth)
-        oddRunSum(chrCovRle, k=win, endrule="constant")
+        evenRunSum(x=chrCovRle, k=win, endrule="constant")
     }))
 
     return(runWinRleList)
 }
 
-#' Title
+#' binToChrCoordMatRowNames: computes the starting range of the bins for the
+#' binMatrix, taking in input the length of the chromosome of the matrix
 #'
-#' @param binMatrix
-#' @param chrLength
-#' @param binWidth
+#' @param binMatrix a matrix where each row represents a bin
+#' @param chrLength the length of the chromosome of the binMatrix
+#' @param binWidth the width of the bin
 #'
-#' @return
-#' @export
-#'
-#' @examples
+#' @return the binMatrix with start range as rownames
 binToChrCoordMatRowNames <- function(binMatrix, chrLength, binWidth=50)
 {
-
     ## computing bin in base ranges to add as rownames
     endBinRanges <- seq(from=binWidth-1, to=chrLength, by=binWidth)
 
@@ -403,47 +373,60 @@ binToChrCoordMatRowNames <- function(binMatrix, chrLength, binWidth=50)
 }
 
 
-#' Title
+#' cutGRangesPerChromosome: takes in input a GRanges object, producing a LIST of
+#' GRanges, one for each chromosome
 #'
-#' @param bedGRanges
+#' @param GRanges a GRanges object
 #'
-#' @return
+#' @return a named list of GRanges, one for each chromosome
 #' @export
 #'
 #' @examples
-cutGRangesPerChromosome <- function(bedGRanges)
+cutGRangesPerChromosome <- function(GRanges)
 {
-    interestedChrs <- bedGRanges@seqinfo@seqnames
+    stopifnot(is(GRanges, "GRanges"))
+    interestedChrs <- GRanges@seqinfo@seqnames
 
-    ##     bed19 <- keepSeqlevels(bed, "chr19")
-    bedGRList <- lapply(interestedChrs, function(x)
+    bGRList <- lapply(interestedChrs, function(x)
     {
-        bgr <- bedGRanges[which(bedGRanges@seqnames %in% x),]
-        bgr@seqinfo <- bedGRanges@seqinfo[x]
+        bgr <- GRanges[which(GRanges@seqnames %in% x),]
+        bgr@seqinfo <- GRanges@seqinfo[x]
         seqnames(bgr) <- droplevels(seqnames(bgr))
         bgr
     })
-    names(bedGRList) <- interestedChrs
+    names(GRList) <- interestedChrs
+
     ## intentionally left commented, GRangesList reconstruct the entire seqinfo,
     ## while we want it cutted per chromosomes
-    # bedGRList <- GRangesList(bedGRList)
+    ## GRList <- GRangesList(GRList)
 
     return(bedGRList)
 }
 
 
-
-
-#' Title
-#' http://crazyhottommy.blogspot.com/2016/02/compute-averagessums-on-granges-or.html
-#' @param bins
-#' @param numvar
-#' @param mcolname
+#' binnedSum: this function computes the coverage over a binned chromosome,
+#' starting from a per base computed coverage
+#' credits: http://crazyhottommy.blogspot.com/2016/02/compute-averagessums-on-granges-or.html
+#' @param bins a GRanges object representing a chromosome binned
+#' @param numvar an RleList representing the per base coverage over the chr
+#' @param mcolname the name of column where the sum have to be stored
 #'
-#' @return
+#' @return bins: the bins GRanges with the mcolname attached
 #' @export
 #'
 #' @examples
+#' ## dividing one chromosome in bins of 50 bp each
+#' seqinfo <- GenomeInfoDb::Seqinfo("mm9")
+#' bins <- GenomicRanges::tileGenome(seqlengths=seqinfo@chr1,
+#'                                              tilewidth=50,
+#'                                              cut.last.tile.in.chrom=TRUE)
+#' gr <- GRanges(seqnames = Rle("Chr1", 100),
+#' ranges =IRanges(start = seq(from=10, to=1000, by=10),
+#' end=seq(from=20, to=1010, by = 10)))
+#' ## computing coverage per single base on granges
+#' cov <- GenomicRanges::coverage(x=gr)
+#'
+#' binnedCovGR <- binnedSum(bins, cov, "binned_cov")
 binnedSum <- function(bins, numvar, mcolname)
 {
     stopifnot(is(bins, "GRanges"))
@@ -462,16 +445,13 @@ binnedSum <- function(bins, numvar, mcolname)
     return(bins)
 }
 
-#' Title
+#' binnedSumOnly: it's useful just to coerce the bin coverage to an Rle object
 #'
-#' @param bins
-#' @param numvar
-#' @param mcolname
+#' @param bins a GRanges object representing a chromosome binned
+#' @param numvar an RleList representing the per base coverage over the chr
+#' @param mcolname the name of column where the sum have to be stored
 #'
-#' @return
-#' @export
-#'
-#' @examples
+#' @return chrCovRle: an Rle within the per bin computed coverage
 binnedSumOnly <- function(bins, numvar, mcolname)
 {
     binsGRanges <- binnedSum(bins=bins, numvar=numvar, mcolname=mcolname)
@@ -480,22 +460,21 @@ binnedSumOnly <- function(bins, numvar, mcolname)
     return(chrCovRle)
 }
 
-#' Title
+#' evenRunSum: this function computes a running sum over x with a window width k
+#' (modified from S4Vectors package to work on even on even k, in such a case
+#' it adds a length at the end of the output Rle)
+#' @param x an Rle object, typically a coverage object
+#' @param k window dimension for the running sum over x
+#' @param endrule refer to S4Vectors::runSum
+#' @param na.rm refer to S4Vectors::runSum
 #'
-#' @param x
-#' @param k
-#' @param endrule
-#' @param na.rm
-#'
-#' @return
-#' @export
-#'
-#' @examples
-oddRunSum<-function(x, k, endrule = c("drop", "constant"), na.rm = FALSE)
+#' @return ans: an Rle within the running sum over x with a win o length k
+evenRunSum <- function(x, k, endrule = c("drop", "constant"), na.rm = FALSE)
 {
-    # endrule <- match.arg(endrule)
+    stopifnot(is(x, "Rle"))
+    endrule <- match.arg(endrule)
     n <- length(x)
-    # k <- normargRunK(k = k, n = n, endrule = endrule)
+    # k <- normArgRunK(k = k, n = n, endrule = endrule)
     ans <- S4Vectors::.Call2("Rle_runsum", x, as.integer(k), as.logical(na.rm),
                              PACKAGE="S4Vectors")
     if (endrule == "constant") {
@@ -508,6 +487,3 @@ oddRunSum<-function(x, k, endrule = c("drop", "constant"), na.rm = FALSE)
     }
     return(ans)
 }
-
-
-

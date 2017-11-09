@@ -117,3 +117,27 @@ saveGRangesAsBed <- function(GRanges, filepath, filename)
     rtracklayer::export.bed(object=GRanges, con=filePathName)
 }
 
+
+#' Title
+#'
+#' @param RleList
+#' @param dimnames
+#'
+#' @return
+#' @export
+#'
+#' @examples
+RleListToRleMatrix <- function(RleList, dimnames=NULL)
+{
+    if(!is.null(dimnames)) {
+        rlem <- DelayedArray::RleArray(rle=unlist(RleList),
+                                       dim=c(length(RleList[[1]]), length(RleList)),
+                                       dimnames=dimnames
+        )
+    } else {
+        rlem <- DelayedArray::RleArray(rle=unlist(RleList),
+                                       dim=c(length(RleList[[1]]), length(RleList)))
+    }
+    return(rlem)
+
+}
