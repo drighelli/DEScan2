@@ -113,24 +113,24 @@ constructBedRanges <- function(filename,
 
 
 
-#' Title
+#' saveGRangesAsBed save a GRanges object as bed file and RData file
 #'
-#' @param GRanges
-#' @param filepath
-#' @param filename
+#' @param GRanges the GRanges object
+#' @param filepath the path to store the files
+#' @param filename the name to give to the files
 #'
-#' @return
-#' @export
+#' @return none
 #'
-#' @examples
 saveGRangesAsBed <- function(GRanges, filepath, filename)
 {
     stopifnot(is(GRanges, "GRanges"))
     ## add some parameters
-    filePathName <- file.path(filepath, paste0(filename, "_peaks.bed"))
+    dir.create(path=filepath, showWarnings=FALSE, recursive=TRUE)
+    filePathName <- file.path(filepath, paste0(filename, "_peaks"))
     if(file.exists(filePathName)) {stop(filePathName, " already exists!
                                         Not overwriting!")}
-    rtracklayer::export.bed(object=GRanges, con=filePathName)
+    rtracklayer::export.bed(object=GRanges, con=paste0(filePathName, ".bed"))
+    save(zGRanges, file=paste0(filePathName, ".RData"))
 }
 
 

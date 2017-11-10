@@ -115,8 +115,16 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
             })
         )
 
-        zGRanges <- unlist(chrZRangesList)
-        # saveGRangesAsBed(GRanges=zGRanges, filepath=outputName, filename=file)
+        zGRanges <- unlist
+
+        if(save)
+        {
+            filename <- paste0(file, "_zt", zthresh, "_mnw", minWin,
+                               "_mxw", maxWin, "_bin", binSize)
+            saveGRangesAsBed(GRanges=zGRanges, filepath=outputName,
+                             filename=filename)
+        }
+
         fileGRangesList <- c(fileGRangesList, zGRanges)
     }
     names(fileGRangesList) <- files
