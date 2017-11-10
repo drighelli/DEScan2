@@ -27,7 +27,9 @@
 #' @param genomeName the code of the genome to use as reference for the input
 #'                   files. (cfr. constructBedRanges function parameters)
 #' @param onlyStdChrs a flag to work only with standard chromosomes
-#'                                (cfr. constructBedRanges function parameters)
+#'                    (cfr. constructBedRanges function parameters)
+#' @param chr if not NULL, a character like "chr#" indicating the
+#'            chromosomes to use
 #'
 #' @return a matrix with peaks as rows and 4 columns describing the genomic
 #'         coordinates (chr, start, end) as well as the associated z-score.
@@ -42,26 +44,27 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
                       maxCompWinWidth=10000,
                       outputName="Peaks", save=TRUE, verbose=FALSE,
                       fragmentLength=200,
-                      onlyStdChrs=TRUE
+                      onlyStdChrs=TRUE,
+                      chr=NULL
                       )
 {
 
-    if(length(files) == 0) {
+    if(!is.null(chr) && length(grep(pattern="chr", chr))!=length(chr))
+        stop("Insert valid chr(s), use the \"chr#\" form!")
+    if(!save) warning("Save is false, not saving results!")
+    if(length(files) == 0)
         stop("You have to provide one or more input files!\nExiting.")
-    }
-
     filetype <- match.arg(filetype)
 
     winVector <- c(minWin:maxWin)
-
     for (file in files) {
-
         bedGRanges <- constructBedRanges(filename=file, filetype=filetype,
                                          genomeName=genomeName,
-                                         onlyStdChrs=onlyStdChrs)
-
+                                         onlyStdChrs=onlyStdChrs,
+                                         chr=chr)
         bedGrangesChrsList <- cutGRangesPerChromosome(bedGRanges)
-
+        if(!is.null(chr))
+            bedGrangesChrsList <- keepRelevantChrs(bedGrangesChrsList, chr)
         chrZRangesList <- GenomicRanges::GRangesList(
             lapply(bedGrangesChrsList, function(chrGRanges) { ########## to parallelize
 
@@ -113,7 +116,7 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
         )
 
         zGRanges <- unlist(chrZRangesList)
-        saveGRangesAsBed(GRanges=zGRanges, filepath=outputName, filename=file)
+        # saveGRangesAsBed(GRanges=zGRanges, filepath=outputName, filename=file)
         fileGRangesList <- c(fileGRangesList, zGRanges)
     }
     names(fileGRangesList) <- files
@@ -343,45 +346,6 @@ binToChrCoordMatRowNames <- function(binMatrix, chrLength, binWidth=50)
     rownames(binMatrix) <- startBinRanges
     return(binMatrix)
 }
-
-
-#' cutGRangesPerChromosome: takes in input a GRanges object, producing a LIST of
-#' GRanges, one for each chromosome
-#'
-#' @param GRanges a GRanges object
-#'
-#' @return a named list of GRanges, one for each chromosome
-#' @export
-#'
-#' @examples
-#' gr <- GRanges(
-#'       seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
-#'       ranges=IRanges(1:10, end=10),
-#'       strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
-#'       seqlengths=c(chr1=11, chr2=12, chr3=13))
-#' (grchrlist <- cutGRangesPerChromosome(gr))
-#'
-cutGRangesPerChromosome <- function(GRanges)
-{
-    stopifnot(is(GRanges, "GRanges"))
-    interestedChrs <- GRanges@seqinfo@seqnames
-
-    GRList <- lapply(interestedChrs, function(x)
-    {
-        bgr <- GRanges[which(GRanges@seqnames %in% x),]
-        bgr@seqinfo <- GRanges@seqinfo[x]
-        seqnames(bgr) <- droplevels(seqnames(bgr))
-        bgr
-    })
-    names(GRList) <- interestedChrs
-
-    ## intentionally left commented, GRangesList reconstruct the entire seqinfo,
-    ## while we want it cutted per chromosomes
-    ## GRList <- GRangesList(GRList)
-
-    return(GRList)
-}
-
 
 #' binnedSum: this function computes the coverage over a binned chromosome,
 #' starting from a per base computed coverage
