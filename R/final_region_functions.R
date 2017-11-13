@@ -38,15 +38,11 @@ finalRegions <- function(peak_path, zthresh=20, min_carriers=2,
             }
             ord <- order(as.numeric(sall_sorted[,2])) ## based on start range
             sall_sorted <- sall_sorted[ord,]
-
-            common_regions <- merge_overlapping_intervals(sall_sorted,
-                                                        verbose=verbose) ## intervals
+            common_regions <- merge_overlapping_intervals(sall_sorted, verbose=verbose) ## intervals
             names(common_regions) <- c("Start","End","AvgZ","NumCarriers")
-
             sel <- which(common_regions[, 4] >= min_carriers) ## seleziona solo le regioni sotto la soglia voluta di numcarriers
             final_regions <- common_regions[sel,]
-            final_regions <- cbind(rep(chromosome, nrow(final_regions)),
-                                                         final_regions) ## create final region dataframe
+            final_regions <- cbind(rep(chromosome, nrow(final_regions)), final_regions) ## create final region dataframe
             len <- final_regions[, 3] - final_regions[, 4] ##
             if (verbose) {
             cat("Regions scanned: ", nrow(final_regions), "\n")
@@ -83,14 +79,12 @@ merge_overlapping_intervals <- function(s, verbose) {
         count_vec <- as.numeric(s[,5]) ## samples
         s <- cbind(as.numeric(s[, 2]) - 200, #200 ## start - 200 (extend start)
                                 as.numeric(s[, 3]) + 200) #mess end + 200 (extend end)
-
         if (is.null(avg_vec)) {
             avg_vec <- rep(0, nrow(s))
         }
         if (is.null(count_vec)) {
             count_vec <- c(1:nrow(s))
         }
-
         s2 <- matrix(nrow=0, ncol=4)
         n <- nrow(s)
         i <- 1
@@ -100,7 +94,6 @@ merge_overlapping_intervals <- function(s, verbose) {
             interval <- s[i, ] ## peak-i
             avg_over <- avg_vec[i] ## zscore
             count_over <- count_vec[i] ## sample
-
             while (j <= n && s[j, 1] <= interval[2]) { ## fin quando lo start del picco-j è incluso nel picco-i
                 interval <- c(interval[1], max(interval[2], s[j, 2]))  ## picco con i è lo start del picco-i e la end il massimo tra i due (i-j) end
                 avg_over <- c(avg_over, avg_vec[j]) ## accoda zscore
@@ -181,28 +174,42 @@ catRegions <- function(path="FinalRegions", type="RData",
 }
 
 
-findOverlapsOverSamples <- function(samplePeaksGRangelist)
+findOverlapsOverSamples <- function(samplePeaksGRangelist, minOverlap=1L)
 {
     stopifnot(is(samplePeaksGRangelist, "GRangesList"))
 
-    length(samplePeaksGRangelist)
+    ns <- length(samplePeaksGRangelist)
+    ncs <- nchar(as.character(ns))
+    for(i in 1:ns)
+    {
+        ncp <- nchar(as.character(length(samplePeaksGRangelist[[i]])))
+        format <- paste0("s%0", ncs,"d_p%0", ncp, "d")
+        peakNames <- sprintf(format, i, 1:length(samplePeaksGRangelist[[i]]))
+        names(samplePeaksGRangelist[[i]]) <- peakNames
+    }
 
     i=1; j=2
 
-    gr12<-findOverlapsOfPeaks(samplePeaksGRangelist[[i]],samplePeaksGRangelist[[j]])
-
+    gr12 <- ChIPpeakAnno::findOverlapsOfPeaks(samplePeaksGRangelist[[i]],
+                                              samplePeaksGRangelist[[j]],
+                                              minoverlap=minOverlap)
+    return(gr12)
 }
 
-# lgr <- list()
-# for(sample in sall)
-# {
-#     gr <- GRanges(seqnames=sample[,1],
-#                   ranges=IRanges(start=as.numeric(sample[,2]),
-#                                  end=as.numeric(sample[,3])
-#                   )
-#     )
-#     mcols(gr)[["z-score"]] <- sample[,4]
-#     lgr <- c(lgr, gr)
-# }
-#
-# grl <- GRangesList(lgr)
+convertSallToGrl <- function(sall)
+{
+    lgr <- list()
+    for(sample in sall)
+    {
+        gr <- GRanges(seqnames=sample[,1],
+                      ranges=IRanges(start=as.numeric(sample[,2]),
+                                     end=as.numeric(sample[,3])
+                      )
+        )
+        mcols(gr)[["z-score"]] <- sample[,4]
+        lgr <- c(lgr, gr)
+    }
+
+    grl <- GRangesList(lgr)
+    return(grl)
+}
