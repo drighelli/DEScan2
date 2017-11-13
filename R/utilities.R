@@ -180,8 +180,7 @@ createGranges <- function(chrSeqInfo, starts, widths,
 
     gr <- GRanges(seqnames=as.character(chrSeqInfo@seqnames),
                   ranges=IRanges(start=starts, width=widths),
-                  seqinfo=chrSeqInfo
-    )
+                  seqinfo=chrSeqInfo)
 
     if(!is.null(mcolname) )
     {

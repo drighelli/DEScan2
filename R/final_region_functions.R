@@ -15,40 +15,39 @@
 #'     coordinates, z-score and number of carriers.
 #' @export
 #' @importFrom utils read.table write.table
-finalRegions<-function(peak_path, zthresh=20, min_carriers=2,
+finalRegions <- function(peak_path, zthresh=20, min_carriers=2,
                        chr=1:19, save_file="bed",
                        keep_files=FALSE, verbose=FALSE) {
         if (length(chr) == 1) {
-            single_chromosome<-TRUE
-        } else { single_chromosome<-FALSE }
+            single_chromosome <- TRUE
+        } else { single_chromosome <- FALSE }
 
         if (dir.exists("FinalRegions") == FALSE) {
                 dir.create("FinalRegions")
         }
 
         for (i in chr) {
-            chromosome<-paste0("chr", i)
+            chromosome <- paste0("chr", i)
             #print(paste(peak_path, chromosome, sep="/"))
-            sall<-loadPeaks(paste(peak_path, chromosome, sep="/"),
-                            verbose=verbose)
-            sall_sorted<-matrix(nrow=0, ncol=ncol(sall[[1]]) + 1)
-            for (i in 1:length(sall)) {
-                sel<-which(as.numeric(sall[[i]][, 4]) >= zthresh)
-                sall_sorted<-rbind(sall_sorted,
-                                   cbind(sall[[i]][sel,], rep(i, length(sel))))
+            sall <- loadPeaks(paste(peak_path, chromosome, sep="/"),
+                            verbose=verbose) ## a list of each file peak (for the chr)
+            sall_sorted <- matrix(nrow=0, ncol=ncol(sall[[1]]) + 1) ## empty matrix ## as GRange
+            for (i in 1:length(sall)) { ## for each file
+                sel <- which(as.numeric(sall[[i]][, 4]) >= zthresh) ## choose peaks over the threshold
+                sall_sorted <- rbind(sall_sorted, cbind(sall[[i]][sel,], rep(i, length(sel))))
             }
-            ord<-order(as.numeric(sall_sorted[,2]))
-            sall_sorted<-sall_sorted[ord,]
+            ord <- order(as.numeric(sall_sorted[,2])) ## based on start range
+            sall_sorted <- sall_sorted[ord,]
 
-            common_regions<-merge_overlapping_intervals(sall_sorted,
-                                                        verbose=verbose)
-            names(common_regions)<-c("Start","End","AvgZ","NumCarriers")
+            common_regions <- merge_overlapping_intervals(sall_sorted,
+                                                        verbose=verbose) ## intervals
+            names(common_regions) <- c("Start","End","AvgZ","NumCarriers")
 
-            sel<-which(common_regions[, 4] >= min_carriers)
-            final_regions<-common_regions[sel,]
-            final_regions<-cbind(rep(chromosome, nrow(final_regions)),
-                                                         final_regions)
-            len<-final_regions[, 3] - final_regions[, 4]
+            sel <- which(common_regions[, 4] >= min_carriers) ## seleziona solo le regioni sotto la soglia voluta di numcarriers
+            final_regions <- common_regions[sel,]
+            final_regions <- cbind(rep(chromosome, nrow(final_regions)),
+                                                         final_regions) ## create final region dataframe
+            len <- final_regions[, 3] - final_regions[, 4] ##
             if (verbose) {
             cat("Regions scanned: ", nrow(final_regions), "\n")
             cat("Bases scanned (in MB): ", sum(len)/1000000, "\n")
@@ -60,17 +59,17 @@ finalRegions<-function(peak_path, zthresh=20, min_carriers=2,
                                 chromosome, ".RData"))
             }
             if (save_file == "bed") {
-                fname<-paste0("FinalRegions/FinalRegions_", chromosome, ".bed")
+                fname <- paste0("FinalRegions/FinalRegions_", chromosome, ".bed")
                 utils::write.table(x=final_regions,
                                    file=fname, sep="\t", col.names=FALSE,
                                    row.names=FALSE, quote=FALSE)
             }
         }
         if (single_chromosome == FALSE) {
-            final_regions<-catRegions(path="FinalRegions", type=save_file,
+            final_regions <- catRegions(path="FinalRegions", type=save_file,
                                       keep_files=keep_files)
         }
-        colnames(final_regions)<-c("Chr", "Start", "End", "AvgZ", "NumCarriers")
+        colnames(final_regions) <- c("Chr", "Start", "End", "AvgZ", "NumCarriers")
         return(final_regions)
 }
 
@@ -79,40 +78,43 @@ finalRegions<-function(peak_path, zthresh=20, min_carriers=2,
 #' @param s.
 #' @return s2.
 #' @keywords internal
-merge_overlapping_intervals<-function(s, verbose) {
-        avg_vec<-as.numeric(s[,4])
-        count_vec<-as.numeric(s[,5])
-        s<-cbind(as.numeric(s[, 2]) - 200, #200
-                                as.numeric(s[, 3]) + 200) #mess
+merge_overlapping_intervals <- function(s, verbose) {
+        avg_vec <- as.numeric(s[,4]) ## z-score
+        count_vec <- as.numeric(s[,5]) ## samples
+        s <- cbind(as.numeric(s[, 2]) - 200, #200 ## start - 200 (extend start)
+                                as.numeric(s[, 3]) + 200) #mess end + 200 (extend end)
 
         if (is.null(avg_vec)) {
-            avg_vec<-rep(0, nrow(s))
+            avg_vec <- rep(0, nrow(s))
         }
         if (is.null(count_vec)) {
-            count_vec<-c(1:nrow(s))
+            count_vec <- c(1:nrow(s))
         }
 
-        s2<-matrix(nrow=0, ncol=4)
-        n<-nrow(s)
-        i<-1
-        j<-2
-        while (i <= n) {
+        s2 <- matrix(nrow=0, ncol=4)
+        n <- nrow(s)
+        i <- 1
+        j <- 2
+        while (i <= n) { #all over the dimension of s
             #if (i %% 100 == 0 & verbose) cat(i, "\n")
-            interval<-s[i, ]
-            avg_over<-avg_vec[i]
-            count_over<-count_vec[i]
+            interval <- s[i, ] ## peak-i
+            avg_over <- avg_vec[i] ## zscore
+            count_over <- count_vec[i] ## sample
 
-            while (j <= n && s[j, 1] <= interval[2]) {
-                interval<-c(interval[1], max(interval[2], s[j, 2]))
-                avg_over<-c(avg_over, avg_vec[j])
-                count_over<-c(count_over, count_vec[j])
-                j<-j + 1
+            while (j <= n && s[j, 1] <= interval[2]) { ## fin quando lo start del picco-j è incluso nel picco-i
+                interval <- c(interval[1], max(interval[2], s[j, 2]))  ## picco con i è lo start del picco-i e la end il massimo tra i due (i-j) end
+                avg_over <- c(avg_over, avg_vec[j]) ## accoda zscore
+                count_over <- c(count_over, count_vec[j]) ## accoda campione
+                j <- j + 1
+                # print(j)
             }
-            avg<-mean(avg_over, na.rm=TRUE)
-            count<-unique(count_over)
-            s2<-rbind(s2, c(interval, avg, length(count)))
-            i<-j
-            j<-i + 1
+            avg <- mean(avg_over, na.rm=TRUE) ## calcola media degli zscore
+            count <- unique(count_over) ## prendi ogni campione una sola volta
+            s2 <- rbind(s2, c(interval, avg, length(count))) ## accoda alla nuova matrice compreso il numero di samples per trovare l'intervallo
+            i <- j
+            j <- i + 1
+            # print(i)
+            # print(j)
         }
         return(as.data.frame(s2))
 }
@@ -122,19 +124,19 @@ merge_overlapping_intervals<-function(s, verbose) {
 #' @param peakdirname
 #' @return sall.
 #' @keywords internal
-loadPeaks<-function(peakdirname, verbose=verbose) {
-        all.files<-list.files(peakdirname, pattern="Peaks")
+loadPeaks <- function(peakdirname, verbose=verbose) {
+        all.files <- list.files(peakdirname, pattern="Peaks")
         if (verbose) {
             cat("Found", length(all.files),"peak files.\n")
         }
-        peaks_all<-vector("list", length(all.files))
+        peaks_all <- vector("list", length(all.files))
         for (i in 1:length(all.files)) {
             load(paste0(peakdirname, "/", all.files[i]))
             if (ncol(peaks) == 3) {
-                chr<-strsplit(peakdirname, split="/")[[1]][2]
-                peaks<-cbind(rep(chr, nrow(peaks)), peaks)
+                chr <- strsplit(peakdirname, split="/")[[1]][2]
+                peaks <- cbind(rep(chr, nrow(peaks)), peaks)
             }
-            peaks_all[[i]]<-peaks
+            peaks_all[[i]] <- peaks
             if (verbose) {
                 cat("File: ", all.files[i], " number of regions:", nrow(peaks), "\n") ## use message instead
             }
@@ -151,21 +153,21 @@ loadPeaks<-function(peakdirname, verbose=verbose) {
 #' @return c.
 #' @keywords internal
 #' @importFrom utils read.table write.table
-catRegions<-function(path="FinalRegions", type="RData",
+catRegions <- function(path="FinalRegions", type="RData",
                                              keep_files=TRUE) {
-        files<-list.files(path, recursive=TRUE, full.names=TRUE,
+        files <- list.files(path, recursive=TRUE, full.names=TRUE,
                                                 pattern=type)
-        final_regions_allchr<-NULL
+        final_regions_allchr <- NULL
         for (f in files) {
             if (type == "RData") {
                 load(f)
             }
             if (type == "bed") {
-                final_regions<-utils::read.table(f, sep="\t", header=FALSE)
-                colnames(final_regions)<-c("chr","start","end","AvgZ",
+                final_regions <- utils::read.table(f, sep="\t", header=FALSE)
+                colnames(final_regions) <- c("chr","start","end","AvgZ",
                                            "NumCarriers")
             }
-            final_regions_allchr<-rbind(final_regions_allchr, final_regions)
+            final_regions_allchr <- rbind(final_regions_allchr, final_regions)
         }
         utils::write.table(final_regions_allchr,
                            file=paste0(path, "/FinalRegions_allChr.bed"),
@@ -177,3 +179,30 @@ catRegions<-function(path="FinalRegions", type="RData",
         }
         return(final_regions_allchr)
 }
+
+
+findOverlapsOverSamples <- function(samplePeaksGRangelist)
+{
+    stopifnot(is(samplePeaksGRangelist, "GRangesList"))
+
+    length(samplePeaksGRangelist)
+
+    i=1; j=2
+
+    gr12<-findOverlapsOfPeaks(samplePeaksGRangelist[[i]],samplePeaksGRangelist[[j]])
+
+}
+
+# lgr <- list()
+# for(sample in sall)
+# {
+#     gr <- GRanges(seqnames=sample[,1],
+#                   ranges=IRanges(start=as.numeric(sample[,2]),
+#                                  end=as.numeric(sample[,3])
+#                   )
+#     )
+#     mcols(gr)[["z-score"]] <- sample[,4]
+#     lgr <- c(lgr, gr)
+# }
+#
+# grl <- GRangesList(lgr)
