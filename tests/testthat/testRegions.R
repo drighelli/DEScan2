@@ -17,7 +17,7 @@ test_that("just load data for chippeakanno", {
 
     grl <- convertSallToGrl(sall)
 
-    examp_gr12<-findOverlapsOverSamples(samplePeaksGRangelist=grl, minOverlap=5)
+    examp_gr12 <- findOverlapsOverSamples(samplePeaksGRangelist=grl)
     print(str(examp_gr12))
     print(examp_gr12)
     # finalRegions <- finalRegions(peaks, zthresh = 30, min_carriers = 4, chromosome = 19, keep_files = F)

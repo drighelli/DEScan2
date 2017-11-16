@@ -173,27 +173,109 @@ catRegions <- function(path="FinalRegions", type="RData",
         return(final_regions_allchr)
 }
 
+giveUniqueNamesToPeaksOverSamples <- function(samplePeaksGRangelist)
+{
+    stopifnot(is(samplePeaksGRangelist, "GRangesList"))
+    ## this is just for naming the peaks
+    ## total number of samples
+    ns <- length(samplePeaksGRangelist)
+    ## total number of decimals for the samples
+    ncs <- nchar(as.character(ns))
+    ## total number of decimals for the peaks taking the max number of peaks
+    ncp <- nchar(as.character(max(unlist(
+                                         lapply(samplePeaksGRangelist, length)
+                                         )
+                                    )))
+    sFormat <- paste0("s%0", ncs,"d")
+    format <- paste0("s%0", ncs,"d_p%0", ncp, "d")
+    listNames <- character()
+    samplePeaksGRangelista <- lapply(
+        seq_along(samplePeaksGRangelist),
+        function(x, i)
+        {
+            peakNames <- sprintf(format, i, 1:length(x[[i]]))
+            # print(peakNames)
+            names(x[[i]]) <- peakNames
+            return(x[[i]])
+        },
+        x=samplePeaksGRangelist
+    )
 
-findOverlapsOverSamples <- function(samplePeaksGRangelist, minOverlap=1L)
+    names(samplePeaksGRangelista) <- sprintf(sFormat,
+                                             seq_along(samplePeaksGRangelist))
+    ####
+    return(samplePeaksGRangelista)
+}
+
+initMergedPeaks <- function(mergedGRanges)
+{
+    stopifnot(is(mergedGRanges, "GRanges"))
+    ncp <- length(mergedGRanges@ranges)
+    format <- paste0("s%0", ncs,"d_p%0", ncp, "d")
+}
+
+findOverlapsOverSamples <- function(samplePeaksGRangelist,
+                                    minOverlap=0L,
+                                    maxGap=200)
 {
     stopifnot(is(samplePeaksGRangelist, "GRangesList"))
 
-    ns <- length(samplePeaksGRangelist)
-    ncs <- nchar(as.character(ns))
-    for(i in 1:ns)
+    namedSamplePeaksGRL <- giveUniqueNamesToPeaksOverSamples(samplePeaksGRangelist)
+    namedSamplePeaksGRL <- lapply(namedSamplePeaksGRL, function(x) {
+        cols <- c(colnames(mcols(x)), "n-peaks", "k-carriers")
+        mcols(x) <- cbind(mcols(x), 1, 1)
+        colnames(mcols(x)) <- cols
+        return(x)
+    })
+    message("Computing overlapping reagions over samples...")
+    for(i in 2:length(namedSamplePeaksGRL))
     {
-        ncp <- nchar(as.character(length(samplePeaksGRangelist[[i]])))
-        format <- paste0("s%0", ncs,"d_p%0", ncp, "d")
-        peakNames <- sprintf(format, i, 1:length(samplePeaksGRangelist[[i]]))
-        names(samplePeaksGRangelist[[i]]) <- peakNames
+        if( i == 2 ) {
+            gri <- namedSamplePeaksGRL[[1]]
+        } else {
+            gri <- foundedPeaks
+        }
+
+        grj <- namedSamplePeaksGRL[[i]]
+
+        grij <- ChIPpeakAnno::findOverlapsOfPeaks(gri,
+                                                  grj,
+                                                  minoverlap=minOverlap,
+                                                  maxgap=maxGap,
+                                                  connectedPeaks="merge"
+                                                  )
+
+        mmpeaks <- grij$peaksInMergedPeaks
+        ## cleaning peaks names
+        mrgPks <- grij$mergedPeaks
+        mrgPksNms <- as.list(mrgPks$peakNames)
+
+        newcols <- lapply(mrgPksNms, function(l)
+        {
+            idx <- which(names(mmpeaks) %in% l)
+            scores <- as.numeric(mmpeaks$`z-score`[idx])
+            nPeaks <- as.numeric(mmpeaks$`n-peaks`[idx])
+            kCarr <- as.numeric(mmpeaks$`k-carriers`[idx])
+            np = sum(nPeaks) ## total number of peaks found
+            ## it's necessary to rescale the score on the basis of the peaks
+            ## found from previous computations
+            mmzp <- sum(scores*nPeaks)/np
+            ## the carriers are just the number of samples
+            k <- max(kCarr)+1
+            as.data.frame(cbind(mmzp, np, k))
+        })
+        newcols1 <- data.table::rbindlist(newcols)
+        mcols(mrgPks) <-  DataFrame(newcols1)
+        colnames(mcols(mrgPks)) <- c("z-score", "n-peaks", "k-carriers")
+        ## peaks uniques
+        unqPks <- grij$uniquePeaks
+        ## putting together all the peaks
+        foundedPeaks <- unlist(GRangesList(unqPks, mrgPks))
+
+        names(foundedPeaks@ranges) <- NULL
     }
-
-    i=1; j=2
-
-    gr12 <- ChIPpeakAnno::findOverlapsOfPeaks(samplePeaksGRangelist[[i]],
-                                              samplePeaksGRangelist[[j]],
-                                              minoverlap=minOverlap)
-    return(gr12)
+    message("...done!")
+    return(foundedPeaks)
 }
 
 convertSallToGrl <- function(sall)
