@@ -206,13 +206,21 @@ giveUniqueNamesToPeaksOverSamples <- function(samplePeaksGRangelist)
     ####
     return(samplePeaksGRangelista)
 }
-#
-# initMergedPeaks <- function(mergedGRanges)
-# {
-#     stopifnot(is(mergedGRanges, "GRanges"))
-#     ncp <- length(mergedGRanges@ranges)
-#     format <- paste0("s%0", ncs,"d_p%0", ncp, "d")
-# }
+
+initMergedPeaksNames <- function(mergedGRanges)
+{
+    stopifnot(is(mergedGRanges, "GRanges"))
+    ncp <- nchar(length(mergedGRanges@ranges))
+    # format <- paste0("s%0", ncs,"d_p%0", ncp, "d")
+    nk <- nchar(max(mergedGRanges$`k-carriers`))
+    np <- nchar(max(mergedGRanges$`n-peaks`))
+    format <-  paste0("p%0", ncp, "d_np%0", np, "d_k%0", nk,"d")
+
+    peakNames <- sprintf(format, 1:length(mergedGRanges@ranges),
+                         mergedGRanges$`n-peaks`, mergedGRanges$`k-carriers`)
+    names(mergedGRanges) <- peakNames
+
+}
 
 findOverlapsOverSamples <- function(samplePeaksGRangelist,
                                     extendRegions=200,
@@ -284,7 +292,7 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
         ## putting together all the peaks
         foundedPeaks <- unlist(GRangesList(unqPks, mrgPks))
 
-        names(foundedPeaks@ranges) <- NULL
+        foundedPeaks <- initMergedPeaksNames(foundedPeaks)
     }
     # endingTime <- Sys.time()
     # print((endingTime - startTime))
