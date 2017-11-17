@@ -206,13 +206,13 @@ giveUniqueNamesToPeaksOverSamples <- function(samplePeaksGRangelist)
     ####
     return(samplePeaksGRangelista)
 }
-
-initMergedPeaks <- function(mergedGRanges)
-{
-    stopifnot(is(mergedGRanges, "GRanges"))
-    ncp <- length(mergedGRanges@ranges)
-    format <- paste0("s%0", ncs,"d_p%0", ncp, "d")
-}
+#
+# initMergedPeaks <- function(mergedGRanges)
+# {
+#     stopifnot(is(mergedGRanges, "GRanges"))
+#     ncp <- length(mergedGRanges@ranges)
+#     format <- paste0("s%0", ncs,"d_p%0", ncp, "d")
+# }
 
 findOverlapsOverSamples <- function(samplePeaksGRangelist,
                                     minOverlap=0L,
@@ -221,17 +221,22 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
     stopifnot(is(samplePeaksGRangelist, "GRangesList"))
 
     namedSamplePeaksGRL <- giveUniqueNamesToPeaksOverSamples(samplePeaksGRangelist)
-    namedSamplePeaksGRL <- lapply(namedSamplePeaksGRL, function(x) {
-        cols <- c(colnames(mcols(x)), "n-peaks", "k-carriers")
-        mcols(x) <- cbind(mcols(x), 1, 1)
-        colnames(mcols(x)) <- cols
+
+    namedSamplePeaksGRL <- lapply(namedSamplePeaksGRL, function(x)
+    {
+        mcols(x)[["n-peaks"]] <-  1
+        mcols(x)[["k-carriers"]] <-  1
         return(x)
     })
+
+
     message("Computing overlapping reagions over samples...")
+    startTime <- Sys.time()
     for(i in 2:length(namedSamplePeaksGRL))
     {
         if( i == 2 ) {
             gri <- namedSamplePeaksGRL[[1]]
+            foundedPeaks <- NULL
         } else {
             gri <- foundedPeaks
         }
@@ -249,7 +254,7 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
         ## cleaning peaks names
         mrgPks <- grij$mergedPeaks
         mrgPksNms <- as.list(mrgPks$peakNames)
-
+        stTime <- Sys.time()
         newcols <- lapply(mrgPksNms, function(l)
         {
             idx <- which(names(mmpeaks) %in% l)
@@ -264,8 +269,10 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
             k <- max(kCarr)+1
             as.data.frame(cbind(mmzp, np, k))
         })
+        endTime <- Sys.time()
+        print((endTime-stTime))
         newcols1 <- data.table::rbindlist(newcols)
-        mcols(mrgPks) <-  DataFrame(newcols1)
+        mcols(mrgPks) <-  S4Vectors::DataFrame(newcols1)
         colnames(mcols(mrgPks)) <- c("z-score", "n-peaks", "k-carriers")
         ## peaks uniques
         unqPks <- grij$uniquePeaks
@@ -274,6 +281,8 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
 
         names(foundedPeaks@ranges) <- NULL
     }
+    endingTime <- Sys.time()
+    print((endingTime - startTime))
     message("...done!")
     return(foundedPeaks)
 }
