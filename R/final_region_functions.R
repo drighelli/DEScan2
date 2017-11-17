@@ -284,6 +284,7 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
     endingTime <- Sys.time()
     print((endingTime - startTime))
     message("...done!")
+    # save(foundedPeaks, file="testData/new_files/foundedPeaks.RData")
     return(foundedPeaks)
 }
 

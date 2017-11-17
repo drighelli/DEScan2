@@ -11,15 +11,16 @@ test_that("finalRegions is consistent", {
 
 
 test_that("just load data for chippeakanno", {
-    peak_path <- file.path(system.file("extdata", "", package = "DEScan"), "Peaks", "chr19")
+    # peak_path <- file.path(system.file("extdata", "", package = "DEScan"), "Peaks", "chr19")
 
-    sall <- loadPeaks(peak_path, verbose=TRUE)
+    # sall <- loadPeaks(peak_path, verbose=TRUE)
 
-    grl <- convertSallToGrl(sall)
+    # grl <- convertSallToGrl(sall)
+    samplePeaksGRangelist <- readRDS("testData/new_files/samplePeaksGRangelist.rds")
+    foundedRegions <- findOverlapsOverSamples(samplePeaksGRangelist=samplePeaksGRangelist)
 
-    examp_gr12 <- findOverlapsOverSamples(samplePeaksGRangelist=grl)
-    print(str(examp_gr12))
-    print(examp_gr12)
+    # print(str(examp_gr12))
+    # print(examp_gr12)
     # finalRegions <- finalRegions(peaks, zthresh = 30, min_carriers = 4, chromosome = 19, keep_files = F)
 
     # expect_equal_to_reference(finalRegions, file = "final_regions.rds")
