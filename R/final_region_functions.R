@@ -215,8 +215,10 @@ giveUniqueNamesToPeaksOverSamples <- function(samplePeaksGRangelist)
 # }
 
 findOverlapsOverSamples <- function(samplePeaksGRangelist,
+                                    extendRegions=200,
                                     minOverlap=0L,
-                                    maxGap=200)
+                                    maxGap=-1L
+                                    )
 {
     stopifnot(is(samplePeaksGRangelist, "GRangesList"))
 
@@ -224,14 +226,17 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
 
     namedSamplePeaksGRL <- lapply(namedSamplePeaksGRL, function(x)
     {
+        x <- x[as.numeric(mcols(x)[["z-score"]]) >= 20]
         mcols(x)[["n-peaks"]] <-  1
         mcols(x)[["k-carriers"]] <-  1
+        start(x) <- start(x) - extendRegions
+        end(x) <- end(x) + extendRegions
         return(x)
     })
 
 
     message("Computing overlapping reagions over samples...")
-    startTime <- Sys.time()
+    # startTime <- Sys.time()
     for(i in 2:length(namedSamplePeaksGRL))
     {
         if( i == 2 ) {
@@ -254,7 +259,7 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
         ## cleaning peaks names
         mrgPks <- grij$mergedPeaks
         mrgPksNms <- as.list(mrgPks$peakNames)
-        stTime <- Sys.time()
+        # stTime <- Sys.time()
         newcols <- lapply(mrgPksNms, function(l)
         {
             idx <- which(names(mmpeaks) %in% l)
@@ -269,8 +274,8 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
             k <- max(kCarr)+1
             as.data.frame(cbind(mmzp, np, k))
         })
-        endTime <- Sys.time()
-        print((endTime-stTime))
+        # endTime <- Sys.time()
+        # print((endTime-stTime))
         newcols1 <- data.table::rbindlist(newcols)
         mcols(mrgPks) <-  S4Vectors::DataFrame(newcols1)
         colnames(mcols(mrgPks)) <- c("z-score", "n-peaks", "k-carriers")
@@ -281,8 +286,8 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
 
         names(foundedPeaks@ranges) <- NULL
     }
-    endingTime <- Sys.time()
-    print((endingTime - startTime))
+    # endingTime <- Sys.time()
+    # print((endingTime - startTime))
     message("...done!")
     # save(foundedPeaks, file="testData/new_files/foundedPeaks.RData")
     return(foundedPeaks)
@@ -298,7 +303,7 @@ convertSallToGrl <- function(sall)
                                      end=as.numeric(sample[,3])
                       )
         )
-        mcols(gr)[["z-score"]] <- sample[,4]
+        mcols(gr)[["z-score"]] <- as.numeric(sample[,4])
         lgr <- c(lgr, gr)
     }
 

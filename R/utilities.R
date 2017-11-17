@@ -175,7 +175,7 @@ RleListToRleMatrix <- function(RleList, dimnames=NULL)
 #' @examples
 createGranges <- function(chrSeqInfo, starts, widths,
                           mcolname=NULL, mcolvalues=NULL) {
-    stopifnot(is(chrSeqInfo, "seqinfo"))
+    stopifnot(is(chrSeqInfo, "Seqinfo"))
     stopifnot(identical(length(starts), length(widths)))
 
     gr <- GRanges(seqnames=as.character(chrSeqInfo@seqnames),
