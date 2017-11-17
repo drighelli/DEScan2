@@ -224,8 +224,11 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
 
     namedSamplePeaksGRL <- lapply(namedSamplePeaksGRL, function(x)
     {
+        x <- x[as.numeric(mcols(x)[["z-score"]]) >= 20]
         mcols(x)[["n-peaks"]] <-  1
         mcols(x)[["k-carriers"]] <-  1
+        start(x) <- start(x) - 200
+        end(x) <- end(x) + 200
         return(x)
     })
 
@@ -245,8 +248,8 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
 
         grij <- ChIPpeakAnno::findOverlapsOfPeaks(gri,
                                                   grj,
-                                                  minoverlap=minOverlap,
-                                                  maxgap=maxGap,
+                                                  minoverlap=1L,
+                                                  maxgap=-1L,
                                                   connectedPeaks="merge"
                                                   )
 
@@ -297,7 +300,7 @@ convertSallToGrl <- function(sall)
                                      end=as.numeric(sample[,3])
                       )
         )
-        mcols(gr)[["z-score"]] <- sample[,4]
+        mcols(gr)[["z-score"]] <- as.numeric(sample[,4])
         lgr <- c(lgr, gr)
     }
 
