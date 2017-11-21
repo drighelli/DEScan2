@@ -5,7 +5,7 @@
 \title{make grid for enrichment scan.}
 \usage{
 make_grid(bed, fraglen, rlen, min_bin = 10, min_rds = 0, grid_st = NA,
-  grid_ed = NA)
+  grid_ed = NA, verbose = FALSE)
 }
 \arguments{
 \item{fraglen}{Integer indicating the average DNA fragment length in bp}

@@ -46,22 +46,40 @@ test_that("Test if the new findPeaks is consistent with the older one", {
 
 test_that("Test if new findPeaks works", {
     # file="/home/dario/SRR3595211_sorted.bam"
-    # bam.path <- system.file("extdata/Bam/chr19", package = "DEScan")
-    # bam.files <- list.files(bam.path, full.names = TRUE)
-    # file <- bam.files[1]
-    # minCount=0.1; filetype="bam"; minWin=1; maxWin=20; binSize=50
-    # genomeName=NULL; minCompWinWidth=5000; maxCompWinWidth=10000;
-    # fragmentLength=200; zthresh=5
-    #
-    # peaks <- findPeaks(file=file, filetype=filetype, genomeName=genomeName,
+    bam.path <- system.file("extdata/Bam/chr19", package = "DEScan")
+    bam.files <- list.files(bam.path, full.names = TRUE, pattern="bam")
+    bam.files<- bam.files[-grep(pattern="bai", x=bam.files)]
+    file <- bam.files[1]
+
+    binSize=50; minWin=1; maxWin=20;
+    zthresh=5; minCount=0.1;
+    minCompWinWidth=5000;
+    maxCompWinWidth=10000;
+    outputName="Peaks"; save=TRUE; verbose=FALSE;
+    fragmentLength=200;
+    onlyStdChrs=TRUE
+    chr=NULL
+    filetype="bam"
+
+    # peaks1 <- DEScan::findPeaks(files=bam.files[1],
+    #                     filetype=filetype,
     #                     binSize=binSize,
     #                     minWin=minWin, maxWin=maxWin,
     #                     zthresh=zthresh, minCount=minCount,
     #                     minCompWinWidth=minCompWinWidth,
     #                     maxCompWinWidth=maxCompWinWidth,
     #                     outputName="Peaks", save=FALSE, verbose=FALSE,
-    #                     fragmentLength=fragmentLength
-    #     )
+    #                     fragmentLength=fragmentLength)
+    # saveRDS(peaks1, "peaks1.rds")
+
+    peaks2 <- DEScan::findPeaks(files=bam.files[2],
+                        filetype=filetype,
+                        binSize=binSize,
+                        minWin=minWin, maxWin=maxWin,
+                        zthresh=zthresh, minCount=minCount,
+                        minCompWinWidth=minCompWinWidth,
+                        maxCompWinWidth=maxCompWinWidth,
+                        outputName="Peaks", save=FALSE, verbose=FALSE,
+                        fragmentLength=fragmentLength)
+    saveRDS(peaks2, "peaks2.rds")
 })
-
-

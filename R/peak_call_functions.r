@@ -1,5 +1,5 @@
 #' This function calls peaks from bed or bam inputs using a variable window scan
-#' with a poisson model using the surrounding 10kb as background.
+#' with a poisson model using the surrounding maxCompWinWidth (10kb) as background.
 #'
 #' @param files Character vector containing paths of files to be analyzed.
 #' @param filetype Character, either "bam" or "bed" indicating format of input
@@ -31,8 +31,9 @@
 #' @param chr if not NULL, a character like "chr#" indicating the
 #'            chromosomes to use
 #'
-#' @return a matrix with peaks as rows and 4 columns describing the genomic
-#'         coordinates (chr, start, end) as well as the associated z-score.
+#' @return A GRangesList where each element is a sample.
+#'         each GRanges represents the founded peaks and attached the z-score
+#'         of the peak as mcols.
 #' @export
 #' @examples
 #'
@@ -56,17 +57,23 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
         stop("You have to provide one or more input files!\nExiting.")
     filetype <- match.arg(filetype)
 
+    fileGRangesList <- NULL
     winVector <- c(minWin:maxWin)
-    for (file in files) {
+
+
+    for (fileIdx in 1:length(files))
+    {
+        file <- files[[fileIdx]]
         bedGRanges <- constructBedRanges(filename=file, filetype=filetype,
                                          genomeName=genomeName,
-                                         onlyStdChrs=onlyStdChrs,
-                                         chr=chr)
+                                         onlyStdChrs=onlyStdChrs)
+
         bedGrangesChrsList <- cutGRangesPerChromosome(bedGRanges)
         if(!is.null(chr))
             bedGrangesChrsList <- keepRelevantChrs(bedGrangesChrsList, chr)
+
         chrZRangesList <- GenomicRanges::GRangesList(
-            lapply(bedGrangesChrsList, function(chrGRanges) { ########## to parallelize
+            lapply(bedGrangesChrsList, function(chrGRanges) { ########## to parallelize on chromosomes
 
             runWinRleList <- computeCoverageMovingWindowOnChr(
                                                        chrBedGRanges=chrGRanges,
@@ -111,21 +118,20 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
                                       mcolvalues=new_s[,3]
                                       )
 
-            return(chrZRanges)
+            return(chrZRanges) ## one for each chromosome
             })
         )
-
-        zGRanges <- unlist
-
+        names(chrZRangesList) <- names(bedGrangesChrsList)
         if(save)
         {
+            zGRangesToSave <- unlist(chrZRangesList)
             filename <- paste0(file, "_zt", zthresh, "_mnw", minWin,
-                               "_mxw", maxWin, "_bin", binSize)
-            saveGRangesAsBed(GRanges=zGRanges, filepath=outputName,
-                             filename=filename)
+                               "_mxw", maxWin, "_bin", binSize) #######################
+            saveGRangesAsBed(GRanges=zGRangesToSave, filepath=outputName,
+                             filename=filename) ########################################
         }
 
-        fileGRangesList <- c(fileGRangesList, zGRanges)
+        fileGRangesList <- c(fileGRangesList, chrZRangesList)
     }
     names(fileGRangesList) <- files
 

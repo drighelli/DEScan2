@@ -30,71 +30,71 @@
 #     new_mcol <- unsplit(means_list, as.factor(seqnames(bins)))
 #     mcols(bins)[[varname]] <- new_mcol
 #     bins
-# }
-
-binnedSum <- function(bins, numvar, mcolname)
-{
-    stopifnot(is(bins, "GRanges"))
-    stopifnot(is(numvar, "RleList"))
-    stopifnot(identical(seqlevels(bins), names(numvar)))
-    bins_per_chrom <- split(ranges(bins), seqnames(bins))
-    sums_list <- lapply(names(numvar),
-                        function(seqname) {
-                            views <- Views(numvar[[seqname]],
-                                           bins_per_chrom[[seqname]])
-                            viewSums(views)
-                        })
-    new_mcol <- unsplit(sums_list, as.factor(seqnames(bins)))
-    mcols(bins)[[mcolname]] <- new_mcol
-    bins
-}
-
-oddRunSum<-function(x, k, endrule = c("drop", "constant"), na.rm = FALSE)
-{
-    # endrule <- match.arg(endrule)
-    n <- length(x)
-    # k <- normargRunK(k = k, n = n, endrule = endrule)
-    ans <- S4Vectors::.Call2("Rle_runsum", x, as.integer(k), as.logical(na.rm),
-                  PACKAGE="S4Vectors")
-    ans
-    if (endrule == "constant") {
-        j <- (k + 1L) %/% 2L
-
-        runLength(ans)[1L] <- runLength(ans)[1L] + (j - 1L)
-        if( (k %% 2L) == 0 ) j=j+1
-        runLength(ans)[S4Vectors::nrun(ans)] <-
-            runLength(ans)[S4Vectors::nrun(ans)] + (j - 1L)
-    }
-    return(ans)
-}
-
-
-
-#' Title
+#' # }
 #'
-#' @param bedGRanges
+#' binnedSum <- function(bins, numvar, mcolname)
+#' {
+#'     stopifnot(is(bins, "GRanges"))
+#'     stopifnot(is(numvar, "RleList"))
+#'     stopifnot(identical(seqlevels(bins), names(numvar)))
+#'     bins_per_chrom <- split(ranges(bins), seqnames(bins))
+#'     sums_list <- lapply(names(numvar),
+#'                         function(seqname) {
+#'                             views <- Views(numvar[[seqname]],
+#'                                            bins_per_chrom[[seqname]])
+#'                             viewSums(views)
+#'                         })
+#'     new_mcol <- unsplit(sums_list, as.factor(seqnames(bins)))
+#'     mcols(bins)[[mcolname]] <- new_mcol
+#'     bins
+#' }
 #'
-#' @return
-#' @export
+#' oddRunSum<-function(x, k, endrule = c("drop", "constant"), na.rm = FALSE)
+#' {
+#'     # endrule <- match.arg(endrule)
+#'     n <- length(x)
+#'     # k <- normargRunK(k = k, n = n, endrule = endrule)
+#'     ans <- S4Vectors::.Call2("Rle_runsum", x, as.integer(k), as.logical(na.rm),
+#'                   PACKAGE="S4Vectors")
+#'     ans
+#'     if (endrule == "constant") {
+#'         j <- (k + 1L) %/% 2L
 #'
-#' @examples
-cutGRangesPerChromosome <- function(bedGRanges)
-{
-    interestedChrs <- bedGRanges@seqinfo@seqnames
-
-    ##     bed19 <- keepSeqlevels(bed, "chr19")
-    bedGRList <- lapply(interestedChrs, function(x)
-    {
-        bgr <- bedGRanges[which(bedGRanges@seqnames %in% x),]
-        bgr@seqinfo <- bedGRanges@seqinfo[x]
-        bgr
-    })
-    names(bedGRList) <- interestedChrs
-    bedGRList <- GRangesList(bedGRList)
-
-    return(bedGRList)
-}
-
+#'         runLength(ans)[1L] <- runLength(ans)[1L] + (j - 1L)
+#'         if( (k %% 2L) == 0 ) j=j+1
+#'         runLength(ans)[S4Vectors::nrun(ans)] <-
+#'             runLength(ans)[S4Vectors::nrun(ans)] + (j - 1L)
+#'     }
+#'     return(ans)
+#' }
+#'
+#'
+#'
+#' #' Title
+#' #'
+#' #' @param bedGRanges
+#' #'
+#' #' @return
+#' #' @export
+#' #'
+#' #' @examples
+#' cutGRangesPerChromosome <- function(bedGRanges)
+#' {
+#'     interestedChrs <- bedGRanges@seqinfo@seqnames
+#'
+#'     ##     bed19 <- keepSeqlevels(bed, "chr19")
+#'     bedGRList <- lapply(interestedChrs, function(x)
+#'     {
+#'         bgr <- bedGRanges[which(bedGRanges@seqnames %in% x),]
+#'         bgr@seqinfo <- bedGRanges@seqinfo[x]
+#'         bgr
+#'     })
+#'     names(bedGRList) <- interestedChrs
+#'     bedGRList <- GRangesList(bedGRList)
+#'
+#'     return(bedGRList)
+#' }
+#'
 
 # chr19Coverage <- RleList(Coverage$chr19)
 # names(chr19Coverage) = 'chr19'
@@ -103,102 +103,102 @@ cutGRangesPerChromosome <- function(bedGRanges)
 # bedGRanges <- constructBedRanges(filename=filename, filetype="bed", genomeName="mm9")
 ####################################################
 
-
-computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=1,
-                                             maxWinWidth=20, binWidth=50)
-{
-
-    ## dividing chromosome in bins of binWidth dimention each
-    binnedChromosome<-GenomicRanges::tileGenome(seqlengths=chrBedGRanges@seqinfo
-                                                , tilewidth=binWidth
-                                                , cut.last.tile.in.chrom=TRUE)
-
-    ## computing coverage per single base on bed
-    chrCoverage <- GenomicRanges::coverage(x=chrBedGRanges)
-
-    ## computing coverage per each bin on chromosome
-    message("Computing coverage on Chromosome ", chrBedGRanges@seqinfo@seqnames,
-            " binned by ", binWidth, " bin dimension")
-    binnedCovChr <- binnedSum(bins=binnedChromosome,
-                                numvar=chrCoverage,
-                                mcolname="bin_cov")
-
-    ## computing bin in base ranges to add as rownames
-    endBinRanges <- seq(from=binWidth-1,
-                        to=chrBedGRanges@seqinfo@seqlengths[1],
-                        by=binWidth)
-
-    if(chrBedGRanges@seqinfo@seqlengths != endBinRanges[length(endBinRanges)])
-    {
-        ## it can only be lesser than the length of the chromosome
-        ## adding the last missing bin
-        endBinRanges <- c(endBinRanges, (chrBedGRanges@seqinfo@seqlengths[1]-1))
-    }
-    ## computing the start of regions
-    startBinRanges <- endBinRanges-(binWidth-1)
-
-
-
-    ## coercing coverage to Rle
-    chrCovRle <- as(binnedCovChr$bin_cov,"Rle")
-
-    runWinRleList <- RleList()
-    for(win in minWinWidth:maxWinWidth) {
-        message("Running window ", win, " of ", maxWinWidth)
-        runWinRleList[[win]] <- oddRunSum(chrCovRle, k=win, endrule="constant")
-
-        # maxRuns <- max(maxRuns, sum(runLength(runwinRleList[[win]])) ) ##as control
-        # message("maxRuns: ", maxRuns)
-        ## maxRuns is equal to the number of bins ans is the number of
-        ## chromosome bases divided by the binSize value as expected
-        if(win == minWinWidth)
-        {
-            rleBinCov <- DelayedArray::RleArray(runWinRleList[[win]],
-                                       dim=c(length(runWinRleList[[win]]), 1))
-            rownames(rleBinCov) <- startBinRanges
-
-        }
-        else
-        {
-            rleBinCov <- cbind(rleBinCov,
-                               DelayedArray::RleArray(runWinRleList[[win]],
-                               dim=c(length(runWinRleList[[win]]), 1)))
-        }
-
-    }
-
-
-    message("Running window 5000")
-    win5k <- 5000
-    runwinRle5K <- oddRunSum(chrCovRle, k=win5k, endrule="constant")
-    rleBin5K <- DelayedArray::RleArray(runwinRle5K,
-                                       dim=c(length(runwinRle5K), 1))
-    message("Running window 10000")
-    win10k <- 10000
-    runwinRle10K <- oddRunSum(chrCovRle, k=win10k, endrule="constant")
-    rleBin10K <- DelayedArray::RleArray(runwinRle10K,
-                                       dim=c(length(runwinRle10K), 1))
-
-    return(list(
-        "rleBinCov"=rleBinCov,
-        "rleBin5K"=rleBin5K,
-        "rleBin10K"=rleBin10K)
-    )
-}
-
-
-computeCoverageMovingWindow <- function(bedGRanges, minWinWidth=1,
-                                        maxWinWidth=20, binWidth=50)
-{
-    bedGrangesChrsList <- cutGRangesPerChromosome(bedGRanges)
-
-     chrRleMatricesList <- lapply(X=bedGrangesChrsList,
-                                  computeCoverageMovingWindowOnChr,
-                                  minWinWidth=minWinWidth,
-                                  maxWinWidth=maxWinWidth,
-                                  binWidth=binWidth) ##TO PARALLELIZE
-    return(chrRleMatricesList)
-}
+#
+# computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=1,
+#                                              maxWinWidth=20, binWidth=50)
+# {
+#
+#     ## dividing chromosome in bins of binWidth dimention each
+#     binnedChromosome<-GenomicRanges::tileGenome(seqlengths=chrBedGRanges@seqinfo
+#                                                 , tilewidth=binWidth
+#                                                 , cut.last.tile.in.chrom=TRUE)
+#
+#     ## computing coverage per single base on bed
+#     chrCoverage <- GenomicRanges::coverage(x=chrBedGRanges)
+#
+#     ## computing coverage per each bin on chromosome
+#     message("Computing coverage on Chromosome ", chrBedGRanges@seqinfo@seqnames,
+#             " binned by ", binWidth, " bin dimension")
+#     binnedCovChr <- binnedSum(bins=binnedChromosome,
+#                                 numvar=chrCoverage,
+#                                 mcolname="bin_cov")
+#
+#     ## computing bin in base ranges to add as rownames
+#     endBinRanges <- seq(from=binWidth-1,
+#                         to=chrBedGRanges@seqinfo@seqlengths[1],
+#                         by=binWidth)
+#
+#     if(chrBedGRanges@seqinfo@seqlengths != endBinRanges[length(endBinRanges)])
+#     {
+#         ## it can only be lesser than the length of the chromosome
+#         ## adding the last missing bin
+#         endBinRanges <- c(endBinRanges, (chrBedGRanges@seqinfo@seqlengths[1]-1))
+#     }
+#     ## computing the start of regions
+#     startBinRanges <- endBinRanges-(binWidth-1)
+#
+#
+#
+#     ## coercing coverage to Rle
+#     chrCovRle <- as(binnedCovChr$bin_cov,"Rle")
+#
+#     runWinRleList <- RleList()
+#     for(win in minWinWidth:maxWinWidth) {
+#         message("Running window ", win, " of ", maxWinWidth)
+#         runWinRleList[[win]] <- oddRunSum(chrCovRle, k=win, endrule="constant")
+#
+#         # maxRuns <- max(maxRuns, sum(runLength(runwinRleList[[win]])) ) ##as control
+#         # message("maxRuns: ", maxRuns)
+#         ## maxRuns is equal to the number of bins ans is the number of
+#         ## chromosome bases divided by the binSize value as expected
+#         if(win == minWinWidth)
+#         {
+#             rleBinCov <- DelayedArray::RleArray(runWinRleList[[win]],
+#                                        dim=c(length(runWinRleList[[win]]), 1))
+#             rownames(rleBinCov) <- startBinRanges
+#
+#         }
+#         else
+#         {
+#             rleBinCov <- cbind(rleBinCov,
+#                                DelayedArray::RleArray(runWinRleList[[win]],
+#                                dim=c(length(runWinRleList[[win]]), 1)))
+#         }
+#
+#     }
+#
+#
+#     message("Running window 5000")
+#     win5k <- 5000
+#     runwinRle5K <- oddRunSum(chrCovRle, k=win5k, endrule="constant")
+#     rleBin5K <- DelayedArray::RleArray(runwinRle5K,
+#                                        dim=c(length(runwinRle5K), 1))
+#     message("Running window 10000")
+#     win10k <- 10000
+#     runwinRle10K <- oddRunSum(chrCovRle, k=win10k, endrule="constant")
+#     rleBin10K <- DelayedArray::RleArray(runwinRle10K,
+#                                        dim=c(length(runwinRle10K), 1))
+#
+#     return(list(
+#         "rleBinCov"=rleBinCov,
+#         "rleBin5K"=rleBin5K,
+#         "rleBin10K"=rleBin10K)
+#     )
+# }
+#
+#
+# computeCoverageMovingWindow <- function(bedGRanges, minWinWidth=1,
+#                                         maxWinWidth=20, binWidth=50)
+# {
+#     bedGrangesChrsList <- cutGRangesPerChromosome(bedGRanges)
+#
+#      chrRleMatricesList <- lapply(X=bedGrangesChrsList,
+#                                   computeCoverageMovingWindowOnChr,
+#                                   minWinWidth=minWinWidth,
+#                                   maxWinWidth=maxWinWidth,
+#                                   binWidth=binWidth) ##TO PARALLELIZE
+#     return(chrRleMatricesList)
+# }
 
 # minWin=1
 # maxWin=20

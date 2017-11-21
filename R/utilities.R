@@ -1,5 +1,5 @@
 #' readBamAsBed: read a bam file into a bed like format.
-#'
+#'               forcing UCSC format for chromosomes names.
 #' @param file Character indicating path to bam file.
 #' @return GenomicRanges object.
 #'
@@ -11,13 +11,13 @@ readBamAsBed <- function(file) {
     message("processing ", file)
     ga <- GenomicAlignments::readGAlignments(file, index=file)
     gr <- GenomicRanges::granges(x = ga)
-
+    GenomicRanges::seqlevelsStyle(gr) <- "UCSC"
     return(gr)
 }
 
 
 #' readBedFile: read a bed file into a GenomicRanges like format.
-#'
+#'              forcing UCSC format for chromosomes names.
 #' @param file Character indicating path to bam file.
 #' @return GenomicRanges object
 #' @keywords internal
@@ -38,6 +38,7 @@ readBedFile <- function(filename) {
     bed <- GenomicRanges::GRanges(seqnames=bed@seqnames,
                                   ranges=bed@ranges,
                                   strand=bed@strand)
+    GenomicRanges::seqlevelsStyle(bed) <- "UCSC"
     return(bed)
 }
 
@@ -127,10 +128,12 @@ saveGRangesAsBed <- function(GRanges, filepath, filename)
     ## add some parameters
     dir.create(path=filepath, showWarnings=FALSE, recursive=TRUE)
     filePathName <- file.path(filepath, paste0(filename, "_peaks"))
-    if(file.exists(filePathName)) {stop(filePathName, " already exists!
-                                        Not overwriting!")}
+    if(file.exists(filePathName)) {stop(filePathName, " already exists!\n"
+                                        , "Not overwriting!")}
+    GRanges <- sortSeqlevels(GRanges)
+    GRanges <- sort(GRanges)
     rtracklayer::export.bed(object=GRanges, con=paste0(filePathName, ".bed"))
-    save(zGRanges, file=paste0(filePathName, ".RData"))
+    # save(GRanges, file=paste0(filePathName, ".RData"))
 }
 
 
@@ -256,8 +259,8 @@ keepRelevantChrs <- function(GRangesList, chr)
 
     idxs <- which(names(GRangesList) %in% chr)
     if(length(idxs) == 0)
-        stop("Something went wront in the chr subselection!",
+        stop("Something went wrong in the chr subselection!",
              "\nPlease check the Chromosomes names!")
-    GRangesList <- GRangesList[[idx]]
+    GRangesList <- GRangesList[[idxs]]
     return(GRangesList)
 }

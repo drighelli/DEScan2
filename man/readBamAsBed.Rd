@@ -2,19 +2,17 @@
 % Please edit documentation in R/utilities.R
 \name{readBamAsBed}
 \alias{readBamAsBed}
-\title{read a bam file into a bed like format.}
+\title{readBamAsBed: read a bam file into a bed like format.}
 \usage{
-readBamAsBed(file, chr)
+readBamAsBed(file)
 }
 \arguments{
 \item{file}{Character indicating path to bam file.}
-
-\item{chr}{Integer indicating which chromosome to read in.}
 }
 \value{
 GenomicRanges object.
 }
 \description{
-read a bam file into a bed like format.
+readBamAsBed: read a bam file into a bed like format.
 }
 \keyword{internal}
