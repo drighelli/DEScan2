@@ -68,74 +68,74 @@ finalRegions <- function(peak_path, zthresh=20, min_carriers=2,
         colnames(final_regions) <- c("Chr", "Start", "End", "AvgZ", "NumCarriers")
         return(final_regions)
 }
-
-#' merge overlapping peaks across replicates.
 #'
-#' @param s.
-#' @return s2.
-#' @keywords internal
-merge_overlapping_intervals <- function(s, verbose) {
-        avg_vec <- as.numeric(s[,4]) ## z-score
-        count_vec <- as.numeric(s[,5]) ## samples
-        s <- cbind(as.numeric(s[, 2]) - 200, #200 ## start - 200 (extend start)
-                                as.numeric(s[, 3]) + 200) #mess end + 200 (extend end)
-        if (is.null(avg_vec)) {
-            avg_vec <- rep(0, nrow(s))
-        }
-        if (is.null(count_vec)) {
-            count_vec <- c(1:nrow(s))
-        }
-        s2 <- matrix(nrow=0, ncol=4)
-        n <- nrow(s)
-        i <- 1
-        j <- 2
-        while (i <= n) { #all over the dimension of s
-            #if (i %% 100 == 0 & verbose) cat(i, "\n")
-            interval <- s[i, ] ## peak-i
-            avg_over <- avg_vec[i] ## zscore
-            count_over <- count_vec[i] ## sample
-            while (j <= n && s[j, 1] <= interval[2]) { ## fin quando lo start del picco-j è incluso nel picco-i
-                interval <- c(interval[1], max(interval[2], s[j, 2]))  ## picco con i è lo start del picco-i e la end il massimo tra i due (i-j) end
-                avg_over <- c(avg_over, avg_vec[j]) ## accoda zscore
-                count_over <- c(count_over, count_vec[j]) ## accoda campione
-                j <- j + 1
-                # print(j)
-            }
-            avg <- mean(avg_over, na.rm=TRUE) ## calcola media degli zscore
-            count <- unique(count_over) ## prendi ogni campione una sola volta
-            s2 <- rbind(s2, c(interval, avg, length(count))) ## accoda alla nuova matrice compreso il numero di samples per trovare l'intervallo
-            i <- j
-            j <- i + 1
-            # print(i)
-            # print(j)
-        }
-        return(as.data.frame(s2))
-}
-
-#' load peak files.
+#' #' merge overlapping peaks across replicates.
+#' #'
+#' #' @param s.
+#' #' @return s2.
+#' #' @keywords internal
+#' merge_overlapping_intervals <- function(s, verbose) {
+#'         avg_vec <- as.numeric(s[,4]) ## z-score
+#'         count_vec <- as.numeric(s[,5]) ## samples
+#'         s <- cbind(as.numeric(s[, 2]) - 200, #200 ## start - 200 (extend start)
+#'                                 as.numeric(s[, 3]) + 200) #mess end + 200 (extend end)
+#'         if (is.null(avg_vec)) {
+#'             avg_vec <- rep(0, nrow(s))
+#'         }
+#'         if (is.null(count_vec)) {
+#'             count_vec <- c(1:nrow(s))
+#'         }
+#'         s2 <- matrix(nrow=0, ncol=4)
+#'         n <- nrow(s)
+#'         i <- 1
+#'         j <- 2
+#'         while (i <= n) { #all over the dimension of s
+#'             #if (i %% 100 == 0 & verbose) cat(i, "\n")
+#'             interval <- s[i, ] ## peak-i
+#'             avg_over <- avg_vec[i] ## zscore
+#'             count_over <- count_vec[i] ## sample
+#'             while (j <= n && s[j, 1] <= interval[2]) { ## fin quando lo start del picco-j è incluso nel picco-i
+#'                 interval <- c(interval[1], max(interval[2], s[j, 2]))  ## picco con i è lo start del picco-i e la end il massimo tra i due (i-j) end
+#'                 avg_over <- c(avg_over, avg_vec[j]) ## accoda zscore
+#'                 count_over <- c(count_over, count_vec[j]) ## accoda campione
+#'                 j <- j + 1
+#'                 # print(j)
+#'             }
+#'             avg <- mean(avg_over, na.rm=TRUE) ## calcola media degli zscore
+#'             count <- unique(count_over) ## prendi ogni campione una sola volta
+#'             s2 <- rbind(s2, c(interval, avg, length(count))) ## accoda alla nuova matrice compreso il numero di samples per trovare l'intervallo
+#'             i <- j
+#'             j <- i + 1
+#'             # print(i)
+#'             # print(j)
+#'         }
+#'         return(as.data.frame(s2))
+#' }
 #'
-#' @param peakdirname
-#' @return sall.
-#' @keywords internal
-loadPeaks <- function(peakdirname, verbose=verbose) {
-        all.files <- list.files(peakdirname, pattern="Peaks")
-        if (verbose) {
-            cat("Found", length(all.files),"peak files.\n")
-        }
-        peaks_all <- vector("list", length(all.files))
-        for (i in 1:length(all.files)) {
-            load(paste0(peakdirname, "/", all.files[i]))
-            if (ncol(peaks) == 3) {
-                chr <- strsplit(peakdirname, split="/")[[1]][2]
-                peaks <- cbind(rep(chr, nrow(peaks)), peaks)
-            }
-            peaks_all[[i]] <- peaks
-            if (verbose) {
-                cat("File: ", all.files[i], " number of regions:", nrow(peaks), "\n") ## use message instead
-            }
-        }
-        peaks_all
-}
+#' #' load peak files.
+#' #'
+#' #' @param peakdirname
+#' #' @return sall.
+#' #' @keywords internal
+#' loadPeaks <- function(peakdirname, verbose=verbose) {
+#'         all.files <- list.files(peakdirname, pattern="Peaks")
+#'         if (verbose) {
+#'             cat("Found", length(all.files),"peak files.\n")
+#'         }
+#'         peaks_all <- vector("list", length(all.files))
+#'         for (i in 1:length(all.files)) {
+#'             load(paste0(peakdirname, "/", all.files[i]))
+#'             if (ncol(peaks) == 3) {
+#'                 chr <- strsplit(peakdirname, split="/")[[1]][2]
+#'                 peaks <- cbind(rep(chr, nrow(peaks)), peaks)
+#'             }
+#'             peaks_all[[i]] <- peaks
+#'             if (verbose) {
+#'                 cat("File: ", all.files[i], " number of regions:", nrow(peaks), "\n") ## use message instead
+#'             }
+#'         }
+#'         peaks_all
+#' }
 
 #' concatenate region files from various chromosomes into a genome
 #' wide region file.
