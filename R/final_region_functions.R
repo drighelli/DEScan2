@@ -211,7 +211,6 @@ initMergedPeaksNames <- function(mergedGRanges)
 {
     stopifnot(is(mergedGRanges, "GRanges"))
     ncp <- nchar(length(mergedGRanges@ranges))
-    # format <- paste0("s%0", ncs,"d_p%0", ncp, "d")
     nk <- nchar(max(mergedGRanges$`k-carriers`))
     np <- nchar(max(mergedGRanges$`n-peaks`))
     format <-  paste0("p%0", ncp, "d_np%0", np, "d_k%0", nk,"d")
@@ -238,7 +237,23 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
         mcols(x)[["n-peaks"]] <-  1
         mcols(x)[["k-carriers"]] <-  1
         start(x) <- start(x) - extendRegions
-        end(x) <- end(x) + extendRegions
+        idxNeg <- which( start(x) < 0 )
+        if(length(idxNeg) > 0)
+        {
+            warning("extendRegions of ", extendRegions,
+                    " is too high for region(s) start ", idxNeg,
+                    " forcing these starts to 0")
+            start(x)[idxNeg] <- 0
+        }
+        end(x) <- end(x) + extendRegions ########### check if values are over seqlength
+        idxHigh <- which( end(x) > seqlengths(x) ) ## it must return just one chromosome
+        if(length(idxHigh) > 0) {
+            warning("extendRegions of ", extendRegions,
+                    " is too high for region(s) end ", idxHigh,
+                    " forcing these ends to ", seqlengths(x))
+            end(x)[idxHigh] <- seqlengths(x)
+        }
+
         return(x)
     })
 
@@ -286,11 +301,11 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
         # print((endTime-stTime))
         newcols1 <- data.table::rbindlist(newcols)
         mcols(mrgPks) <-  S4Vectors::DataFrame(newcols1)
-        colnames(mcols(mrgPks)) <- c("z-score", "n-peaks", "k-carriers")
+        colnames(S4Vectors::mcols(mrgPks)) <- c("z-score", "n-peaks", "k-carriers")
         ## peaks uniques
         unqPks <- grij$uniquePeaks
         ## putting together all the peaks
-        foundedPeaks <- unlist(GRangesList(unqPks, mrgPks))
+        foundedPeaks <- unlist(GenomicRanges::GRangesList(unqPks, mrgPks))
 
         foundedPeaks <- initMergedPeaksNames(foundedPeaks)
     }
@@ -306,15 +321,15 @@ convertSallToGrl <- function(sall)
     lgr <- list()
     for(sample in sall)
     {
-        gr <- GRanges(seqnames=sample[,1],
-                      ranges=IRanges(start=as.numeric(sample[,2]),
-                                     end=as.numeric(sample[,3])
-                      )
+        gr <- GenomicRanges::GRanges(seqnames=sample[,1],
+                              ranges=IRanges::IRanges(start=as.numeric(sample[,2]),
+                                             end=as.numeric(sample[,3])
+                              )
         )
-        mcols(gr)[["z-score"]] <- as.numeric(sample[,4])
+        S4Vectors::mcols(gr)[["z-score"]] <- as.numeric(sample[,4])
         lgr <- c(lgr, gr)
     }
 
-    grl <- GRangesList(lgr)
+    grl <- GenomicRanges::GRangesList(lgr)
     return(grl)
 }
