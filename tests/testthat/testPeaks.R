@@ -61,18 +61,7 @@ test_that("Test if new findPeaks works", {
     chr=NULL
     filetype="bam"
 
-    # peaks1 <- DEScan::findPeaks(files=bam.files[1],
-    #                     filetype=filetype,
-    #                     binSize=binSize,
-    #                     minWin=minWin, maxWin=maxWin,
-    #                     zthresh=zthresh, minCount=minCount,
-    #                     minCompWinWidth=minCompWinWidth,
-    #                     maxCompWinWidth=maxCompWinWidth,
-    #                     outputName="Peaks", save=FALSE, verbose=FALSE,
-    #                     fragmentLength=fragmentLength)
-    # saveRDS(peaks1, "peaks1.rds")
-
-    peaks2 <- DEScan::findPeaks(files=bam.files[2],
+    peaks12 <- DEScan::findPeaks(files=bam.files[c(1:2)],
                         filetype=filetype,
                         binSize=binSize,
                         minWin=minWin, maxWin=maxWin,
@@ -81,5 +70,6 @@ test_that("Test if new findPeaks works", {
                         maxCompWinWidth=maxCompWinWidth,
                         outputName="Peaks", save=FALSE, verbose=FALSE,
                         fragmentLength=fragmentLength)
-    saveRDS(peaks2, "peaks2.rds")
+    saveRDS(peaks12, "peaks12.rds")
+
 })
