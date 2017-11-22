@@ -1,7 +1,7 @@
 #' readBamAsBed: read a bam file into a bed like format.
 #'               forcing UCSC format for chromosomes names.
 #' @param file Character indicating path to bam file.
-#' @return GenomicRanges object.
+#' @return GRanges object.
 #'
 #' @keywords internal
 #' @import GenomicRanges
@@ -11,25 +11,29 @@ readBamAsBed <- function(file) {
     message("processing ", file)
     ga <- GenomicAlignments::readGAlignments(file, index=file)
     gr <- GenomicRanges::granges(x = ga)
-    GenomicRanges::seqlevelsStyle(gr) <- "UCSC"
+    GenomeInfoDb::seqlevelsStyle(gr) <- "UCSC"
     return(gr)
 }
 
 
 #' readBedFile: read a bed file into a GenomicRanges like format.
 #'              forcing UCSC format for chromosomes names.
-#' @param file Character indicating path to bam file.
-#' @return GenomicRanges object
+#'
+#' @param filename
+#'
+#' @return GRanges object
 #' @keywords internal
-#' @import tools
-#' @import GenomicRanges
-#' @import rtracklayer
+#' @importfrom tools file_ext
+#' @importFrom utils unzip
+#' @importFrom GenomicRanges GRanges
+#' @importFrom rtracklayer import.bed
+#' @importFrom GenomeInfoDb seqlevelsStyle
 #'
 readBedFile <- function(filename) {
     message("processing ", filename)
     if (tools::file_ext(filename) == "zip") {
         tmp <- utils::unzip(filename, list=T)$Name
-        file <- unz(filename, tmp)
+        file <- base::unz(filename, tmp)
     } else {
         file <- filename
     }
@@ -38,7 +42,7 @@ readBedFile <- function(filename) {
     bed <- GenomicRanges::GRanges(seqnames=bed@seqnames,
                                   ranges=bed@ranges,
                                   strand=bed@strand)
-    GenomicRanges::seqlevelsStyle(bed) <- "UCSC"
+    GenomeInfoDb::seqlevelsStyle(bed) <- "UCSC"
     return(bed)
 }
 
@@ -54,7 +58,10 @@ readBedFile <- function(filename) {
 #' @param onlySrdChrs a flag to keep only standard chromosomes from the input
 #'                    files.
 #'
-#' @return bedRanges a GRanges object
+#' @return a GRanges object
+#' @importFrom GenomeInfoDb keepStandardChromosomes seqinfo Seqinfo
+#' @importFrom glue::collapse
+#'
 #' @export
 #'
 #' @examples
@@ -80,7 +87,7 @@ constructBedRanges <- function(filename,
     {
 
         message("Get seqlengths from genome ", genomeName)
-        genomeInfo <- Seqinfo(genome=genomeName)
+        genomeInfo <- GenomeInfoDb::Seqinfo(genome=genomeName)
         seqNamesIdx <- which(genomeInfo@seqnames %in% uniqueSeqnames)
         if(length(seqNamesIdx) != 0)
         {
@@ -96,13 +103,13 @@ constructBedRanges <- function(filename,
     }
 
     # checking bed seqnames, useful in peak calling algorithm
-    if( (sum(is.na(seqinfo(bedGRanges)@seqlengths)) > 0) ||
-        (length(seqinfo(bedGRanges)@seqnames) == 0 ))
+    if( (sum(is.na(GenomeInfoDb::seqinfo(bedGRanges)@seqlengths)) > 0) ||
+        (length(GenomeInfoDb::seqinfo(bedGRanges)@seqnames) == 0 ))
     {
         stop("No seqlengths present in file ", filename,
              "\nPlease provide the correct genomeName to setup the GRanges!")
     }
-    else if(length(uniqueSeqnames) < length(seqinfo(bedGRanges)@seqnames))
+    else if(length(uniqueSeqnames) < length(GenomeInfoDb::seqinfo(bedGRanges)@seqnames))
     {
         message("Keeping only necessary seqInfos")
         bedGRanges@seqinfo <- bedGRanges@seqinfo[as.character(uniqueSeqnames)]
@@ -120,6 +127,7 @@ constructBedRanges <- function(filename,
 #' @param filepath the path to store the files
 #' @param filename the name to give to the files
 #'
+#' @importFrom rtracklayer export.bed
 #' @return none
 #'
 saveGRangesAsBed <- function(GRanges, filepath, filename)
@@ -143,6 +151,7 @@ saveGRangesAsBed <- function(GRanges, filepath, filename)
 #' @param dimnames the names for dimensions of RleMatrix (see DelayedArray pkg)
 #'
 #' @return a RleMatrix from DelayedArray package
+#' @importFrom  DelayedArray RleArray
 #' @export
 #'
 #' @examples
@@ -173,6 +182,9 @@ RleListToRleMatrix <- function(RleList, dimnames=NULL)
 #' @param mcolvalues the values for the mcol attribute
 #'
 #' @return a GRanges object
+#' @importFrom GenomicRanges GRanges
+#' @importFrom IRanges IRanges
+#' @importFrom S4Vectors mcols
 #' @export
 #'
 #' @examples
@@ -181,9 +193,9 @@ createGranges <- function(chrSeqInfo, starts, widths,
     stopifnot(is(chrSeqInfo, "Seqinfo"))
     stopifnot(identical(length(starts), length(widths)))
 
-    gr <- GRanges(seqnames=as.character(chrSeqInfo@seqnames),
-                  ranges=IRanges(start=starts, width=widths),
-                  seqinfo=chrSeqInfo)
+    gr <- GenomicRanges::GRanges(seqnames=as.character(chrSeqInfo@seqnames),
+                                 ranges=IRanges::IRanges(start=starts, width=widths),
+                                 seqinfo=chrSeqInfo)
 
     if(!is.null(mcolname) )
     {
@@ -192,11 +204,11 @@ createGranges <- function(chrSeqInfo, starts, widths,
            (length(gr@ranges@start) == length(mcolvalues))
         )
         {
-            mcols(gr)[[mcolname]] <- mcolvalues
+            S4Vectors::mcols(gr)[[mcolname]] <- mcolvalues
         }
         else
         {
-            warning("Cannot set mcolvalues! Vector length not matching Ranges")
+            warning("Cannot set mcols values! Vector length not matching Ranges")
         }
     }
     return(gr)
@@ -209,6 +221,7 @@ createGranges <- function(chrSeqInfo, starts, widths,
 #' @param GRanges a GRanges object
 #'
 #' @return a named list of GRanges, one for each chromosome
+#' @importFrom GenomeInfoDb seqnames
 #' @export
 #'
 #' @examples
@@ -226,10 +239,13 @@ cutGRangesPerChromosome <- function(GRanges)
 
     GRList <- lapply(interestedChrs, function(x)
     {
-        bgr <- GRanges[which(GRanges@seqnames %in% x),]
-        bgr@seqinfo <- GRanges@seqinfo[x]
-        seqnames(bgr) <- droplevels(seqnames(bgr))
-        bgr
+        bgr <- GRanges[ GenomeInfoDb::seqnames(GRanges) == x ]
+        if(length(bgr) > 0)
+        {
+            bgr@seqinfo <- GRanges@seqinfo[x]
+            GenomeInfoDb::seqnames(bgr) <- droplevels(GenomeInfoDb::seqnames(bgr))
+            return(bgr)
+        }
     })
     names(GRList) <- interestedChrs
 
@@ -247,7 +263,7 @@ cutGRangesPerChromosome <- function(GRanges)
 #'                    tipically created with cutGRangesPerChromosome
 #' @param chr a character vector of chromosomes names of the form "chr#"
 #'
-#' @return the GRangesList with only the relevat chromosomes
+#' @return the input GRangesList with only the relevat chromosomes
 #' @export
 #'
 #' @examples
@@ -263,4 +279,60 @@ keepRelevantChrs <- function(GRangesList, chr)
              "\nPlease check the Chromosomes names!")
     GRangesList <- GRangesList[[idxs]]
     return(GRangesList)
+}
+
+
+
+### To comment
+fromSamplesToChromosomesGRangesList <- function(samplesGRangesList)
+{
+    stopifnot(is(samplesGRangesList, "GRangesList"))
+    samplesChrList <- divideEachSampleByChromosomes(samplesGRangesList)
+    sampChromsTab <- generateDFofSamplesPerChromosomes(samplesChrList)
+
+    allChrs <- unique(unlist(strsplit(sampChromsTab$chromosomes, split=";")))
+
+    chrsSamplesList <- lapply(allChrs, function(chr)
+    {
+        sampNames <- sampChromsTab$samples[grep(chr, sampChromsTab$chromosomes)]
+        samplesList <- samplesChrList[sampNames]
+        chrList <- GenomicRanges::GRangesList(
+            lapply(samplesList, function(samp)
+            {
+                idx <- grep(chr, names(samp))
+                return(samp[[idx]]) ## it can be only one chr
+            }))
+        return(chrList)
+    })
+    names(chrsSamplesList) <- allChrs
+    return(chrsSamplesList)
+}
+
+divideEachSampleByChromosomes <- function(samplesGRangesList)
+{
+    ## taken in input a grangeslist of samples, generate a list of samples
+    ## where each element has a GRangesList
+    ## each element of the GRangesList represents a single chromosome
+    samplesChrList <- lapply(samplesGRangesList, function(gr)
+    {   ## list of samples where each element is a list of
+        ## chromosomes and each of these elements is a granges
+        sampleChrGRList <- cutGRangesPerChromosome(gr)
+        idx <- unlist(lapply(sampleChrGRList, is.null))
+        idx <- !idx
+        sampleChrGRList <- sampleChrGRList[which(idx)]
+        return(sampleChrGRList)
+    })
+    return(samplesChrList)
+}
+
+generateDFofSamplesPerChromosomes <- function(samplesChrGRList)
+{
+    ## generates a dataframe where each row is a sample (1st col)
+    ## and a string with its chromosomes separated by ";" (2nd col)
+    sampChromsTab <- plyr::ldply(samplesChrGRList, function(sgrl)
+    {
+        paste(names(sgrl), collapse=";")
+    })
+    colnames(sampChromsTab) <- c("samples", "chromosomes")
+    return(sampChromsTab)
 }
