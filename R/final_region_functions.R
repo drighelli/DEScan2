@@ -1,178 +1,59 @@
-#' Align peaks to form common regions then filter regions for presence in
-#' multiple replicates
+#' finalRegions
+#' @description Align peaks to form common regions then filter regions for
+#' presence in multiple replicates taking in input a GRangesList where each
+#' element is a sample of called peaks
 #'
-#' @param peak_path Path to peak files.
-#' @param zthresh Integer indicating minimum z-score considered significant
-#' @param min_carriers Integer indiciating the minimum number of replicates a
-#'     region must be present in to be retained for testing
-#' @param save_file Character indicating whether to save region files in the
-#'     "bed" or "RData" format. Default is "bed".
-#' @param keep_files Logical indicating whether to erase chromosome files after
-#'     concatenating into a genome wide file.
-#' @param chromosome Integer indicating which chromsomes to align. Defaults to
-#'     all chromosomes.
-#' @return Matrix containing the regions as rows with columns for genomic
-#'     coordinates, z-score and number of carriers.
+#' @param peakSamplesGRangesList GRangesList where each element is a sample
+#'                               of called peaks.
+#'                               a z-score mcols values is needed for each GRanges
+#'                               (tipically returned by findPeaks function)
+#' @param zThreshold a threshold for the z score
+#' @param minCarriers a threshold of minimum samples (carriers) for overlapped regions
+#' @param saveFlag a flag for saving results in a bed file
+#' @param outputName the directory name to store the bed file
+#'
+#' @return a GRanges of overlapping peaks selected with z-score,
+#'         n-peaks, k-carriers as mcols
 #' @export
-#' @importFrom utils read.table write.table
-finalRegions <- function(peak_path, zthresh=20, min_carriers=2,
-                       chr=1:19, save_file="bed",
-                       keep_files=FALSE, verbose=FALSE) {
-        if (length(chr) == 1) {
-            single_chromosome <- TRUE
-        } else { single_chromosome <- FALSE }
+#' @importFrom GenomicRanges GRangesList
+#' @examples TBW
+finalRegions <- function(peakSamplesGRangesList, zThreshold=20, minCarriers=2,
+                         saveFlag=TRUE, outputName="overlappedPeaks")
+{
+    stopifnot(is(peakSamplesGRangesList, "GRangesList"))
 
-        if (dir.exists("FinalRegions") == FALSE) {
-                dir.create("FinalRegions")
-        }
 
-        for (i in chr) {
-            chromosome <- paste0("chr", i)
-            #print(paste(peak_path, chromosome, sep="/"))
-            sall <- loadPeaks(paste(peak_path, chromosome, sep="/"),
-                            verbose=verbose) ## a list of each file peak (for the chr)
-            sall_sorted <- matrix(nrow=0, ncol=ncol(sall[[1]]) + 1) ## empty matrix ## as GRange
-            for (i in 1:length(sall)) { ## for each file
-                sel <- which(as.numeric(sall[[i]][, 4]) >= zthresh) ## choose peaks over the threshold
-                sall_sorted <- rbind(sall_sorted, cbind(sall[[i]][sel,], rep(i, length(sel))))
-            }
-            ord <- order(as.numeric(sall_sorted[,2])) ## based on start range
-            sall_sorted <- sall_sorted[ord,]
-            common_regions <- merge_overlapping_intervals(sall_sorted, verbose=verbose) ## intervals
-            names(common_regions) <- c("Start","End","AvgZ","NumCarriers")
-            sel <- which(common_regions[, 4] >= min_carriers) ## seleziona solo le regioni sotto la soglia voluta di numcarriers
-            final_regions <- common_regions[sel,]
-            final_regions <- cbind(rep(chromosome, nrow(final_regions)), final_regions) ## create final region dataframe
-            len <- final_regions[, 3] - final_regions[, 4] ##
-            if (verbose) {
-            cat("Regions scanned: ", nrow(final_regions), "\n")
-            cat("Bases scanned (in MB): ", sum(len)/1000000, "\n")
-            }
+    zedPeaksSamplesGRList <- GenomicRanges::GRangesList(
+                    lapply(peakSamplesGRangesList, function(sample)
+                    {
+                        return(sample[which(sample$`z-score` >= zThreshold),])
+                    }))
 
-            if (save_file == "RData") {
-                save(final_regions, chromosome,
-                    file=paste0("FinalRegions/FinalRegions_",
-                                chromosome, ".RData"))
-            }
-            if (save_file == "bed") {
-                fname <- paste0("FinalRegions/FinalRegions_", chromosome, ".bed")
-                utils::write.table(x=final_regions,
-                                   file=fname, sep="\t", col.names=FALSE,
-                                   row.names=FALSE, quote=FALSE)
-            }
-        }
-        if (single_chromosome == FALSE) {
-            final_regions <- catRegions(path="FinalRegions", type=save_file,
-                                      keep_files=keep_files)
-        }
-        colnames(final_regions) <- c("Chr", "Start", "End", "AvgZ", "NumCarriers")
-        return(final_regions)
-}
-#'
-#' #' merge overlapping peaks across replicates.
-#' #'
-#' #' @param s.
-#' #' @return s2.
-#' #' @keywords internal
-#' merge_overlapping_intervals <- function(s, verbose) {
-#'         avg_vec <- as.numeric(s[,4]) ## z-score
-#'         count_vec <- as.numeric(s[,5]) ## samples
-#'         s <- cbind(as.numeric(s[, 2]) - 200, #200 ## start - 200 (extend start)
-#'                                 as.numeric(s[, 3]) + 200) #mess end + 200 (extend end)
-#'         if (is.null(avg_vec)) {
-#'             avg_vec <- rep(0, nrow(s))
-#'         }
-#'         if (is.null(count_vec)) {
-#'             count_vec <- c(1:nrow(s))
-#'         }
-#'         s2 <- matrix(nrow=0, ncol=4)
-#'         n <- nrow(s)
-#'         i <- 1
-#'         j <- 2
-#'         while (i <= n) { #all over the dimension of s
-#'             #if (i %% 100 == 0 & verbose) cat(i, "\n")
-#'             interval <- s[i, ] ## peak-i
-#'             avg_over <- avg_vec[i] ## zscore
-#'             count_over <- count_vec[i] ## sample
-#'             while (j <= n && s[j, 1] <= interval[2]) { ## fin quando lo start del picco-j è incluso nel picco-i
-#'                 interval <- c(interval[1], max(interval[2], s[j, 2]))  ## picco con i è lo start del picco-i e la end il massimo tra i due (i-j) end
-#'                 avg_over <- c(avg_over, avg_vec[j]) ## accoda zscore
-#'                 count_over <- c(count_over, count_vec[j]) ## accoda campione
-#'                 j <- j + 1
-#'                 # print(j)
-#'             }
-#'             avg <- mean(avg_over, na.rm=TRUE) ## calcola media degli zscore
-#'             count <- unique(count_over) ## prendi ogni campione una sola volta
-#'             s2 <- rbind(s2, c(interval, avg, length(count))) ## accoda alla nuova matrice compreso il numero di samples per trovare l'intervallo
-#'             i <- j
-#'             j <- i + 1
-#'             # print(i)
-#'             # print(j)
-#'         }
-#'         return(as.data.frame(s2))
-#' }
-#'
-#' #' load peak files.
-#' #'
-#' #' @param peakdirname
-#' #' @return sall.
-#' #' @keywords internal
-#' loadPeaks <- function(peakdirname, verbose=verbose) {
-#'         all.files <- list.files(peakdirname, pattern="Peaks")
-#'         if (verbose) {
-#'             cat("Found", length(all.files),"peak files.\n")
-#'         }
-#'         peaks_all <- vector("list", length(all.files))
-#'         for (i in 1:length(all.files)) {
-#'             load(paste0(peakdirname, "/", all.files[i]))
-#'             if (ncol(peaks) == 3) {
-#'                 chr <- strsplit(peakdirname, split="/")[[1]][2]
-#'                 peaks <- cbind(rep(chr, nrow(peaks)), peaks)
-#'             }
-#'             peaks_all[[i]] <- peaks
-#'             if (verbose) {
-#'                 cat("File: ", all.files[i], " number of regions:", nrow(peaks), "\n") ## use message instead
-#'             }
-#'         }
-#'         peaks_all
-#' }
+    zedPeaksChrsGRList <- fromSamplesToChromosomesGRangesList(zedPeaksSamplesGRList)
 
-#' concatenate region files from various chromosomes into a genome
-#' wide region file.
-#'
-#' @param path.
-#' @param type.
-#' @param keep_files
-#' @return c.
-#' @keywords internal
-#' @importFrom utils read.table write.table
-catRegions <- function(path="FinalRegions", type="RData",
-                                             keep_files=TRUE) {
-        files <- list.files(path, recursive=TRUE, full.names=TRUE,
-                                                pattern=type)
-        final_regions_allchr <- NULL
-        for (f in files) {
-            if (type == "RData") {
-                load(f)
-            }
-            if (type == "bed") {
-                final_regions <- utils::read.table(f, sep="\t", header=FALSE)
-                colnames(final_regions) <- c("chr","start","end","AvgZ",
-                                           "NumCarriers")
-            }
-            final_regions_allchr <- rbind(final_regions_allchr, final_regions)
-        }
-        utils::write.table(final_regions_allchr,
-                           file=paste0(path, "/FinalRegions_allChr.bed"),
-                           sep="\t", col.names=TRUE, row.names=FALSE,
-                           quote=FALSE)
-        if (keep_files == FALSE) {
-            file.remove(files)
-            unlink(list.dirs(path)[-1], recursive=TRUE)
-        }
-        return(final_regions_allchr)
+    overlappedPeaksGRList <- GenomicRanges::GRangesList( #### to parallelize over chrs
+        lapply(zedPeaksChrsGRList, function(chrSampleGRList) {
+            return(findOverlapsOverSamples(chrSampleGRList))
+    }))
+    overlappedPeaksGR <- unlist(overlappedPeaksGRList)
+    idxK <- which(overlappedPeaksGR$`k-carriers` >= minCarriers)
+    overlMinKPeaksGR <- overlappedPeaksGR[idxK,]
+
+    if(saveFlag) {
+        filename <- paste0(file, "_zt", zThreshold, "_minK", minCarriers) #######################
+        saveGRangesAsBed(GRanges=overlMinKPeaksGR, filepath=outputName,
+                         filename=filename) ########################################
+    }
+
+    return(overlMinKPeaksGR)
 }
 
+#' giveUniqueNamesToPeaksOverSamples
+#' @description given a GRangesList of samples assigns unique names to the peaks
+#'              of each sample
+#' @param samplePeaksGRangelist
+#'
+#' @return a GRangesList of samples within renamed peaks for each element
 giveUniqueNamesToPeaksOverSamples <- function(samplePeaksGRangelist)
 {
     stopifnot(is(samplePeaksGRangelist, "GRangesList"))
@@ -203,10 +84,14 @@ giveUniqueNamesToPeaksOverSamples <- function(samplePeaksGRangelist)
 
     names(samplePeaksGRangelista) <- sprintf(sFormat,
                                              seq_along(samplePeaksGRangelist))
-    ####
     return(samplePeaksGRangelista)
 }
 
+#' initMergedPeaksNames
+#' @description given a GRanges of merged peaks assigns them new names
+#' @param mergedGRanges
+#'
+#' @return a granges of renamed peaks
 initMergedPeaksNames <- function(mergedGRanges)
 {
     stopifnot(is(mergedGRanges, "GRanges"))
@@ -218,9 +103,23 @@ initMergedPeaksNames <- function(mergedGRanges)
     peakNames <- sprintf(format, 1:length(mergedGRanges@ranges),
                          mergedGRanges$`n-peaks`, mergedGRanges$`k-carriers`)
     names(mergedGRanges) <- peakNames
-
+    return(mergedGRanges)
 }
 
+#' findOverlapsOverSamples
+#'
+#' @param samplePeaksGRangelist given a granges list of samples finds
+#'                              the overlapping regions between them
+#' @param extendRegions the number of bases to extend each region at its start
+#'                      and end
+#' @param minOverlap the minimum overlap each peak needs to have
+#'                   (see ChipPeakAnno::findOverlapsOfPeaks)
+#' @param maxGap the maximum gap admissible between the peaks
+#'               (see ChipPeakAnno::findOverlapsOfPeaks)
+#'
+#' @return a GRanges of peaks overlapped and unique between samples
+#' @export
+#' @examples TBW
 findOverlapsOverSamples <- function(samplePeaksGRangelist,
                                     extendRegions=200,
                                     minOverlap=0L,
@@ -245,7 +144,7 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
                     " forcing these starts to 0")
             start(x)[idxNeg] <- 0
         }
-        end(x) <- end(x) + extendRegions ########### check if values are over seqlength
+        end(x) <- end(x) + extendRegions
         idxHigh <- which( end(x) > seqlengths(x) ) ## it must return just one chromosome
         if(length(idxHigh) > 0) {
             warning("extendRegions of ", extendRegions,
@@ -315,6 +214,7 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
     # save(foundedPeaks, file="testData/new_files/foundedPeaks.RData")
     return(foundedPeaks)
 }
+
 
 convertSallToGrl <- function(sall)
 {

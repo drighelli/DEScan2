@@ -1,5 +1,7 @@
-#' This function calls peaks from bed or bam inputs using a variable window scan
-#' with a poisson model using the surrounding maxCompWinWidth (10kb) as background.
+#' findPeaks
+#' @description This function calls peaks from bed or bam inputs using a
+#' variable window scan with a poisson model using the surrounding
+#' maxCompWinWidth (10kb) as background.
 #'
 #' @param files Character vector containing paths of files to be analyzed.
 #' @param filetype Character, either "bam" or "bed" indicating format of input
@@ -121,24 +123,27 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
             return(chrZRanges) ## one for each chromosome
             })
         )
-        names(chrZRangesList) <- names(bedGrangesChrsList)
+        # names(chrZRangesList) <- names(bedGrangesChrsList)
+        ZRanges <- unlist(chrZRangesList)
         if(save)
         {
-            zGRangesToSave <- unlist(chrZRangesList)
+            # zGRangesToSave <- unlist(chrZRangesList)
             filename <- paste0(file, "_zt", zthresh, "_mnw", minWin,
                                "_mxw", maxWin, "_bin", binSize) #######################
             saveGRangesAsBed(GRanges=zGRangesToSave, filepath=outputName,
                              filename=filename) ########################################
         }
 
-        fileGRangesList <- c(fileGRangesList, chrZRangesList)
+        # fileGRangesList <- c(fileGRangesList, chrZRangesList)
+        fileGRangesList <- c(fileGRangesList, ZRanges)
     }
     names(fileGRangesList) <- files
 
     return(fileGRangesList)
 }
 
-#' computeZ: Computes Z-Scores returning the z matrix
+#' computeZ
+#' @description Computes Z-Scores returning the z matrix
 #'
 #' @param lambdaChrRleList an RleList of lambda values computed
 #'                         by computeLambdaOnChr function
@@ -182,7 +187,8 @@ computeZ <- function(lambdaChrRleList, runWinRleList, chrLength,
 }
 
 
-#' get_disjoint_max_win find significant z score windows keeping the max value
+#' get_disjoint_max_win
+#' @description find significant z score windows keeping the max value
 #' without intersections
 #'
 #' @param z0 Matrix containing z scores with bins as rows and windows size as
@@ -235,7 +241,8 @@ get_disjoint_max_win <- function(z0, sigwin=20, nmax=Inf,
     return(s)
 }
 
-#' computeLambdaOnChr: computes the lambdas on a chromosome for the
+#' computeLambdaOnChr
+#' @description computes the lambdas on a chromosome for the
 #' winVector windows and other two windows (min/maxCompWinWidth) to compare with
 #'
 #' @param chrGRanges the GRanges representing the reads of the chromosome
@@ -253,7 +260,7 @@ get_disjoint_max_win <- function(z0, sigwin=20, nmax=Inf,
 #'         representing the lambda computed for that window
 #' @export
 #'
-#' @examples
+#' @examples TBW
 computeLambdaOnChr <- function(chrGRanges,
                                 winVector=c(1:20),
                                 minChrRleWComp,
@@ -291,7 +298,8 @@ computeLambdaOnChr <- function(chrGRanges,
 }
 
 
-#' computeCoverageMovingWindowOnChr: computes the coverage on a chromosomewith a
+#' computeCoverageMovingWindowOnChr
+#' @description computes the coverage on a chromosomewith a
 #' set of moving windows of dimensions minWinWidth:maxWinWidth
 #'
 #' @param chrBedGRanges a GRanges to compute the coverage
@@ -330,7 +338,8 @@ computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=1,
     return(runWinRleList)
 }
 
-#' binToChrCoordMatRowNames: computes the starting range of the bins for the
+#' binToChrCoordMatRowNames
+#' @description computes the starting range of the bins for the
 #' binMatrix, taking in input the length of the chromosome of the matrix
 #'
 #' @param binMatrix a matrix where each row represents a bin
@@ -361,9 +370,10 @@ binToChrCoordMatRowNames <- function(binMatrix, chrLength, binWidth=50)
     return(binMatrix)
 }
 
-#' binnedSum: this function computes the coverage over a binned chromosome,
+#' binnedSum
+#' @description  this function computes the coverage over a binned chromosome,
 #' starting from a per base computed coverage
-#' credits: http://crazyhottommy.blogspot.com/2016/02/compute-averagessums-on-granges-or.html
+#' @source http://crazyhottommy.blogspot.com/2016/02/compute-averagessums-on-granges-or.html
 #'
 #' @param bins a GRanges object representing a chromosome binned
 #' @param numvar an RleList representing the per base coverage over the chr
@@ -404,7 +414,8 @@ binnedSum <- function(bins, numvar, mcolname)
     return(bins)
 }
 
-#' binnedSumOnly: it's useful just to coerce the bin coverage to an Rle object
+#' binnedSumOnly
+#' @description it's useful just to coerce the bin coverage to an Rle object
 #'
 #' @param bins a GRanges object representing a chromosome binned
 #' @param numvar an RleList representing the per base coverage over the chr
@@ -419,8 +430,9 @@ binnedSumOnly <- function(bins, numvar, mcolname)
     return(chrCovRle)
 }
 
-#' evenRunSum: this function computes a running sum over x with a window width k
-#' (modified from S4Vectors package to work on even on even k, in such a case
+#' evenRunSum
+#' @description this function computes a running sum over x with a window width k
+#' (modified from S4Vectors package to work on even k, in such a case
 #' it adds a length at the end of the output Rle)
 #'
 #' @param x an Rle object, typically a coverage object
