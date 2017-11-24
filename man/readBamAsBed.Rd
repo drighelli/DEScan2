@@ -2,7 +2,7 @@
 % Please edit documentation in R/utilities.R
 \name{readBamAsBed}
 \alias{readBamAsBed}
-\title{readBamAsBed: read a bam file into a bed like format.}
+\title{readBamAsBed}
 \usage{
 readBamAsBed(file)
 }
@@ -10,9 +10,10 @@ readBamAsBed(file)
 \item{file}{Character indicating path to bam file.}
 }
 \value{
-GenomicRanges object.
+GRanges object.
 }
 \description{
-readBamAsBed: read a bam file into a bed like format.
+read a bam file into a bed like format.
+              forcing UCSC format for chromosomes names.
 }
 \keyword{internal}

@@ -2,7 +2,7 @@
 % Please edit documentation in R/peak_call_functions.r
 \name{computeZ}
 \alias{computeZ}
-\title{computeZ: Computes Z-Scores returning the z matrix}
+\title{computeZ}
 \usage{
 computeZ(lambdaChrRleList, runWinRleList, chrLength, minCount = 0.1,
   binSize = 50)
@@ -31,6 +31,6 @@ z a matrix of z scores for each window (column) and bin (row).
         where the rownames represent the starting base of each bin
 }
 \description{
-computeZ: Computes Z-Scores returning the z matrix
+Computes Z-Scores returning the z matrix
 }
 \keyword{internal}

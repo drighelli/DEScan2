@@ -2,8 +2,7 @@
 % Please edit documentation in R/peak_call_functions.r
 \name{get_disjoint_max_win}
 \alias{get_disjoint_max_win}
-\title{get_disjoint_max_win find significant z score windows keeping the max value
-without intersections}
+\title{get_disjoint_max_win}
 \usage{
 get_disjoint_max_win(z0, sigwin = 20, nmax = Inf, zthresh = -Inf,
   two_sided = FALSE, verbose = FALSE)
@@ -26,7 +25,7 @@ columns}
 a matrix of integer containing founded peaks
 }
 \description{
-get_disjoint_max_win find significant z score windows keeping the max value
+find significant z score windows keeping the max value
 without intersections
 }
 \keyword{internal}

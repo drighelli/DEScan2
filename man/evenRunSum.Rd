@@ -2,9 +2,7 @@
 % Please edit documentation in R/peak_call_functions.r
 \name{evenRunSum}
 \alias{evenRunSum}
-\title{evenRunSum: this function computes a running sum over x with a window width k
-(modified from S4Vectors package to work on even on even k, in such a case
-it adds a length at the end of the output Rle)}
+\title{evenRunSum}
 \usage{
 evenRunSum(x, k, endrule = c("drop", "constant"), na.rm = FALSE)
 }
@@ -21,7 +19,7 @@ evenRunSum(x, k, endrule = c("drop", "constant"), na.rm = FALSE)
 an Rle within the running sum over x with a win o length k
 }
 \description{
-evenRunSum: this function computes a running sum over x with a window width k
-(modified from S4Vectors package to work on even on even k, in such a case
+this function computes a running sum over x with a window width k
+(modified from S4Vectors package to work on even k, in such a case
 it adds a length at the end of the output Rle)
 }

@@ -1,12 +1,13 @@
-#' readBamAsBed: read a bam file into a bed like format.
+#' readBamAsBed
+#' @description read a bam file into a bed like format.
 #'               forcing UCSC format for chromosomes names.
 #' @param file Character indicating path to bam file.
 #' @return GRanges object.
 #'
 #' @keywords internal
-#' @import GenomicRanges
-#' @import GenomicAlignments
-#'
+#' @importFrom GenomicRanges granges
+#' @importFrom GenomicAlignments readGAlignments
+#' @importFrom GenomeInfoDb seqlevelsStyle
 readBamAsBed <- function(file) {
     message("processing ", file)
     ga <- GenomicAlignments::readGAlignments(file, index=file)
@@ -16,14 +17,15 @@ readBamAsBed <- function(file) {
 }
 
 
-#' readBedFile: read a bed file into a GenomicRanges like format.
+#' readBedFile
+#' @description read a bed file into a GenomicRanges like format.
 #'              forcing UCSC format for chromosomes names.
 #'
 #' @param filename
 #'
 #' @return GRanges object
 #' @keywords internal
-#' @importfrom tools file_ext
+#' @importFrom tools file_ext
 #' @importFrom utils unzip
 #' @importFrom GenomicRanges GRanges
 #' @importFrom rtracklayer import.bed
@@ -47,8 +49,8 @@ readBedFile <- function(filename) {
 }
 
 
-
-#' Constructs a GRanges object from a bam/bed file in a consistent way
+#' constructBedRanges
+#' @description Constructs a GRanges object from a bam/bed file in a consistent way
 #'
 #' @param filename the complete file path of a bam?bed file
 #' @param filetype the file type bam/bed
@@ -60,11 +62,7 @@ readBedFile <- function(filename) {
 #'
 #' @return a GRanges object
 #' @importFrom GenomeInfoDb keepStandardChromosomes seqinfo Seqinfo
-#' @importFrom glue::collapse
-#'
-#' @export
-#'
-#' @examples
+#' @importFrom glue collapse
 constructBedRanges <- function(filename,
                                filetype=c("bam", "bed"),
                                genomeName=NULL, onlyStdChrs=FALSE)
@@ -121,7 +119,8 @@ constructBedRanges <- function(filename,
 
 
 
-#' saveGRangesAsBed save a GRanges object as bed file and RData file
+#' saveGRangesAsBed
+#' @description save a GRanges object as bed file and RData file
 #'
 #' @param GRanges the GRanges object
 #' @param filepath the path to store the files
@@ -129,7 +128,7 @@ constructBedRanges <- function(filename,
 #'
 #' @importFrom rtracklayer export.bed
 #' @return none
-#'
+#' @examples TBW
 saveGRangesAsBed <- function(GRanges, filepath, filename)
 {
     stopifnot(is(GRanges, "GRanges"))
@@ -145,7 +144,8 @@ saveGRangesAsBed <- function(GRanges, filepath, filename)
 }
 
 
-#' RleListToRleMatrix: a wrapper to create a RleMatrix from a RleList object
+#' RleListToRleMatrix
+#' @description a wrapper to create a RleMatrix from a RleList object
 #'
 #' @param RleList an RleList object
 #' @param dimnames the names for dimensions of RleMatrix (see DelayedArray pkg)
@@ -153,8 +153,7 @@ saveGRangesAsBed <- function(GRanges, filepath, filename)
 #' @return a RleMatrix from DelayedArray package
 #' @importFrom  DelayedArray RleArray
 #' @export
-#'
-#' @examples
+#' @examples TBW
 RleListToRleMatrix <- function(RleList, dimnames=NULL)
 {
     if(!is.null(dimnames)) {
@@ -173,7 +172,8 @@ RleListToRleMatrix <- function(RleList, dimnames=NULL)
 }
 
 
-#' createGranges: a simplified wrapper function to create a GRanges object
+#' createGranges
+#' @description a simplified wrapper function to create a GRanges object
 #'
 #' @param chrSeqInfo a seqinfo object
 #' @param starts the start ranges
@@ -186,8 +186,7 @@ RleListToRleMatrix <- function(RleList, dimnames=NULL)
 #' @importFrom IRanges IRanges
 #' @importFrom S4Vectors mcols
 #' @export
-#'
-#' @examples
+#' @examples TBW
 createGranges <- function(chrSeqInfo, starts, widths,
                           mcolname=NULL, mcolvalues=NULL) {
     stopifnot(is(chrSeqInfo, "Seqinfo"))
@@ -215,7 +214,8 @@ createGranges <- function(chrSeqInfo, starts, widths,
 }
 
 
-#' cutGRangesPerChromosome: takes in input a GRanges object, producing a LIST of
+#' cutGRangesPerChromosome
+#' @description  takes in input a GRanges object, producing a LIST of
 #' GRanges, one for each chromosome
 #'
 #' @param GRanges a GRanges object
@@ -256,7 +256,8 @@ cutGRangesPerChromosome <- function(GRanges)
     return(GRList)
 }
 
-#' keepRelevantChrs: subselect a list of GRanges created with
+#' keepRelevantChrs
+#' @description  subselect a list of GRanges created with
 #' cutGRangesPerChromosome returning only the relevant chromosomes GRanges
 #'
 #' @param GRangesList where each element is a chromosome,
@@ -265,8 +266,7 @@ cutGRangesPerChromosome <- function(GRanges)
 #'
 #' @return the input GRangesList with only the relevat chromosomes
 #' @export
-#'
-#' @examples
+#' @examples TBW
 keepRelevantChrs <- function(GRangesList, chr)
 {
     if(!is.null(chr) && length(grep(pattern="chr", chr))!=length(chr))
@@ -281,9 +281,18 @@ keepRelevantChrs <- function(GRangesList, chr)
     return(GRangesList)
 }
 
-
-
-### To comment
+#' fromSamplesToChromosomesGRangesList
+#' @description converts a GRangesList orgnized per samples to a GRangesList
+#'              organized per Chromosomes where each element
+#'              is a GRangesList of samples
+#' @param samplesGRangesList a GRangesList of samples.
+#'                           Tipically generaed by findPeaks
+#'
+#' @return A GRangesList of chromosomes where each element is a GRanges list
+#'         of samples
+#' @export
+#'
+#' @examples TBW
 fromSamplesToChromosomesGRangesList <- function(samplesGRangesList)
 {
     stopifnot(is(samplesGRangesList, "GRangesList"))
@@ -308,6 +317,17 @@ fromSamplesToChromosomesGRangesList <- function(samplesGRangesList)
     return(chrsSamplesList)
 }
 
+#' divideEachSampleByChromosomes
+#' @description taken in input a grangeslist of samples, generate a list of samples
+#'              where each element has a GRangesList each element of the
+#'              GRangesList represents a single chromosome
+#' @param samplesGRangesList a GRangesList of samples
+#'
+#' @return list of samples where each element is a list of chromosomes and each
+#'          of these elements is a granges
+#' @export
+#'
+#' @examples TBW
 divideEachSampleByChromosomes <- function(samplesGRangesList)
 {
     ## taken in input a grangeslist of samples, generate a list of samples
@@ -325,6 +345,15 @@ divideEachSampleByChromosomes <- function(samplesGRangesList)
     return(samplesChrList)
 }
 
+#' generateDFofSamplesPerChromosomes
+#' @description generates a dataframe where each row is a sample (1st col) and
+#'              a string with its chromosomes separated by ";" (2nd col)
+#'              (useful to fromSamplesToChromosomesGRangesList function)
+#' @param samplesChrGRList a GRangesList of samples each divided by chromosome
+#'
+#' @return a dataframe  where each row is a sample (1st col) and
+#'         a string with its chromosomes separated by ";" (2nd col)
+#'
 generateDFofSamplesPerChromosomes <- function(samplesChrGRList)
 {
     ## generates a dataframe where each row is a sample (1st col)

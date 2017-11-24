@@ -2,8 +2,7 @@
 % Please edit documentation in R/peak_call_functions.r
 \name{binToChrCoordMatRowNames}
 \alias{binToChrCoordMatRowNames}
-\title{binToChrCoordMatRowNames: computes the starting range of the bins for the
-binMatrix, taking in input the length of the chromosome of the matrix}
+\title{binToChrCoordMatRowNames}
 \usage{
 binToChrCoordMatRowNames(binMatrix, chrLength, binWidth = 50)
 }
@@ -18,6 +17,6 @@ binToChrCoordMatRowNames(binMatrix, chrLength, binWidth = 50)
 the binMatrix with start range as rownames
 }
 \description{
-binToChrCoordMatRowNames: computes the starting range of the bins for the
+computes the starting range of the bins for the
 binMatrix, taking in input the length of the chromosome of the matrix
 }

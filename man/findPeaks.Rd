@@ -2,8 +2,7 @@
 % Please edit documentation in R/peak_call_functions.r
 \name{findPeaks}
 \alias{findPeaks}
-\title{This function calls peaks from bed or bam inputs using a variable window scan
-with a poisson model using the surrounding 10kb as background.}
+\title{findPeaks}
 \usage{
 findPeaks(files, filetype = c("bam", "bed"), genomeName = NULL,
   binSize = 50, minWin = 1, maxWin = 20, zthresh = 5, minCount = 0.1,
@@ -57,12 +56,14 @@ working directory.}
 chromosomes to use}
 }
 \value{
-a matrix with peaks as rows and 4 columns describing the genomic
-        coordinates (chr, start, end) as well as the associated z-score.
+A GRangesList where each element is a sample.
+        each GRanges represents the founded peaks and attached the z-score
+        of the peak as mcols.
 }
 \description{
-This function calls peaks from bed or bam inputs using a variable window scan
-with a poisson model using the surrounding 10kb as background.
+This function calls peaks from bed or bam inputs using a
+variable window scan with a poisson model using the surrounding
+maxCompWinWidth (10kb) as background.
 }
 \examples{
 

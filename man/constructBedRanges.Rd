@@ -2,7 +2,7 @@
 % Please edit documentation in R/utilities.R
 \name{constructBedRanges}
 \alias{constructBedRanges}
-\title{Constructs a GRanges object from a bam/bed file in a consistent way}
+\title{constructBedRanges}
 \usage{
 constructBedRanges(filename, filetype = c("bam", "bed"), genomeName = NULL,
   onlyStdChrs = FALSE)
@@ -20,7 +20,7 @@ genomeName Seqinfo}
 files.}
 }
 \value{
-bedRanges a GRanges object
+a GRanges object
 }
 \description{
 Constructs a GRanges object from a bam/bed file in a consistent way

@@ -25,3 +25,6 @@ context("Region Alignment")
 #
 #     # expect_equal_to_reference(finalRegions, file = "final_regions.rds")
 # })
+test_that("finalRegions", {
+    peaks12=readRDS("peaks12.rds")
+})

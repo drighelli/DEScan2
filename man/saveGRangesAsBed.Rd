@@ -2,7 +2,7 @@
 % Please edit documentation in R/utilities.R
 \name{saveGRangesAsBed}
 \alias{saveGRangesAsBed}
-\title{saveGRangesAsBed save a GRanges object as bed file and RData file}
+\title{saveGRangesAsBed}
 \usage{
 saveGRangesAsBed(GRanges, filepath, filename)
 }
@@ -17,5 +17,8 @@ saveGRangesAsBed(GRanges, filepath, filename)
 none
 }
 \description{
-saveGRangesAsBed save a GRanges object as bed file and RData file
+save a GRanges object as bed file and RData file
+}
+\examples{
+TBW
 }

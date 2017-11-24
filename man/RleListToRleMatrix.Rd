@@ -2,7 +2,7 @@
 % Please edit documentation in R/utilities.R
 \name{RleListToRleMatrix}
 \alias{RleListToRleMatrix}
-\title{RleListToRleMatrix: a wrapper to create a RleMatrix from a RleList object}
+\title{RleListToRleMatrix}
 \usage{
 RleListToRleMatrix(RleList, dimnames = NULL)
 }
@@ -15,5 +15,8 @@ RleListToRleMatrix(RleList, dimnames = NULL)
 a RleMatrix from DelayedArray package
 }
 \description{
-RleListToRleMatrix: a wrapper to create a RleMatrix from a RleList object
+a wrapper to create a RleMatrix from a RleList object
+}
+\examples{
+TBW
 }

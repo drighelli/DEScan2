@@ -2,8 +2,7 @@
 % Please edit documentation in R/utilities.R
 \name{keepRelevantChrs}
 \alias{keepRelevantChrs}
-\title{keepRelevantChrs: subselect a list of GRanges created with
-cutGRangesPerChromosome returning only the relevant chromosomes GRanges}
+\title{keepRelevantChrs}
 \usage{
 keepRelevantChrs(GRangesList, chr)
 }
@@ -14,9 +13,12 @@ tipically created with cutGRangesPerChromosome}
 \item{chr}{a character vector of chromosomes names of the form "chr#"}
 }
 \value{
-the GRangesList with only the relevat chromosomes
+the input GRangesList with only the relevat chromosomes
 }
 \description{
-keepRelevantChrs: subselect a list of GRanges created with
+subselect a list of GRanges created with
 cutGRangesPerChromosome returning only the relevant chromosomes GRanges
+}
+\examples{
+TBW
 }

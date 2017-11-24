@@ -2,34 +2,34 @@
 % Please edit documentation in R/final_region_functions.R
 \name{finalRegions}
 \alias{finalRegions}
-\title{Align peaks to form common regions then filter regions for presence in
-multiple replicates}
+\title{finalRegions}
 \usage{
-finalRegions(peak_path, zthresh = 20, min_carriers = 2, chr = 1:19,
-  save_file = "bed", keep_files = FALSE, verbose = FALSE)
+finalRegions(peakSamplesGRangesList, zThreshold = 20, minCarriers = 2,
+  saveFlag = TRUE, outputName = "overlappedPeaks")
 }
 \arguments{
-\item{peak_path}{Path to peak files.}
+\item{peakSamplesGRangesList}{GRangesList where each element is a sample
+of called peaks.
+a z-score mcols values is needed for each GRanges
+(tipically returned by findPeaks function)}
 
-\item{zthresh}{Integer indicating minimum z-score considered significant}
+\item{zThreshold}{a threshold for the z score}
 
-\item{min_carriers}{Integer indiciating the minimum number of replicates a
-region must be present in to be retained for testing}
+\item{minCarriers}{a threshold of minimum samples (carriers) for overlapped regions}
 
-\item{save_file}{Character indicating whether to save region files in the
-"bed" or "RData" format. Default is "bed".}
+\item{saveFlag}{a flag for saving results in a bed file}
 
-\item{keep_files}{Logical indicating whether to erase chromosome files after
-concatenating into a genome wide file.}
-
-\item{chromosome}{Integer indicating which chromsomes to align. Defaults to
-all chromosomes.}
+\item{outputName}{the directory name to store the bed file}
 }
 \value{
-Matrix containing the regions as rows with columns for genomic
-    coordinates, z-score and number of carriers.
+a GRanges of overlapping peaks selected with z-score,
+        n-peaks, k-carriers as mcols
 }
 \description{
-Align peaks to form common regions then filter regions for presence in
-multiple replicates
+Align peaks to form common regions then filter regions for
+presence in multiple replicates taking in input a GRangesList where each
+element is a sample of called peaks
+}
+\examples{
+TBW
 }

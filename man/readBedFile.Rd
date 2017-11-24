@@ -2,17 +2,18 @@
 % Please edit documentation in R/utilities.R
 \name{readBedFile}
 \alias{readBedFile}
-\title{readBedFile: read a bed file into a GenomicRanges like format.}
+\title{readBedFile}
 \usage{
 readBedFile(filename)
 }
 \arguments{
-\item{file}{Character indicating path to bam file.}
+\item{filename}{}
 }
 \value{
-GenomicRanges object
+GRanges object
 }
 \description{
-readBedFile: read a bed file into a GenomicRanges like format.
+read a bed file into a GenomicRanges like format.
+             forcing UCSC format for chromosomes names.
 }
 \keyword{internal}

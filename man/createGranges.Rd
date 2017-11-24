@@ -2,7 +2,7 @@
 % Please edit documentation in R/utilities.R
 \name{createGranges}
 \alias{createGranges}
-\title{createGranges: a simplified wrapper function to create a GRanges object}
+\title{createGranges}
 \usage{
 createGranges(chrSeqInfo, starts, widths, mcolname = NULL,
   mcolvalues = NULL)
@@ -22,5 +22,8 @@ createGranges(chrSeqInfo, starts, widths, mcolname = NULL,
 a GRanges object
 }
 \description{
-createGranges: a simplified wrapper function to create a GRanges object
+a simplified wrapper function to create a GRanges object
+}
+\examples{
+TBW
 }

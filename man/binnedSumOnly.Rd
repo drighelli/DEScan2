@@ -2,7 +2,7 @@
 % Please edit documentation in R/peak_call_functions.r
 \name{binnedSumOnly}
 \alias{binnedSumOnly}
-\title{binnedSumOnly: it's useful just to coerce the bin coverage to an Rle object}
+\title{binnedSumOnly}
 \usage{
 binnedSumOnly(bins, numvar, mcolname)
 }
@@ -17,5 +17,5 @@ binnedSumOnly(bins, numvar, mcolname)
 an Rle within the per bin computed coverage
 }
 \description{
-binnedSumOnly: it's useful just to coerce the bin coverage to an Rle object
+it's useful just to coerce the bin coverage to an Rle object
 }

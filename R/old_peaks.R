@@ -137,18 +137,6 @@ find_Peaks_Old <- function(files, filetype = "bam", chr = 1:19, fraglen = 200,
     return(peaks)
 }
 
-#' make grid for enrichment scan.
-#'
-#' @param path Path to alignement files.
-#' @param fraglen Integer indicating the average DNA fragment length in bp
-#' @param rlen Integer indicating the read length in bp
-#' @param min_bin Integer indicating the minimum window size to be used in
-#'   constructing grid
-#' @param min_rds This argument is currently not used.
-#' @param grid_st This argument is currently not used.
-#' @param grid_ed This argument is currently not used.
-#' @return grid.
-#' @keywords internal
 make_grid <- function(bed, fraglen, rlen, min_bin = 10, min_rds = 0,
                       grid_st = NA, grid_ed = NA, verbose=FALSE) {
     fr <- sort(bed[which(bed[, 4] == "+"), 2])
@@ -214,18 +202,6 @@ make_grid <- function(bed, fraglen, rlen, min_bin = 10, min_rds = 0,
     grid
 }
 
-#' compute window coverage.
-#'
-#' @param Fr forward reads.
-#' @param Rr reverse reads.
-#' @param grid
-#' @param fraglen
-#' @param rlen
-#' @param min_win
-#' @param max_win
-#' @param verbose
-#' @return cmat.
-#' @keywords internal
 window_coverage_old <- function(Fr, Rr, grid, fraglen = 200, rlen = 100,
                             min_win = 1, max_win = 100,
                             verbose = TRUE) {
@@ -285,17 +261,6 @@ window_coverage_old <- function(Fr, Rr, grid, fraglen = 200, rlen = 100,
     cmat
 }
 
-#' find significant z score windows keeping the max value without intersections
-#'
-#' @param z0 Matrix containing z scores with bins as rows and windows size as
-#'   columns
-#' @param sigwin Integer indicating how many bins per fragment
-#' @param nmax Integer indicating the maximum number of windows to return
-#' @param zthresh Integer indicating the minimum z-score considered significant
-#' @param two_sided
-#' @param verbose
-#' @return s.
-#' @keywords internal
 get_disjoint_max_win_old <- function(z0, sigwin = 20, nmax = Inf,
                                  zthresh = -Inf, two_sided = FALSE,
                                  verbose = TRUE) {
@@ -325,17 +290,6 @@ get_disjoint_max_win_old <- function(z0, sigwin = 20, nmax = Inf,
     s
 }
 
-#' read a bam file into a bed like format.
-#'
-#' @param file Character indicating path to bam file.
-#' @param chr Integer indicating which chromosome to read in.
-#' @return bed.
-#' @keywords internal
-#' @import GenomicRanges
-#' @import Rsamtools
-#' @import GenomeInfoDb
-#' @import GenomicAlignments
-#' @import IRanges
 read_bam <- function(file, chr) {
 
     if (file.exists(paste0(file,".bai")) == FALSE) {

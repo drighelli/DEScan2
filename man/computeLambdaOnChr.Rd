@@ -2,8 +2,7 @@
 % Please edit documentation in R/peak_call_functions.r
 \name{computeLambdaOnChr}
 \alias{computeLambdaOnChr}
-\title{computeLambdaOnChr: computes the lambdas on a chromosome for the
-winVector windows and other two windows (min/maxCompWinWidth) to compare with}
+\title{computeLambdaOnChr}
 \usage{
 computeLambdaOnChr(chrGRanges, winVector = c(1:20), minChrRleWComp,
   minCompWinWidth = 5000, maxChrRleWComp, maxCompWinWidth = 10000)
@@ -30,6 +29,9 @@ an RleList where each element is a window of winVector, within an Rle
         representing the lambda computed for that window
 }
 \description{
-computeLambdaOnChr: computes the lambdas on a chromosome for the
+computes the lambdas on a chromosome for the
 winVector windows and other two windows (min/maxCompWinWidth) to compare with
+}
+\examples{
+TBW
 }

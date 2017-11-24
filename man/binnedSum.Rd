@@ -2,9 +2,10 @@
 % Please edit documentation in R/peak_call_functions.r
 \name{binnedSum}
 \alias{binnedSum}
-\title{binnedSum: this function computes the coverage over a binned chromosome,
-starting from a per base computed coverage
-credits: http://crazyhottommy.blogspot.com/2016/02/compute-averagessums-on-granges-or.html}
+\title{binnedSum}
+\source{
+http://crazyhottommy.blogspot.com/2016/02/compute-averagessums-on-granges-or.html
+}
 \usage{
 binnedSum(bins, numvar, mcolname)
 }
@@ -19,9 +20,8 @@ binnedSum(bins, numvar, mcolname)
 the bins GRanges with the mcolname attached
 }
 \description{
-binnedSum: this function computes the coverage over a binned chromosome,
+this function computes the coverage over a binned chromosome,
 starting from a per base computed coverage
-credits: http://crazyhottommy.blogspot.com/2016/02/compute-averagessums-on-granges-or.html
 }
 \examples{
 ## dividing one chromosome in bins of 50 bp each

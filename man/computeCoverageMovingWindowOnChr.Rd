@@ -2,8 +2,7 @@
 % Please edit documentation in R/peak_call_functions.r
 \name{computeCoverageMovingWindowOnChr}
 \alias{computeCoverageMovingWindowOnChr}
-\title{computeCoverageMovingWindowOnChr: computes the coverage on a chromosomewith a
-set of moving windows of dimensions minWinWidth:maxWinWidth}
+\title{computeCoverageMovingWindowOnChr}
 \usage{
 computeCoverageMovingWindowOnChr(chrBedGRanges, minWinWidth = 1,
   maxWinWidth = 20, binWidth = 50)
@@ -21,7 +20,7 @@ computeCoverageMovingWindowOnChr(chrBedGRanges, minWinWidth = 1,
 RleList where each element is a window within the Rle of its coverage
 }
 \description{
-computeCoverageMovingWindowOnChr: computes the coverage on a chromosomewith a
+computes the coverage on a chromosomewith a
 set of moving windows of dimensions minWinWidth:maxWinWidth
 }
 \examples{
