@@ -132,25 +132,25 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
 
     namedSamplePeaksGRL <- lapply(namedSamplePeaksGRL, function(x)
     {
-        x <- x[as.numeric(mcols(x)[["z-score"]]) >= 20]
-        mcols(x)[["n-peaks"]] <-  1
-        mcols(x)[["k-carriers"]] <-  1
-        start(x) <- start(x) - extendRegions
-        idxNeg <- which( start(x) < 0 )
+        x <- x[as.numeric(S4Vectors::mcols(x)[["z-score"]]) >= 20]
+        S4Vectors::mcols(x)[["n-peaks"]] <-  1
+        S4Vectors::mcols(x)[["k-carriers"]] <-  1
+        BiocGenerics::start(x) <- BiocGenerics::start(x) - extendRegions
+        idxNeg <- which( BiocGenerics::start(x) < 0 )
         if(length(idxNeg) > 0)
         {
             warning("extendRegions of ", extendRegions,
                     " is too high for region(s) start ", idxNeg,
                     " forcing these starts to 0")
-            start(x)[idxNeg] <- 0
+            BiocGenerics::start(x)[idxNeg] <- 0
         }
-        end(x) <- end(x) + extendRegions
-        idxHigh <- which( end(x) > seqlengths(x) ) ## it must return just one chromosome
+        BiocGenerics::end(x) <- BiocGenerics::end(x) + extendRegions
+        idxHigh <- which( BiocGenerics::end(x) > GenomeInfoDb::seqlengths(x) ) ## it must return just one chromosome
         if(length(idxHigh) > 0) {
             warning("extendRegions of ", extendRegions,
                     " is too high for region(s) end ", idxHigh,
-                    " forcing these ends to ", seqlengths(x))
-            end(x)[idxHigh] <- seqlengths(x)
+                    " forcing these ends to ", GenomeInfoDb::seqlengths(x))
+            BiocGenerics::end(x)[idxHigh] <- GenomeInfoDb::seqlengths(x)
         }
 
         return(x)
@@ -199,7 +199,7 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
         # endTime <- Sys.time()
         # print((endTime-stTime))
         newcols1 <- data.table::rbindlist(newcols)
-        mcols(mrgPks) <-  S4Vectors::DataFrame(newcols1)
+        S4Vectors::mcols(mrgPks) <-  S4Vectors::DataFrame(newcols1)
         colnames(S4Vectors::mcols(mrgPks)) <- c("z-score", "n-peaks", "k-carriers")
         ## peaks uniques
         unqPks <- grij$uniquePeaks
