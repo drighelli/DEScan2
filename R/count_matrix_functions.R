@@ -1,9 +1,14 @@
 #' count reads falling within the final regions.
 #'
-#' @param region_file path to regions of interest to count reads across.
-#' @param bam_file_path path to bam files to be used for read counting.
-#' @param min_carriers integer indicating minumum number of replicates a region
-#'     must appear in to be utilized for count matrix construction.
+#' @param regionsGRanges
+#' @param readsFilePath
+#' @param fileType
+#' @param minCarriers
+#' @param genomeName
+#' @param onlyStdChrs
+#' @param saveFlag
+#' @param savePath
+#'
 #' @return Matrix containing read counts with regions as rows and samples as
 #'     columns.
 #' @export
@@ -28,7 +33,8 @@ countFinalRegions <- function(regionsGRanges, readsFilePath,
     idxBai <- grep("bai", readsFiles)
     if(length(idxBai) > 0) readsFiles <- readsFiles[-idxBai]
 
-    summRegDF <- plyr::adply(readsFiles, 1, function(file)
+    summRegDF <- #plyr::adply(readsFiles, 1, function(file)
+        sapply(readsFiles, function(file)
     {
         fileReads <- constructBedRanges(filename=as.character(file),
                                         filetype=fileType,
@@ -38,6 +44,7 @@ countFinalRegions <- function(regionsGRanges, readsFilePath,
                                                         reads=fileReads)
         ##the mode is to compare with the feature counts method outpuut
         return(SummarizedExperiment::assay(summReg))
+        ##not working properly
     })
 
     # if(minCoverage != 0)
