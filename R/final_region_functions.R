@@ -40,7 +40,7 @@ finalRegions <- function(peakSamplesGRangesList, zThreshold=20, minCarriers=2,
     overlMinKPeaksGR <- overlappedPeaksGR[idxK,]
 
     if(saveFlag) {
-        filename <- paste0(file, "_zt", zThreshold, "_minK", minCarriers) #######################
+        filename <- paste0(file, "_zt", zThreshold, "_minK", minCarriers) #####################
         saveGRangesAsBed(GRanges=overlMinKPeaksGR, filepath=outputName,
                          filename=filename) ########################################
     }
@@ -107,6 +107,9 @@ initMergedPeaksNames <- function(mergedGRanges)
 }
 
 #' findOverlapsOverSamples
+#' @description given in input a GRangeList where each element is a sample
+#'              computes the coverage extending a both direction window of
+#'              prefixed length.
 #'
 #' @param samplePeaksGRangelist given a granges list of samples finds
 #'                              the overlapping regions between them
@@ -119,6 +122,14 @@ initMergedPeaksNames <- function(mergedGRanges)
 #'
 #' @return a GRanges of peaks overlapped and unique between samples
 #' @export
+#'
+#' @importFrom  S4Vectors mcols
+#' @importFrom BiocGenerics start end
+#' @importFrom GenomeInfoDb seqlengths
+#' @importFrom ChIPpeakAnno findOverlapsOfPeaks
+#' @importFrom data.table rbindlist
+#' @importFrom GenomicRanges GRangesList
+#'
 #' @examples TBW
 findOverlapsOverSamples <- function(samplePeaksGRangelist,
                                     extendRegions=200,
@@ -145,7 +156,8 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
             BiocGenerics::start(x)[idxNeg] <- 0
         }
         BiocGenerics::end(x) <- BiocGenerics::end(x) + extendRegions
-        idxHigh <- which( BiocGenerics::end(x) > GenomeInfoDb::seqlengths(x) ) ## it must return just one chromosome
+        ## it must return just one chromosome
+        idxHigh <- which( BiocGenerics::end(x) > GenomeInfoDb::seqlengths(x) )
         if(length(idxHigh) > 0) {
             warning("extendRegions of ", extendRegions,
                     " is too high for region(s) end ", idxHigh,
@@ -216,7 +228,7 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
 }
 
 
-convertSallToGrl <- function(sall)
+.convertSallToGrl <- function(sall)
 {
     lgr <- list()
     for(sample in sall)

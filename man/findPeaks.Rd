@@ -66,5 +66,6 @@ variable window scan with a poisson model using the surrounding
 maxCompWinWidth (10kb) as background.
 }
 \examples{
+TBW
 
 }

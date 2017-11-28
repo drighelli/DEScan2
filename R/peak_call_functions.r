@@ -37,7 +37,9 @@
 #'         each GRanges represents the founded peaks and attached the z-score
 #'         of the peak as mcols.
 #' @export
-#' @examples
+#'
+#' @importFrom  GenomicRanges GRangesList
+#' @examples TBW
 #'
 findPeaks <- function(files, filetype=c("bam", "bed"),
                       genomeName=NULL,
@@ -108,7 +110,7 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
                           chrLength=chrGRanges@seqinfo@seqlengths,
                           minCount=minCount, binSize=50
                           )
-            new_s <- get_disjoint_max_win(z0=z,#[1:5000,], ###############################
+            new_s <- get_disjoint_max_win(z0=z,
                                           sigwin=fragmentLength/binSize,
                                           nmax=Inf, zthresh=zthresh,
                                           two_sided=FALSE, verbose=FALSE
@@ -129,9 +131,9 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
         {
             # zGRangesToSave <- unlist(chrZRangesList)
             filename <- paste0(file, "_zt", zthresh, "_mnw", minWin,
-                               "_mxw", maxWin, "_bin", binSize) #######################
-            saveGRangesAsBed(GRanges=zGRangesToSave, filepath=outputName,
-                             filename=filename) ########################################
+                               "_mxw", maxWin, "_bin", binSize)
+            saveGRangesAsBed(GRanges=ZRanges, filepath=outputName,
+                             filename=filename)
         }
 
         # fileGRangesList <- c(fileGRangesList, chrZRangesList)
@@ -260,6 +262,8 @@ get_disjoint_max_win <- function(z0, sigwin=20, nmax=Inf,
 #'         representing the lambda computed for that window
 #' @export
 #'
+#' @importFrom IRanges RleList Rle
+#'
 #' @examples TBW
 computeLambdaOnChr <- function(chrGRanges,
                                 winVector=c(1:20),
@@ -310,7 +314,10 @@ computeLambdaOnChr <- function(chrGRanges,
 #' @return RleList where each element is a window within the Rle of its coverage
 #' @export
 #'
-#' @examples
+#' @importFrom GenomicRanges tileGenome coverage
+#' @importFrom IRanges RleList
+#'
+#' @examples TBW
 #'
 computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=1,
                                              maxWinWidth=20, binWidth=50)
@@ -382,33 +389,39 @@ binToChrCoordMatRowNames <- function(binMatrix, chrLength, binWidth=50)
 #' @return the bins GRanges with the mcolname attached
 #' @export
 #'
+#' @importFrom GenomeInfoDb seqlevels seqnames
+#' @importFrom S4Vectors split
+#' @importFrom IRanges ranges Views viewSums
 #' @examples
 #' ## dividing one chromosome in bins of 50 bp each
 #' seqinfo <- GenomeInfoDb::Seqinfo("mm9")
 #' bins <- GenomicRanges::tileGenome(seqlengths=seqinfo@chr1,
 #'                                              tilewidth=50,
 #'                                              cut.last.tile.in.chrom=TRUE)
-#' gr <- GRanges(seqnames = Rle("Chr1", 100),
-#' ranges =IRanges(start = seq(from=10, to=1000, by=10),
-#' end=seq(from=20, to=1010, by = 10)))
+#' gr <- GenomicRanges::GRanges(seqnames = Rle("Chr1", 100),
+#' ranges <- IRanges::IRanges(start = seq(from=10, to=1000, by=10),
+#' end <- seq(from=20, to=1010, by = 10)))
 #' ## computing coverage per single base on granges
 #' cov <- GenomicRanges::coverage(x=gr)
 #'
 #' binnedCovGR <- binnedSum(bins, cov, "binned_cov")
+#' binnedCovGR
 #'
 binnedSum <- function(bins, numvar, mcolname)
 {
     stopifnot(is(bins, "GRanges"))
     stopifnot(is(numvar, "RleList"))
-    stopifnot(identical(seqlevels(bins), names(numvar)))
-    bins_per_chrom <- split(ranges(bins), seqnames(bins))
+    stopifnot(identical(GenomeInfoDb::seqlevels(bins), names(numvar)))
+
+    bins_per_chrom <- S4Vectors::split(IRanges::ranges(bins),
+                                       GenomeInfoDb::seqnames(bins)) ## check if it's S4 the right package
     sums_list <- lapply(names(numvar),
                         function(seqname) {
-                            views <- Views(numvar[[seqname]],
+                            views <- IRanges::Views(numvar[[seqname]],
                                            bins_per_chrom[[seqname]])
-                            viewSums(views)
+                            IRanges::viewSums(views)
                         })
-    new_mcol <- unsplit(sums_list, as.factor(seqnames(bins)))
+    new_mcol <- unsplit(sums_list, as.factor(GenomeInfoDb::seqnames(bins)))
     mcols(bins)[[mcolname]] <- new_mcol
 
     return(bins)
@@ -421,12 +434,14 @@ binnedSum <- function(bins, numvar, mcolname)
 #' @param numvar an RleList representing the per base coverage over the chr
 #' @param mcolname the name of column where the sum have to be stored
 #'
+#' @importFrom S4Vectors mcols
+#'
 #' @return an Rle within the per bin computed coverage
 binnedSumOnly <- function(bins, numvar, mcolname)
 {
     binsGRanges <- binnedSum(bins=bins, numvar=numvar, mcolname=mcolname)
     ## coercing just the binned coverage to Rle
-    chrCovRle <- as(mcols(binsGRanges)[[mcolname]],"Rle")
+    chrCovRle <- as(S4Vectors::mcols(binsGRanges)[[mcolname]],"Rle")
     return(chrCovRle)
 }
 
@@ -439,6 +454,8 @@ binnedSumOnly <- function(bins, numvar, mcolname)
 #' @param k window dimension for the running sum over x
 #' @param endrule refer to S4Vectors::runSum
 #' @param na.rm refer to S4Vectors::runSum
+#'
+#' @importFrom S4Vectors .Call2 runLength nrun
 #'
 #' @return an Rle within the running sum over x with a win o length k
 evenRunSum <- function(x, k, endrule = c("drop", "constant"), na.rm = FALSE)
@@ -453,7 +470,7 @@ evenRunSum <- function(x, k, endrule = c("drop", "constant"), na.rm = FALSE)
         j <- (k + 1L) %/% 2L
 
         S4Vectors::runLength(ans)[1L] <- S4Vectors::runLength(ans)[1L]+(j - 1L)
-        if( (k %% 2L) == 0 ) j=j+1
+        if( (k %% 2L) == 0 ) j=j+1 ##
         S4Vectors::runLength(ans)[S4Vectors::nrun(ans)] <-
                         S4Vectors::runLength(ans)[S4Vectors::nrun(ans)]+(j - 1L)
     }

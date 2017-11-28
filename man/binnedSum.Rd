@@ -29,12 +29,13 @@ seqinfo <- GenomeInfoDb::Seqinfo("mm9")
 bins <- GenomicRanges::tileGenome(seqlengths=seqinfo@chr1,
                                              tilewidth=50,
                                              cut.last.tile.in.chrom=TRUE)
-gr <- GRanges(seqnames = Rle("Chr1", 100),
-ranges =IRanges(start = seq(from=10, to=1000, by=10),
-end=seq(from=20, to=1010, by = 10)))
+gr <- GenomicRanges::GRanges(seqnames = Rle("Chr1", 100),
+ranges <- IRanges::IRanges(start = seq(from=10, to=1000, by=10),
+end <- seq(from=20, to=1010, by = 10)))
 ## computing coverage per single base on granges
 cov <- GenomicRanges::coverage(x=gr)
 
 binnedCovGR <- binnedSum(bins, cov, "binned_cov")
+binnedCovGR
 
 }

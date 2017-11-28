@@ -24,7 +24,9 @@ and end}
 a GRanges of peaks overlapped and unique between samples
 }
 \description{
-findOverlapsOverSamples
+given in input a GRangeList where each element is a sample
+             computes the coverage extending a both direction window of
+             prefixed length.
 }
 \examples{
 TBW

@@ -1,0 +1,11 @@
+# biocLite("DelayedArray")
+# biocLite("GenomeInfoDb")
+# biocLite("GenomicAlignments")
+# biocLite("GenomicRanges")
+# biocLite("IRanges")
+# biocLite("S4Vectors")
+# biocLite("glue")
+# biocLite("rtracklayer")
+#
+#install.packages("testthat")
+# install.packages("plyr")

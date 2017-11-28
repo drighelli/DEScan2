@@ -24,5 +24,6 @@ computes the coverage on a chromosomewith a
 set of moving windows of dimensions minWinWidth:maxWinWidth
 }
 \examples{
+TBW
 
 }

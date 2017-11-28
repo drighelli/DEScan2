@@ -182,6 +182,7 @@ RleListToRleMatrix <- function(RleList, dimnames=NULL)
 #' @param mcolvalues the values for the mcol attribute
 #'
 #' @return a GRanges object
+#'
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges
 #' @importFrom S4Vectors mcols
@@ -221,6 +222,7 @@ createGranges <- function(chrSeqInfo, starts, widths,
 #' @param GRanges a GRanges object
 #'
 #' @return a named list of GRanges, one for each chromosome
+#'
 #' @importFrom GenomeInfoDb seqnames
 #' @export
 #'
@@ -265,6 +267,7 @@ cutGRangesPerChromosome <- function(GRanges)
 #' @param chr a character vector of chromosomes names of the form "chr#"
 #'
 #' @return the input GRangesList with only the relevat chromosomes
+#'
 #' @export
 #' @examples TBW
 keepRelevantChrs <- function(GRangesList, chr)
@@ -291,6 +294,7 @@ keepRelevantChrs <- function(GRangesList, chr)
 #' @return A GRangesList of chromosomes where each element is a GRanges list
 #'         of samples
 #' @export
+#' @importFrom GenomicRanges GRangesList
 #'
 #' @examples TBW
 fromSamplesToChromosomesGRangesList <- function(samplesGRangesList)
@@ -353,6 +357,8 @@ divideEachSampleByChromosomes <- function(samplesGRangesList)
 #'
 #' @return a dataframe  where each row is a sample (1st col) and
 #'         a string with its chromosomes separated by ";" (2nd col)
+#'
+#' @importFrom plyr ldply
 #'
 generateDFofSamplesPerChromosomes <- function(samplesChrGRList)
 {
