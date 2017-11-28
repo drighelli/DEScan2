@@ -1,10 +1,10 @@
 ---
 title: "DEScan"
-author: "John Koberstein, Bruce Gomes"
+author: "Dario Righelli - John Koberstein - Bruce Gomes"
 output: 
   BiocStyle::pdf_document
 vignette: >
-  %\VignetteIndexEntry{DEScan}
+  %\VignetteIndexEntry{DEScan2}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}  
 ---
@@ -16,13 +16,13 @@ options(scipen = 1, digits = 4)
 ```
 
 #Overview
-This document describes how to use DEScan to detect regions of differential enrichment in epigenomic sequencing data. DEScan is an R/Bioconductor based tool, developed for Bioconductor v3.4.
+This document describes how to use DEScan to detect regions of differential enrichment in epigenomic sequencing data. DEScan is an R/Bioconductor based tool, developed for Bioconductor v3.6 and R v 3.4.2.
 
 #A typical differential enrichment analysis workflow
 
 ##Installation
 
-DESCan is currently hosted on GitHub, so installation will make use of the devtools package.
+DESCan2 is currently hosted on GitHub, so installation will make use of the devtools package.
 
 ```{r}
 library(devtools)
@@ -31,8 +31,7 @@ library(devtools)
 Use the install_github function to install DEScan. The repo location and a personal access token (PAT) need to be supplied.
 
 ```{r, cache=TRUE, message=FALSE}
-install_github(repo = "jnkoberstein/DEScan", 
-             auth_token = "293d0010ce53d248175cee2d67ff248395f1a0a2")
+install_github(repo = "drighelli/DEScan2")
 ```
 ```{r, message=FALSE}
 library(DEScan)

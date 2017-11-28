@@ -262,7 +262,8 @@ get_disjoint_max_win <- function(z0, sigwin=20, nmax=Inf,
 #'         representing the lambda computed for that window
 #' @export
 #'
-#' @importFrom IRanges RleList Rle
+#' @importFrom IRanges RleList
+#' @importFrom S4Vectors Rle
 #'
 #' @examples TBW
 computeLambdaOnChr <- function(chrGRanges,

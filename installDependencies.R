@@ -6,6 +6,7 @@
 # biocLite("S4Vectors")
 # biocLite("glue")
 # biocLite("rtracklayer")
+# BiocInstaller::biocLite("ChIPpeakAnno")
 #
 #install.packages("testthat")
 # install.packages("plyr")

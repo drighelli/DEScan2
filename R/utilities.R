@@ -127,6 +127,7 @@ constructBedRanges <- function(filename,
 #' @param filename the name to give to the files
 #'
 #' @importFrom rtracklayer export.bed
+#' @importFrom GenomeInfoDb sortSeqlevels
 #' @return none
 #' @examples TBW
 saveGRangesAsBed <- function(GRanges, filepath, filename)
@@ -137,7 +138,7 @@ saveGRangesAsBed <- function(GRanges, filepath, filename)
     filePathName <- file.path(filepath, paste0(filename, "_peaks"))
     if(file.exists(filePathName)) {stop(filePathName, " already exists!\n"
                                         , "Not overwriting!")}
-    GRanges <- sortSeqlevels(GRanges)
+    GRanges <- GenomeInfoDb::sortSeqlevels(GRanges)
     GRanges <- sort(GRanges)
     rtracklayer::export.bed(object=GRanges, con=paste0(filePathName, ".bed"))
     # save(GRanges, file=paste0(filePathName, ".RData"))
