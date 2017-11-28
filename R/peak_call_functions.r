@@ -39,7 +39,15 @@
 #' @export
 #'
 #' @importFrom  GenomicRanges GRangesList
-#' @examples TBW
+#' @examples
+#' bed.files <- list.files(system.file("extdata/Bed", package = "DEScan2"),
+#'                         full.names = T)
+#' peaks <- findPeaks(files=bed.files[1], chr="chr19", filetype="bed",
+#'                     fragmentLength=200,
+#'                     binSize=50, minWin=1, maxWin=20, genomeName="mm9",
+#'                     minCompWinWidth=5000, maxCompWinWidth=10000,
+#'                     zthresh=5, minCount=0.1, verbose=FALSE, save=FALSE)
+#' head(peaks)
 #'
 findPeaks <- function(files, filetype=c("bam", "bed"),
                       genomeName=NULL,
@@ -215,7 +223,7 @@ get_disjoint_max_win <- function(z0, sigwin=20, nmax=Inf,
     if (two_sided) {
         z0 <- abs(z0)
     }
-
+    i=1
     while (TRUE) {
         inds <- which.max(z0) # find max z
         if (length(inds) == 0) break
@@ -228,10 +236,11 @@ get_disjoint_max_win <- function(z0, sigwin=20, nmax=Inf,
         if (z0[t, w] < zthresh) break
 
         s <- rbind(s, c(t, w, z0[t, w]))
+        if((i %% 100) == 0)
+            message("Maximizing window: ", t, ",", w, " Score=", z0[t, w], "\n")
+        i=i+1
 
-        if (verbose) {
-            cat("Maximizing window: ", t, ",", w, " Score=", z0[t, w], "\n")
-        }
+
         st <- max(1, t - sigwin - maxwin + 1)
         ed <- min(t + w + sigwin - 1, nrow(z0))
         z0[st:ed, ] <- -Inf
@@ -266,7 +275,7 @@ get_disjoint_max_win <- function(z0, sigwin=20, nmax=Inf,
 #' @importFrom IRanges RleList
 #' @importFrom S4Vectors Rle
 #'
-#' @examples TBW
+#' @keywords internal
 computeLambdaOnChr <- function(chrGRanges,
                                 winVector=c(1:20),
                                 minChrRleWComp,
@@ -319,8 +328,7 @@ computeLambdaOnChr <- function(chrGRanges,
 #' @importFrom GenomicRanges tileGenome coverage
 #' @importFrom IRanges RleList
 #'
-#' @examples TBW
-#'
+#' @keywords internal
 computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=1,
                                              maxWinWidth=20, binWidth=50)
 {
@@ -356,7 +364,7 @@ computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=1,
 #' @param binWidth the width of the bin
 #'
 #' @return the binMatrix with start range as rownames
-#'
+#' @keywords internal
 binToChrCoordMatRowNames <- function(binMatrix, chrLength, binWidth=50)
 {
     ## computing bin in base ranges to add as rownames
@@ -392,7 +400,7 @@ binToChrCoordMatRowNames <- function(binMatrix, chrLength, binWidth=50)
 #' @export
 #'
 #' @importFrom GenomeInfoDb seqlevels seqnames
-#' @importFrom S4Vectors split
+#' @importFrom S4Vectors split mcols
 #' @importFrom IRanges ranges Views viewSums
 #' @examples
 #' ## dividing one chromosome in bins of 50 bp each
@@ -424,7 +432,7 @@ binnedSum <- function(bins, numvar, mcolname)
                             IRanges::viewSums(views)
                         })
     new_mcol <- unsplit(sums_list, as.factor(GenomeInfoDb::seqnames(bins)))
-    mcols(bins)[[mcolname]] <- new_mcol
+    S4Vectors::mcols(bins)[[mcolname]] <- new_mcol
 
     return(bins)
 }
@@ -439,6 +447,7 @@ binnedSum <- function(bins, numvar, mcolname)
 #' @importFrom S4Vectors mcols
 #'
 #' @return an Rle within the per bin computed coverage
+#' @keywords internal
 binnedSumOnly <- function(bins, numvar, mcolname)
 {
     binsGRanges <- binnedSum(bins=bins, numvar=numvar, mcolname=mcolname)
@@ -460,6 +469,7 @@ binnedSumOnly <- function(bins, numvar, mcolname)
 #' @importFrom S4Vectors .Call2 runLength nrun
 #'
 #' @return an Rle within the running sum over x with a win o length k
+#' @keywords internal
 evenRunSum <- function(x, k, endrule = c("drop", "constant"), na.rm = FALSE)
 {
     stopifnot(is(x, "Rle"))

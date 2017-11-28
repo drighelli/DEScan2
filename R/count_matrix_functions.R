@@ -39,8 +39,7 @@ countFinalRegions <- function(regionsGRanges, readsFilePath=NULL,
     idxBai <- grep("bai", readsFiles)
     if(length(idxBai) > 0) readsFiles <- readsFiles[-idxBai]
 
-    summRegMat <- #plyr::adply(readsFiles, 1, function(file)
-        sapply(readsFiles, function(file)
+    summRegMat <- sapply(readsFiles, function(file)
     {
         fileReads <- constructBedRanges(filename=as.character(file),
                                         filetype=fileType,
@@ -48,15 +47,16 @@ countFinalRegions <- function(regionsGRanges, readsFilePath=NULL,
                                         onlyStdChrs=onlyStdChrs)
         summReg <- GenomicAlignments::summarizeOverlaps(features=regionsGRanges,
                                                         reads=fileReads)
-        ##the mode is to compare with the feature counts method outpuut
         return(SummarizedExperiment::assay(summReg))
-        ##not working properly
     })
 
     rownames(summRegMat) <- names(regionsGRanges)
 
 
-    ### saving functionality missing
+    if(saveFlag)
+    {
+
+    }
 
     return(summRegMat)
 }

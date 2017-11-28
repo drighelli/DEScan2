@@ -30,7 +30,6 @@ readBamAsBed <- function(file) {
 #' @importFrom GenomicRanges GRanges
 #' @importFrom rtracklayer import.bed
 #' @importFrom GenomeInfoDb seqlevelsStyle
-#'
 readBedFile <- function(filename) {
     message("processing ", filename)
     if (tools::file_ext(filename) == "zip") {
@@ -156,6 +155,7 @@ saveGRangesAsBed <- function(GRanges, filepath, filename)
 #' @importFrom  DelayedArray RleArray
 #' @export
 #' @examples
+#' library("DelayedArray")
 #' lengths <-  c(3, 1, 2)
 #' values <- c(15, 5, 20)
 #' el1 <- Rle(values=values, lengths=lengths)
@@ -200,7 +200,7 @@ RleListToRleMatrix <- function(RleList, dimnames=NULL)
 #' @importFrom IRanges IRanges
 #' @importFrom S4Vectors mcols
 #' @keywords internal
-#' @examples TBW
+#'
 createGranges <- function(chrSeqInfo, starts, widths,
                           mcolname=NULL, mcolvalues=NULL) {
     stopifnot(is(chrSeqInfo, "Seqinfo"))
@@ -241,6 +241,7 @@ createGranges <- function(chrSeqInfo, starts, widths,
 #' @export
 #'
 #' @examples
+#' library("GenomicRanges")
 #' gr <- GRanges(
 #'       seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
 #'       ranges=IRanges(1:10, end=10),
@@ -268,8 +269,7 @@ cutGRangesPerChromosome <- function(GRanges)
     ## intentionally left commented, GRangesList reconstruct the entire seqinfo,
     ## while we want it cutted per chromosomes
     ## GRList <- GRangesList(GRList)
-
-    return(GenomicRanges::GRangesList(GRList))
+    return(GRList)
 }
 
 #' keepRelevantChrs
@@ -284,6 +284,7 @@ cutGRangesPerChromosome <- function(GRanges)
 #'
 #' @export
 #' @examples
+#' library("GenomicRanges")
 #' gr1 <- GRanges(
 #'       seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
 #'       ranges=IRanges(1:10, end=10),
@@ -291,11 +292,12 @@ cutGRangesPerChromosome <- function(GRanges)
 #'       seqlengths=c(chr1=11, chr2=12, chr3=13))
 #' grlc <- cutGRangesPerChromosome(gr1)
 #' (grlChr <- keepRelevantChrs(grl, c("chr1", "chr3")))
+#'
 keepRelevantChrs <- function(chrGRangesList, chr=NULL)
 {
     if(!is.null(chr) && length(grep(pattern="chr", chr))!=length(chr))
         stop("Insert valid chr(s), use the \"chr#\" form!")
-    stopifnot(is(chrGRangesList, "GRangesList"))
+    # stopifnot(is(chrGRangesList, "GRangesList"))
 
     idxs <- which(names(chrGRangesList) %in% chr)
     if(length(idxs) == 0)
@@ -312,14 +314,28 @@ keepRelevantChrs <- function(chrGRangesList, chr=NULL)
 #'              organized per Chromosomes where each element
 #'              is a GRangesList of samples
 #' @param samplesGRangesList a GRangesList of samples.
-#'                           Tipically generaed by findPeaks
+#'                           Tipically generaed by findPeaks function
 #'
 #' @return A GRangesList of chromosomes where each element is a GRanges list
 #'         of samples
 #' @export
 #' @importFrom GenomicRanges GRangesList
 #'
-#' @examples TBW
+#' @examples
+#' library("GenomicRanges")
+#' gr1 <- GRanges(
+#'       seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
+#'       ranges=IRanges(1:10, end=10),
+#'       strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
+#'       seqlengths=c(chr1=11, chr2=12, chr3=13))
+#' gr2 <- GRanges(
+#'       seqnames=Rle(c("chr1", "chr4", "chr1", "chr3"), c(1, 3, 2, 4)),
+#'       ranges=IRanges(1:10, end=10),
+#'       strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
+#'       seqlengths=c(chr1=11, chr4=12, chr3=13))
+#' sgrl <- GRangesList(gr1, gr2)
+#' names(sgrl) <- c("samp1", "samp2")
+#' (chrGrlSampGr <- fromSamplesToChromosomesGRangesList(sgrl))
 fromSamplesToChromosomesGRangesList <- function(samplesGRangesList)
 {
     stopifnot(is(samplesGRangesList, "GRangesList"))
@@ -354,15 +370,26 @@ fromSamplesToChromosomesGRangesList <- function(samplesGRangesList)
 #'          of these elements is a granges
 #' @export
 #'
-#' @examples TBW
+#' @examples
+#' library("GenomicRanges")
+#' gr1 <- GRanges(
+#'         seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
+#'         ranges=IRanges(1:10, end=10),
+#'         strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
+#'         seqlengths=c(chr1=11, chr2=12, chr3=13))
+#' gr2 <- GRanges(
+#'         seqnames=Rle(c("chr1", "chr4", "chr1", "chr3"), c(1, 3, 2, 4)),
+#'         ranges=IRanges(1:10, end=10),
+#'         strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
+#'         seqlengths=c(chr1=11, chr4=12, chr3=13))
+#' sgrl <- GRangesList(gr1, gr2)
+#' names(sgrl) <- c("samp1", "samp2")
+#' (sampChrGrl <- divideEachSampleByChromosomes(sgrl))
 divideEachSampleByChromosomes <- function(samplesGRangesList)
 {
-    ## taken in input a grangeslist of samples, generate a list of samples
-    ## where each element has a GRangesList
-    ## each element of the GRangesList represents a single chromosome
+
     samplesChrList <- lapply(samplesGRangesList, function(gr)
-    {   ## list of samples where each element is a list of
-        ## chromosomes and each of these elements is a granges
+    {
         sampleChrGRList <- cutGRangesPerChromosome(gr)
         idx <- unlist(lapply(sampleChrGRList, is.null))
         idx <- !idx

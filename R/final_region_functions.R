@@ -54,6 +54,7 @@ finalRegions <- function(peakSamplesGRangesList, zThreshold=20, minCarriers=2,
 #' @param samplePeaksGRangelist
 #'
 #' @return a GRangesList of samples within renamed peaks for each element
+#' @keywords internal
 giveUniqueNamesToPeaksOverSamples <- function(samplePeaksGRangelist)
 {
     stopifnot(is(samplePeaksGRangelist, "GRangesList"))
@@ -92,6 +93,7 @@ giveUniqueNamesToPeaksOverSamples <- function(samplePeaksGRangelist)
 #' @param mergedGRanges
 #'
 #' @return a granges of renamed peaks
+#' @keywords internal
 initMergedPeaksNames <- function(mergedGRanges)
 {
     stopifnot(is(mergedGRanges, "GRanges"))
