@@ -73,8 +73,9 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
                                          onlyStdChrs=onlyStdChrs)
 
         bedGrangesChrsList <- cutGRangesPerChromosome(bedGRanges)
-        if(!is.null(chr))
-            bedGrangesChrsList <- keepRelevantChrs(bedGrangesChrsList, chr)
+        if(!is.null(chr)) bedGrangesChrsList <- keepRelevantChrs(bedGrangesChrsList, chr)
+
+        message("Calling Peaks on chromosomes...")
 
         chrZRangesList <- GenomicRanges::GRangesList(
             lapply(bedGrangesChrsList, function(chrGRanges) { ########## to parallelize on chromosomes

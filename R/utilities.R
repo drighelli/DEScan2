@@ -61,6 +61,7 @@ readBedFile <- function(filename) {
 #'                    files.
 #'
 #' @return a GRanges object
+#' @keywords internal
 #' @importFrom GenomeInfoDb keepStandardChromosomes seqinfo Seqinfo
 #' @importFrom glue collapse
 constructBedRanges <- function(filename,
@@ -129,7 +130,7 @@ constructBedRanges <- function(filename,
 #' @importFrom rtracklayer export.bed
 #' @importFrom GenomeInfoDb sortSeqlevels
 #' @return none
-#' @examples TBW
+#' @keywords internal
 saveGRangesAsBed <- function(GRanges, filepath, filename)
 {
     stopifnot(is(GRanges, "GRanges"))
@@ -148,23 +149,34 @@ saveGRangesAsBed <- function(GRanges, filepath, filename)
 #' RleListToRleMatrix
 #' @description a wrapper to create a RleMatrix from a RleList object
 #'
-#' @param RleList an RleList object
+#' @param RleList an RleList object with all elements of the same length
 #' @param dimnames the names for dimensions of RleMatrix (see DelayedArray pkg)
 #'
 #' @return a RleMatrix from DelayedArray package
 #' @importFrom  DelayedArray RleArray
 #' @export
-#' @examples TBW
+#' @examples
+#' lengths <-  c(3, 1, 2)
+#' values <- c(15, 5, 20)
+#' el1 <- Rle(values=values, lengths=lengths)
+#'
+#' el2 <- Rle(values=sort(values), lengths=lengths)
+#'
+#' rleList <- RleList(el1, el2)
+#' names(rleList) <- c("one", "two")
+#' (rleMat <- RleListToRleMatrix(rleList))
 RleListToRleMatrix <- function(RleList, dimnames=NULL)
 {
+    lengths <- unlist(lapply(RleList, length), use.names=FALSE)
+    stopifnot(all.equal(lengths, rep(lengths[1], length(lengths))))
     if(!is.null(dimnames)) {
-        rlem <- DelayedArray::RleArray(rle=unlist(RleList),
+        rlem <- DelayedArray::RleArray(rle=unlist(RleList, use.names=FALSE),
                                        dim=c(length(RleList[[1]]),
                                        length(RleList)),
                                        dimnames=dimnames
         )
     } else {
-        rlem <- DelayedArray::RleArray(rle=unlist(RleList),
+        rlem <- DelayedArray::RleArray(rle=unlist(RleList, use.names=FALSE),
                                        dim=c(length(RleList[[1]]),
                                        length(RleList)))
     }
@@ -187,7 +199,7 @@ RleListToRleMatrix <- function(RleList, dimnames=NULL)
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges
 #' @importFrom S4Vectors mcols
-#' @export
+#' @keywords internal
 #' @examples TBW
 createGranges <- function(chrSeqInfo, starts, widths,
                           mcolname=NULL, mcolvalues=NULL) {
@@ -268,22 +280,31 @@ cutGRangesPerChromosome <- function(GRanges)
 #'                    tipically created with cutGRangesPerChromosome
 #' @param chr a character vector of chromosomes names of the form "chr#"
 #'
-#' @return the input GRangesList with only the relevat chromosomes
+#' @return the input chrGRangesList with only the relevat chromosomes
 #'
 #' @export
-#' @examples TBW
-keepRelevantChrs <- function(GRangesList, chr)
+#' @examples
+#' gr1 <- GRanges(
+#'       seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
+#'       ranges=IRanges(1:10, end=10),
+#'       strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
+#'       seqlengths=c(chr1=11, chr2=12, chr3=13))
+#' grlc <- cutGRangesPerChromosome(gr1)
+#' (grlChr <- keepRelevantChrs(grl, c("chr1", "chr3")))
+keepRelevantChrs <- function(chrGRangesList, chr=NULL)
 {
     if(!is.null(chr) && length(grep(pattern="chr", chr))!=length(chr))
         stop("Insert valid chr(s), use the \"chr#\" form!")
-    stopifnot(is(GRangesList, "GRangesList"))
+    stopifnot(is(chrGRangesList, "GRangesList"))
 
-    idxs <- which(names(GRangesList) %in% chr)
+    idxs <- which(names(chrGRangesList) %in% chr)
     if(length(idxs) == 0)
         stop("Something went wrong in the chr subselection!",
              "\nPlease check the Chromosomes names!")
-    GRangesList <- GRangesList[[idxs]]
-    return(GRangesList)
+
+    chrGRangesList <- chrGRangesList[idxs]
+
+    return(chrGRangesList)
 }
 
 #' fromSamplesToChromosomesGRangesList
@@ -361,7 +382,7 @@ divideEachSampleByChromosomes <- function(samplesGRangesList)
 #'         a string with its chromosomes separated by ";" (2nd col)
 #'
 #' @importFrom plyr ldply
-#'
+#' @keywords internal
 generateDFofSamplesPerChromosomes <- function(samplesChrGRList)
 {
     ## generates a dataframe where each row is a sample (1st col)
