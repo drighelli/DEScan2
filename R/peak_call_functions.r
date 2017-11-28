@@ -16,7 +16,7 @@
 #' @param minCompWinWidth minimum bases width of a comparing window for Z-score
 #' @param maxCompWinWidth maximum bases width of a comparing window for Z-score
 #' @param zthresh Cuttoff value for z-scores. Only windows with greater z-scores
-#'                will be retained.
+#'                will be kept.
 #' @param minCount A small constant (usually no larger than one) to be added to
 #'                 the counts prior to the log transformation to avoid
 #'                 problems with log(0).
@@ -56,7 +56,7 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
 
     if(!is.null(chr) && length(grep(pattern="chr", chr))!=length(chr))
         stop("Insert valid chr(s), use the \"chr#\" form!")
-    if(!save) warning("Save is false, not saving results!")
+    if(!save) warning("Save is false, not saving results!\n")
     if(length(files) == 0)
         stop("You have to provide one or more input files!\nExiting.")
     filetype <- match.arg(filetype)

@@ -225,6 +225,7 @@ createGranges <- function(chrSeqInfo, starts, widths,
 #' @return a named list of GRanges, one for each chromosome
 #'
 #' @importFrom GenomeInfoDb seqnames
+#' @importFrom GenomicRanges GRangesList
 #' @export
 #'
 #' @examples
@@ -256,7 +257,7 @@ cutGRangesPerChromosome <- function(GRanges)
     ## while we want it cutted per chromosomes
     ## GRList <- GRangesList(GRList)
 
-    return(GRList)
+    return(GenomicRanges::GRangesList(GRList))
 }
 
 #' keepRelevantChrs

@@ -29,7 +29,7 @@ i.e., min_win=2 resulting in a 100 bp window.}
 50 bp.}
 
 \item{zthresh}{Cuttoff value for z-scores. Only windows with greater z-scores
-will be retained.}
+will be kept.}
 
 \item{minCount}{A small constant (usually no larger than one) to be added to
 the counts prior to the log transformation to avoid
