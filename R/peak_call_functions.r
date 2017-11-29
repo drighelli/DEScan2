@@ -183,10 +183,13 @@ computeZ <- function(lambdaChrRleList, runWinRleList, chrLength,
     # runWinRleM <- RleListToRleMatrix(runWinRleList)
     # lambdaChrRleM <- RleListToRleMatrix(lambdaChrRleList)
 
-    lambdaChrRleMm <- matrix(unlist(lambdaChrRleList),
-                             ncol=20, byrow=TRUE)
+    # lambdaChrRleMm <- matrix(unlist(lambdaChrRleList),
+    #                          ncol=20, byrow=TRUE)
 
-    runWinRleMm <- matrix(unlist(runWinRleList), ncol=20, byrow=TRUE)
+    lambdaChrRleMm <- matrix(unlist(lambdaChrRleList), ncol=20, byrow=FALSE)
+
+    # runWinRleMm <- matrix(unlist(runWinRleList), ncol=20, byrow=TRUE)
+    runWinRleMm <- matrix(unlist(runWinRleList), ncol=20, byrow=FALSE)
 
     if(verbose) message("Computing Z-Score")
     z <- sqrt(2) * sign(runWinRleMm - lambdaChrRleMm) *
@@ -291,8 +294,7 @@ computeLambdaOnChr <- function(chrGRanges,
 {
     if(verbose) message("Computing lambdas")
     chrTotRds <- length(chrGRanges@ranges@start)
-    chrTotBases <- (chrGRanges@ranges@start+chrGRanges@ranges@width)[chrTotRds]
-                    - chrGRanges@ranges@start[1]
+    chrTotBases <- (chrGRanges@ranges@start+chrGRanges@ranges@width)[chrTotRds] - chrGRanges@ranges@start[1]
 
     chrLamb <- chrTotRds %*% t(winVector) / chrTotBases ## shouldn't it be for the size of bin? (bases size of a window)
 
@@ -309,12 +311,11 @@ computeLambdaOnChr <- function(chrGRanges,
     maxChrLamWCompRleList <- apply(maxChrLamWComp, 2, S4Vectors::Rle)
 
 
-    lamlocRleList <-  IRanges::RleList(lapply(winVector, function(idx) {
-                                              pmax(maxChrLamWCompRleList[[idx]],
-                                                   chrLamMinWCompRleList[[idx]],
-                                                   lamblRleList[[idx]])
-                                              })
-                                       )
+    lamlocRleList <-  IRanges::RleList(lapply(winVector, function(win) {
+                                              pmax(maxChrLamWCompRleList[[win]],
+                                                   chrLamMinWCompRleList[[win]],
+                                                   lamblRleList[[win]])
+                                              }))
     return(lamlocRleList)
 }
 

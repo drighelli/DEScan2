@@ -19,8 +19,7 @@ find_Peaks_Old <- function(files, filetype = "bam", chr = 1:19, fraglen = 200,
             bed <- bed[bed[,1] == chr,]
         }
 
-        # grid = vector of integers describing the start coordinates for each
-        # bin
+        # grid = vector of integers describing the start coordinates for each bin
         grid <- make_grid(bed, fraglen, rlen, min_bin = min_bin)
         ngrid <- length(grid)
         gsize <- grid[2] - grid[1]

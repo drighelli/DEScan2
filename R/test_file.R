@@ -2,7 +2,7 @@
 testPeaksManually <- function() {
 
 
-file="/home/dario/Scrivania/Dropbox/Lavori/WCM/risso_peixoto/coding/DEScan/inst/extdata/Bed/P43615_Sample_FC1_Input_fwd_chr19_Smartfilter.bed.zip"
+file="inst/extdata/Bed/P43615_Sample_FC1_Input_fwd_chr19_Smartfilter.bed.zip"
 
 chr="chr19"; filetype="bed"; fragmentLength=200;
 binSize=50; minWin=1; maxWin=20; genomeName="mm9";
@@ -50,14 +50,12 @@ winVector <- c(minWin:maxWin)
                 maxChrRleWComp=maxCompRunWinRleList[[1]],
                 maxCompWinWidth=maxCompWinWidth
             )
-
             z <- computeZ(lambdaChrRleList=lambdaChrRleList,
                           runWinRleList=runWinRleList,
                           chrLength=chrGRanges@seqinfo@seqlengths,
-                          minCount=minCount, binSize=50
-            ) ######## problem on coordinates
-
-            new_s <- get_disjoint_max_win(z0=z,
+                          minCount=minCount, binSize=binSize
+            )
+            new_s <- get_disjoint_max_win(z0=z[1:70000,],
                                           sigwin=fragmentLength/binSize,
                                           nmax=Inf, zthresh=zthresh,
                                           two_sided=FALSE, verbose=verbose

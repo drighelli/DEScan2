@@ -125,22 +125,43 @@ constructBedRanges <- function(filename,
 #' @param GRanges the GRanges object
 #' @param filepath the path to store the files
 #' @param filename the name to give to the files
+#' @param force force overwriting
 #'
 #' @importFrom rtracklayer export.bed
 #' @importFrom GenomeInfoDb sortSeqlevels
+#' @importFrom S4Vectors mcols
+#'
 #' @return none
 #' @keywords internal
-saveGRangesAsBed <- function(GRanges, filepath, filename)
+saveGRangesAsBed <- function(GRanges, filepath, filename, force=FALSE)
 {
     stopifnot(is(GRanges, "GRanges"))
     ## add some parameters
     dir.create(path=filepath, showWarnings=FALSE, recursive=TRUE)
-    filePathName <- file.path(filepath, paste0(filename, "_peaks"))
-    if(file.exists(filePathName)) {stop(filePathName, " already exists!\n"
-                                        , "Not overwriting!")}
+    filePathName <- file.path(filepath, paste0(filename))
+
+        if(file.exists(filePathName)) {
+            if(!force)
+            {
+                stop(filePathName, " already exists!\n"
+                    , "Not overwriting!")
+            }
+            else
+            {
+                message("overwriting", filePathName)
+            }
+        }
+
+
     GRanges <- GenomeInfoDb::sortSeqlevels(GRanges)
     GRanges <- sort(GRanges)
+
+    if( length(S4Vectors::mcols(GRanges) %in% "z-score") > 0 )
+        if( length(S4Vectors::mcols(GRanges) %in% "score") == 0 )
+            S4Vectors::mcols(GRanges)$score <- S4Vectors::mcols(GRanges)$`z-score`
+
     rtracklayer::export.bed(object=GRanges, con=paste0(filePathName, ".bed"))
+    message("file ", filePathName, ".bed written on disk!")
     # save(GRanges, file=paste0(filePathName, ".RData"))
 }
 
