@@ -61,7 +61,7 @@ winVector <- c(minWin:maxWin)
                                           two_sided=FALSE, verbose=verbose
             )
             chrZRanges <- createGranges(chrSeqInfo=chrGRanges@seqinfo,
-                                        starts=as.numeric(rownames(z)[newS[,1]]),
+                                        starts=as.numeric(rownames(Z)[newS[,1]]),
                                         widths=newS[,2]*binSize,
                                         mcolname="z-score",
                                         mcolvalues=newS[,3]
