@@ -50,20 +50,26 @@ winVector <- c(minWin:maxWin)
                 maxChrRleWComp=maxCompRunWinRleList[[1]],
                 maxCompWinWidth=maxCompWinWidth
             )
-            z <- computeZ(lambdaChrRleList=lambdaChrRleList,
+            Z <- computeZ(lambdaChrRleList=lambdaChrRleList,
                           runWinRleList=runWinRleList,
                           chrLength=chrGRanges@seqinfo@seqlengths,
                           minCount=minCount, binSize=binSize
             )
-            new_s <- get_disjoint_max_win(z0=z[1:70000,],
+            newS <- get_disjoint_max_win(z0=Z[1:70000,],
                                           sigwin=fragmentLength/binSize,
                                           nmax=Inf, zthresh=zthresh,
                                           two_sided=FALSE, verbose=verbose
             )
             chrZRanges <- createGranges(chrSeqInfo=chrGRanges@seqinfo,
-                                        starts=as.numeric(rownames(z)[new_s[,1]]),
-                                        widths=new_s[,2]*binSize,
+                                        starts=as.numeric(rownames(z)[newS[,1]]),
+                                        widths=newS[,2]*binSize,
                                         mcolname="z-score",
-                                        mcolvalues=new_s[,3]
+                                        mcolvalues=newS[,3]
             )
+
+
 }
+
+# chr = 19; filetype = "bed"; fraglen = 200;
+# rlen = 100; min_bin = 50; max_win = 20; blocksize = 10000;
+# zthresh = 5; min_count = 0.1; verbose = FALSE; save = FALSE

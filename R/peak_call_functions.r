@@ -116,21 +116,21 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
                                        maxChrRleWComp=maxCompRunWinRleList[[1]],
                                        maxCompWinWidth=maxCompWinWidth
                                        )
-            z <- computeZ(lambdaChrRleList=lambdaChrRleList,
+            Z <- computeZ(lambdaChrRleList=lambdaChrRleList,
                           runWinRleList=runWinRleList,
                           chrLength=chrGRanges@seqinfo@seqlengths,
                           minCount=minCount, binSize=50
                           )
-            new_s <- get_disjoint_max_win(z0=z,
+            newS <- get_disjoint_max_win(z0=Z,
                                           sigwin=fragmentLength/binSize,
                                           nmax=Inf, zthresh=zthresh,
                                           two_sided=FALSE, verbose=verbose
                                           )
             chrZRanges <- createGranges(chrSeqInfo=chrGRanges@seqinfo,
-                                      starts=as.numeric(rownames(z)[new_s[,1]]),
-                                      widths=new_s[,2]*binSize,
+                                      starts=as.numeric(rownames(z)[newS[,1]]),
+                                      widths=newS[,2]*binSize,
                                       mcolname="z-score",
-                                      mcolvalues=new_s[,3]
+                                      mcolvalues=newS[,3]
                                       )
 
             return(chrZRanges) ## one for each chromosome
@@ -282,6 +282,7 @@ get_disjoint_max_win <- function(z0, sigwin=20, nmax=Inf,
 #'
 #' @importFrom IRanges RleList
 #' @importFrom S4Vectors Rle
+#' @importFrom GenomicRanges end start
 #'
 #' @keywords internal
 computeLambdaOnChr <- function(chrGRanges,
@@ -293,8 +294,10 @@ computeLambdaOnChr <- function(chrGRanges,
                                verbose=TRUE)
 {
     if(verbose) message("Computing lambdas")
-    chrTotRds <- length(chrGRanges@ranges@start)
-    chrTotBases <- (chrGRanges@ranges@start+chrGRanges@ranges@width)[chrTotRds] - chrGRanges@ranges@start[1]
+    chrTotRds <- length(chrGRanges)
+
+    chrTotBases <- GenomicRanges::end(chrGRanges)[chrTotRds] -
+                                             GenomicRanges::start(chrGRanges)[1]
 
     chrLamb <- chrTotRds %*% t(winVector) / chrTotBases ## shouldn't it be for the size of bin? (bases size of a window)
 

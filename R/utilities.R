@@ -63,6 +63,7 @@ readBedFile <- function(filename) {
 #' @keywords internal
 #' @importFrom GenomeInfoDb keepStandardChromosomes seqinfo Seqinfo
 #' @importFrom glue collapse
+#' @importFrom GenomicRanges sort
 constructBedRanges <- function(filename,
                                filetype=c("bam", "bed"),
                                genomeName=NULL, onlyStdChrs=FALSE)
@@ -114,6 +115,7 @@ constructBedRanges <- function(filename,
         bedGRanges@seqnames <- droplevels(bedGRanges@seqnames)
     }
 
+    bedGRanges <- GenomicRanges::sort(bedGRanges, ignore.strand=TRUE)
     return(bedGRanges)
 }
 

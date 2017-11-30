@@ -24,11 +24,11 @@ find_Peaks_Old <- function(files, filetype = "bam", chr = 1:19, fraglen = 200,
         ngrid <- length(grid)
         gsize <- grid[2] - grid[1]
 
-        fr <- sort(bed[which(bed[, 4] == "+"), 2])
-        rr <- sort(bed[which(bed[, 4] == "-"), 2])
+        fr <- sort(bed[which(bed[, 4] == "+"), 2]) ## only starts
+        rr <- sort(bed[which(bed[, 4] == "-"), 2]) ## only starts
 
         tot_rds <- length(fr) + length(rr)
-        tot_base <- max(rr[length(rr)], fr[length(fr)]) - min(fr[1], rr[1])
+        tot_base <- max(rr[length(rr)], fr[length(fr)]) - min(fr[1], rr[1]) ## max start - min start
 
         # do analysis blockwise due to memory issues
         # fill initial block
@@ -92,17 +92,19 @@ find_Peaks_Old <- function(files, filetype = "bam", chr = 1:19, fraglen = 200,
                 sqrt(cmat * log(pmax(cmat, min_count) / lamloc) - (cmat - lamloc))
 
             # find high z scores keeping one with no intersecting other bin/windows
-            new_s <- get_disjoint_max_win_old(z0 = z[1:blocksize_i, ],
+            new_ss <- get_disjoint_max_win_old(z0 = z[1:blocksize_i, ],
                                           sigwin = fraglen / gsize, nmax = Inf,
                                           zthresh = zthresh, two_sided = FALSE,
                                           verbose = FALSE)
             # convert new_s bins and width into genomic coordinates and append to s
-            if (nrow(new_s) >= 1) {
-                new_s[, 1] <- new_s[, 1] + block[1] - 1
-                new_s <- cbind(grid[new_s[, 1, drop = FALSE]],
-                               grid[new_s[, 1, drop = FALSE] +
-                                        new_s[, 2, drop = FALSE] - 1],
-                               new_s[, 3, drop = FALSE])
+            new_s=NULL
+            if (nrow(new_ss) >= 1) {
+                new_s[, 1] <- new_ss[, 1] + block[1] - 1
+                new_s <- cbind(grid[new_ss[, 1, drop = FALSE]],
+                               ## when the window is equal to 1 then the end is equal to the start,
+                               ## but the window should be multiplicated by the binsize
+                               grid[new_ss[, 1, drop = FALSE] + new_ss[, 2, drop = FALSE] - 1],
+                               new_ss[, 3, drop = FALSE])
                 s <- rbind(s, new_s)
             }
 
