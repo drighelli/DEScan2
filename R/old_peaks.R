@@ -97,7 +97,7 @@ find_Peaks_Old <- function(files, filetype = "bam", chr = 1:19, fraglen = 200,
                                           zthresh = zthresh, two_sided = FALSE,
                                           verbose = FALSE)
             # convert new_s bins and width into genomic coordinates and append to s
-            new_s=NULL
+            new_s=matrix(nrow=nrow(new_ss), ncol=ncol(new_ss))
             if (nrow(new_ss) >= 1) {
                 new_s[, 1] <- new_ss[, 1] + block[1] - 1
                 new_s <- cbind(grid[new_ss[, 1, drop = FALSE]],
