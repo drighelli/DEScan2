@@ -5,12 +5,12 @@ testPeaksManually <- function() {
 file="inst/extdata/Bed/P43615_Sample_FC1_Input_fwd_chr19_Smartfilter.bed.zip"
 
 chr="chr19"; filetype="bed"; fragmentLength=200;
-binSize=50; minWin=1; maxWin=20; genomeName="mm9";
+binSize=50; minWin=50; maxWin=1000; genomeName="mm9";
 minCompWinWidth=5000; maxCompWinWidth=10000;
 zthresh=5; minCount=0.1; verbose=TRUE; save=FALSE
 onlyStdChrs=TRUE
 fileGRangesList <- NULL
-winVector <- c(minWin:maxWin)
+winVector <- c( (minWin/50):(maxWin/50))
 
 
     bedGRanges <- constructBedRanges(filename=file, filetype=filetype,

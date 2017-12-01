@@ -340,6 +340,7 @@ computeLambdaOnChr <- function(chrGRanges,
 #'
 #' @importFrom GenomicRanges tileGenome coverage
 #' @importFrom IRanges RleList
+#' @importFrom GenomicAlignments summarizeOverlaps
 #'
 #' @keywords internal
 computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=50,
@@ -354,15 +355,24 @@ computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=50,
     binnedChromosome <- GenomicRanges::tileGenome(seqlengths=chrBedGRanges@seqinfo,
                                                   tilewidth=binWidth,
                                                   cut.last.tile.in.chrom=TRUE)
-    ## computing coverage per single base on bed
-    chrCoverage <- GenomicRanges::coverage(x=chrBedGRanges)
-    ## computing coverage per each bin on chromosome
-    if(verbose) message("Computing coverage on Chromosome ",
-                        chrBedGRanges@seqnames@values,
-                        " binned by ", binWidth, " bin dimension")
-    chrCovRle <- binnedCovOnly(bins=binnedChromosome,
-                               numvar=chrCoverage,
-                               mcolname="bin_cov")
+    olap <- summarizeOverlaps(binnedChromosome, chrBedGRanges,
+                              ignore.strand = TRUE,
+                              inter.feature = FALSE,
+                              mode = "IntersectionNotEmpty")
+
+    chrCovRle <- as(assay(olap)[,1], "Rle")
+
+
+    # ## computing coverage per single base on bed
+    # chrCoverage <- GenomicRanges::coverage(x=chrBedGRanges)
+    # ## computing coverage per each bin on chromosome
+    # if(verbose) message("Computing coverage on Chromosome ",
+    #                     chrBedGRanges@seqnames@values,
+    #                     " binned by ", binWidth, " bin dimension")
+    # chrCovRle <- binnedCovOnly(bins=binnedChromosome,
+    #                            numvar=chrCoverage,
+    #                            mcolname="bin_cov")
+
     wins <- minWinWidth:maxWinWidth
     runWinRleList <- IRanges::RleList(
                         lapply(wins, function(win) {
