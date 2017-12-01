@@ -63,13 +63,15 @@ find_Peaks_Old <- function(files, filetype = "bam", chr = 1:19, fraglen = 200,
 
             # compute coverage using a 5kb window
             headstart <- ceiling(5000 / gsize) * gsize
-            grid05k <- c(seq(grid0[1] - headstart, grid0[1], by = gsize), grid0)
+            # grid05k <- c(seq(grid0[1] - headstart, grid0[1], by = gsize), grid0)
+            grid05k <-  grid0
             offset5k <- length(grid05k) - length(grid0)
             c5k <- window_coverage_old(fr, rr, grid05k, fraglen = fraglen, rlen = rlen,
                                    max_win = 5000, min_win = 5000, verbose = FALSE)
             # compute coverage using a 10kb window
             headstart <- ceiling(10000 / gsize) * gsize
-            grid010k <- c(seq(grid0[1] - headstart, grid0[1], by = gsize), grid0)
+            # grid010k <- c(seq(grid0[1] - headstart, grid0[1], by = gsize), grid0)
+            grid010k <- grid0
             offset10k <- length(grid010k) - length(grid0)
             c10k <- window_coverage_old(fr, rr, grid010k, fraglen = fraglen,
                                     rlen = rlen, max_win = 10000,
@@ -80,33 +82,33 @@ find_Peaks_Old <- function(files, filetype = "bam", chr = 1:19, fraglen = 200,
             lam10k <- matrix(nrow = nrow(cmat), ncol = ncol(cmat), data = 0)
             lambl <- matrix(nrow = nrow(cmat), ncol = ncol(cmat), data = 0)
             for (win in min_win:max_win) {
-                lam5k[, win - min_win + 1] <- c5k[offset5k + c(1:length(grid0)) -
-                                                      floor(win / 2)] * win / 5000
-                lam10k[, win - min_win + 1] <- c10k[offset10k + c(1:length(grid0)) -
-                                                        floor(win / 2)] * win / 10000
+                # lam5k[, win - min_win + 1] <- c5k[offset5k + c(1:length(grid0)) - floor(win / 2)] * win / 5000
+                # lam10k[, win - min_win + 1] <- c10k[offset10k + c(1:length(grid0)) - floor(win / 2)] * win / 10000
+                lam5k[, win - min_win + 1] <- c5k[c(1:length(grid0))] * win / 5000
+                lam10k[, win - min_win + 1] <- c10k[c(1:length(grid0))] * win / 10000
                 lambl[, win - min_win + 1] <- tot_rds * win / tot_base
             }
             lamloc <- pmax(lam5k, lam10k, lambl)
             # calculate z score for each bin x window combination
             z <- sqrt(2) * sign(cmat - lamloc) *
                 sqrt(cmat * log(pmax(cmat, min_count) / lamloc) - (cmat - lamloc))
-
+            if(length(which(z>100)) >0 ) print(z[which(z>100, arr.ind=TRUE)])
             # find high z scores keeping one with no intersecting other bin/windows
-            new_ss <- get_disjoint_max_win_old(z0 = z[1:blocksize_i, ],
-                                          sigwin = fraglen / gsize, nmax = Inf,
-                                          zthresh = zthresh, two_sided = FALSE,
-                                          verbose = FALSE)
-            # convert new_s bins and width into genomic coordinates and append to s
-            new_s=matrix(nrow=nrow(new_ss), ncol=ncol(new_ss))
-            if (nrow(new_ss) >= 1) {
-                new_s[, 1] <- new_ss[, 1] + block[1] - 1
-                new_s <- cbind(grid[new_ss[, 1, drop = FALSE]],
-                               ## when the window is equal to 1 then the end is equal to the start,
-                               ## but the window should be multiplicated by the binsize
-                               grid[new_ss[, 1, drop = FALSE] + new_ss[, 2, drop = FALSE] - 1],
-                               new_ss[, 3, drop = FALSE])
-                s <- rbind(s, new_s)
-            }
+            # new_ss <- get_disjoint_max_win_old(z0 = z[1:blocksize_i, ],
+            #                               sigwin = fraglen / gsize, nmax = Inf,
+            #                               zthresh = zthresh, two_sided = FALSE,
+            #                               verbose = FALSE)
+            # # convert new_s bins and width into genomic coordinates and append to s
+            # new_s=matrix(nrow=nrow(new_ss), ncol=ncol(new_ss))
+            # if (nrow(new_ss) >= 1) {
+            #     new_s[, 1] <- new_ss[, 1] + block[1] - 1
+            #     new_s <- cbind(grid[new_ss[, 1, drop = FALSE]],
+            #                    ## when the window is equal to 1 then the end is equal to the start,
+            #                    ## but the window should be multiplicated by the binsize
+            #                    grid[new_ss[, 1, drop = FALSE] + new_ss[, 2, drop = FALSE] - 1],
+            #                    new_ss[, 3, drop = FALSE])
+            #     s <- rbind(s, new_s)
+            # }
 
             elapsed <- proc.time() - ptm
             if (verbose) {
@@ -234,8 +236,7 @@ window_coverage_old <- function(Fr, Rr, grid, fraglen = 200, rlen = 100,
             for (j in min_win:max_win) {
                 st <- max(binst - j + 1, 1) # lower limit adj by current window size
                 ed <- min(binst + fragbins - 1, ngrid) # upper limit
-                ffragctmat[st:ed, j - min_win + 1] <- ffragctmat[st:ed, j -
-                                                                     min_win + 1] + 1
+                ffragctmat[st:ed, j - min_win + 1] <- ffragctmat[st:ed, j - min_win + 1] + 1
             }
         }
     }
@@ -253,8 +254,7 @@ window_coverage_old <- function(Fr, Rr, grid, fraglen = 200, rlen = 100,
             for (j in min_win:max_win) {
                 st <- max(binst - j + 1, 1)
                 ed <- min(binst + fragbins - 1, ngrid)
-                rfragctmat[st:ed, j - min_win + 1] <- rfragctmat[st:ed, j -
-                                                                     min_win + 1] + 1
+                rfragctmat[st:ed, j - min_win + 1] <- rfragctmat[st:ed, j - min_win + 1] + 1
             }
         }
     }

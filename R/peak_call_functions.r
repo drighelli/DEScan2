@@ -288,9 +288,9 @@ get_disjoint_max_win <- function(z0, sigwin=20, nmax=Inf,
 computeLambdaOnChr <- function(chrGRanges,
                                 winVector=c(1:20),
                                 minChrRleWComp,
-                                minCompWinWidth=5000,
+                                minCompWinWidth=100,
                                 maxChrRleWComp,
-                                maxCompWinWidth=10000,
+                                maxCompWinWidth=200,
                                verbose=TRUE)
 {
     if(verbose) message("Computing lambdas")
@@ -299,25 +299,30 @@ computeLambdaOnChr <- function(chrGRanges,
     chrTotBases <- GenomicRanges::end(chrGRanges)[chrTotRds] -
                                              GenomicRanges::start(chrGRanges)[1]
 
-    chrLamb <- chrTotRds %*% t(winVector) / chrTotBases ## shouldn't it be for the size of bin? (bases size of a window)
+    chrLamb <- chrTotRds %*% t(winVector) / chrTotBases
 
-    lamblMat <- rbind(chrLamb)[rep(1,length(minChrRleWComp)), ]
+    # lamblMat <- rbind(chrLamb)[rep(1,length(minChrRleWComp)), ]
+    #
+    # lamblRleList <- IRanges::RleList(apply(X=lamblMat, MARGIN=2,
+    #                                        function(x){as(x,"Rle")}))
 
-    lamblRleList <- IRanges::RleList(apply(X=lamblMat, MARGIN=2,
-                                           function(x){as(x,"Rle")}))
-
-    chrLamMinWComp <- as.vector(minChrRleWComp) %*% t(winVector)/minCompWinWidth
-    chrLamMinWCompRleList <- apply(chrLamMinWComp, 2, S4Vectors::Rle)
+    minchrLamWComp <- as.vector(minChrRleWComp) %*% t(winVector)/(minCompWinWidth*50)
+    # minchrLamWCompRleList <- apply(chrLamMinWComp, 2, S4Vectors::Rle)
 
 
-    maxChrLamWComp <- as.vector(maxChrRleWComp) %*% t(winVector)/maxCompWinWidth
-    maxChrLamWCompRleList <- apply(maxChrLamWComp, 2, S4Vectors::Rle)
+    maxChrLamWComp <- as.vector(maxChrRleWComp) %*% t(winVector)/(maxCompWinWidth*50)
+    # maxChrLamWCompRleList <- apply(maxChrLamWComp, 2, S4Vectors::Rle)
 
+    # lamlocRleList <-  IRanges::RleList(lapply(winVector, function(win) {
+    #                                           pmax(maxChrLamWCompRleList[[win]],
+    #                                                minchrLamWCompRleList[[win]],
+    #                                                chrLamb[win])
+    #                                           }))
 
     lamlocRleList <-  IRanges::RleList(lapply(winVector, function(win) {
-                                              pmax(maxChrLamWCompRleList[[win]],
-                                                   chrLamMinWCompRleList[[win]],
-                                                   lamblRleList[[win]])
+                                              pmax(maxChrLamWComp[,win],
+                                                   minchrLamWComp[,win],
+                                                   chrLamb[win])
                                               }))
     return(lamlocRleList)
 }
@@ -344,16 +349,16 @@ computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=1,
                                              verbose=TRUE)
 {
     ## dividing chromosome in bins of binWidth dimention each
-    binnedChromosome<-GenomicRanges::tileGenome(seqlengths=chrBedGRanges@seqinfo
-                                                , tilewidth=binWidth
-                                                , cut.last.tile.in.chrom=TRUE)
+    binnedChromosome <- GenomicRanges::tileGenome(seqlengths=chrBedGRanges@seqinfo,
+                                                  tilewidth=binWidth,
+                                                  cut.last.tile.in.chrom=TRUE)
     ## computing coverage per single base on bed
     chrCoverage <- GenomicRanges::coverage(x=chrBedGRanges)
     ## computing coverage per each bin on chromosome
     if(verbose) message("Computing coverage on Chromosome ",
                 chrBedGRanges@seqnames@values,
                 " binned by ", binWidth, " bin dimension")
-    chrCovRle <- binnedSumOnly(bins=binnedChromosome,
+    chrCovRle <- binnedMeanOnly(bins=binnedChromosome,
                                numvar=chrCoverage,
                                mcolname="bin_cov")
     wins <- minWinWidth:maxWinWidth
@@ -397,15 +402,72 @@ binToChrCoordMatRowNames <- function(binMatrix, chrLength, binWidth=50)
     rownames(binMatrix) <- startBinRanges
     return(binMatrix)
 }
-
-#' binnedSum
-#' @description  this function computes the coverage over a binned chromosome,
-#' starting from a per base computed coverage
-#' @source http://crazyhottommy.blogspot.com/2016/02/compute-averagessums-on-granges-or.html
 #'
-#' @param bins a GRanges object representing a chromosome binned
-#' @param numvar an RleList representing the per base coverage over the chr
-#' @param mcolname the name of column where the sum have to be stored
+#' #' binnedSum
+#' #' @description  this function computes the summed coverage over a binned
+#' #' chromosome, starting from a per base computed coverage
+#' #' @source http://crazyhottommy.blogspot.com/2016/02/compute-averagessums-on-granges-or.html
+#' #'
+#' #' @param bins a GRanges object representing a chromosome binned
+#' #' @param numvar an RleList representing the per base coverage over the chr
+#' #' @param mcolname the name of column where the sum have to be stored
+#' #'
+#' #' @return the bins GRanges with the mcolname attached
+#' #' @export
+#' #'
+#' #' @importFrom GenomeInfoDb seqlevels seqnames
+#' #' @importFrom S4Vectors split mcols
+#' #' @importFrom IRanges ranges Views viewSums
+#' #' @examples
+#' #' ## dividing one chromosome in bins of 50 bp each
+#' #' seqinfo <- GenomeInfoDb::Seqinfo("mm9")
+#' #' bins <- GenomicRanges::tileGenome(seqlengths=seqinfo@chr1,
+#' #'                                              tilewidth=50,
+#' #'                                              cut.last.tile.in.chrom=TRUE)
+#' #' gr <- GenomicRanges::GRanges(seqnames = Rle("Chr1", 100),
+#' #' ranges <- IRanges::IRanges(start = seq(from=10, to=1000, by=10),
+#' #' end <- seq(from=20, to=1010, by = 10)))
+#' #' ## computing coverage per single base on granges
+#' #' cov <- GenomicRanges::coverage(x=gr)
+#' #'
+#' #' binnedCovGR <- binnedSum(bins, cov, "binned_cov")
+#' #' binnedCovGR
+#' #'
+#' binnedSum <- function(bins, numvar, mcolname)
+#' {
+#'     stopifnot(is(bins, "GRanges"))
+#'     stopifnot(is(numvar, "RleList"))
+#'     stopifnot(identical(GenomeInfoDb::seqlevels(bins), names(numvar)))
+#'
+#'     bins_per_chrom <- S4Vectors::split(IRanges::ranges(bins),
+#'                                        GenomeInfoDb::seqnames(bins))
+#'     sums_list <- lapply(names(numvar),
+#'                         function(seqname) {
+#'                             views <- IRanges::Views(numvar[[seqname]],
+#'                                            bins_per_chrom[[seqname]])
+#'                             IRanges::viewSums(views)
+#'                         })
+#'     new_mcol <- unsplit(sums_list, as.factor(GenomeInfoDb::seqnames(bins)))
+#'     S4Vectors::mcols(bins)[[mcolname]] <- new_mcol
+#'
+#'     return(bins)
+#' }
+
+
+#' binnedCoverage
+#' @description  this function computes the coverage over a binned
+#' chromosome, starting from a per base computed coverage.
+#'
+#' @param bins a GRanges object representing a chromosome binned.
+#' @param numvar an RleList representing the per base coverage over the chr.
+#' @param mcolname the name of column where the sum have to be stored.
+#' @param covMethod a method to apply for the computing of the coverate
+#'                  it can be one of "max", "mean", "sum", "min".
+#'                  ("max" is default)
+#' @param roundingMethod a method to apply to round the computations
+#'                  it can be one of "none", "floor", "ceiling", "round".
+#'                  It's useful only when using covMethod="mean".
+#'                  ("none" is default)
 #'
 #' @return the bins GRanges with the mcolname attached
 #' @export
@@ -428,27 +490,39 @@ binToChrCoordMatRowNames <- function(binMatrix, chrLength, binWidth=50)
 #' binnedCovGR <- binnedSum(bins, cov, "binned_cov")
 #' binnedCovGR
 #'
-binnedSum <- function(bins, numvar, mcolname)
+binnedCoverage <- function(bins, numvar, mcolname,
+                           covMethod=c("max", "mean", "sum", "min"),
+                           roundingMethod=c("none", "floor", "ceiling", "round"))
 {
+    covMethod <- match.arg(covMethod)
+    roundingMethod <- match.arg(roundingMethod)
     stopifnot(is(bins, "GRanges"))
     stopifnot(is(numvar, "RleList"))
     stopifnot(identical(GenomeInfoDb::seqlevels(bins), names(numvar)))
 
-    bins_per_chrom <- S4Vectors::split(IRanges::ranges(bins),
-                                       GenomeInfoDb::seqnames(bins)) ## check if it's S4 the right package
-    sums_list <- lapply(names(numvar),
-                        function(seqname) {
-                            views <- IRanges::Views(numvar[[seqname]],
-                                           bins_per_chrom[[seqname]])
-                            IRanges::viewSums(views)
-                        })
-    new_mcol <- unsplit(sums_list, as.factor(GenomeInfoDb::seqnames(bins)))
-    S4Vectors::mcols(bins)[[mcolname]] <- new_mcol
+    binsChr <- S4Vectors::split(IRanges::ranges(bins), GenomeInfoDb::seqnames(bins))
+    views <- IRanges::Views(numvar[[1]], binsChr[[1]])
+    binCovs <- switch(covMethod,
+                       max=IRanges::viewMaxs(views),
+                       mean=IRanges::viewMeans(views),
+                       sum=IRanges::viewSums(views),
+                       min=IRanges::viewMins(views)
+    )
+
+    binCovsR <- switch(roundingMethod,
+                        none=binCovs,
+                        floor=floor(binCovs),
+                        ceiling=ceiling(binCovs),
+                        round=round(binCovs)
+    )
+
+    new_mcol <- unsplit(means, as.factor(GenomeInfoDb::seqnames(bins)))
+    S4Vectors::mcols(bins)[[mcolname]] <- binCovsR
 
     return(bins)
 }
 
-#' binnedSumOnly
+#' binnedCovOnly
 #' @description it's useful just to coerce the bin coverage to an Rle object
 #'
 #' @param bins a GRanges object representing a chromosome binned
@@ -459,11 +533,12 @@ binnedSum <- function(bins, numvar, mcolname)
 #'
 #' @return an Rle within the per bin computed coverage
 #' @keywords internal
-binnedSumOnly <- function(bins, numvar, mcolname)
+binnedCovOnly <- function(bins, numvar, mcolname)
 {
-    binsGRanges <- binnedSum(bins=bins, numvar=numvar, mcolname=mcolname)
+    binsGRanges <- binnedCoverage(bins=bins, numvar=numvar, mcolname=mcolname,
+                                  covMethod="max", roundingMethod="none")
     ## coercing just the binned coverage to Rle
-    chrCovRle <- as(S4Vectors::mcols(binsGRanges)[[mcolname]],"Rle")
+    chrCovRle <- as(S4Vectors::mcols(binsGRanges)[[mcolname]], "Rle")
     return(chrCovRle)
 }
 
@@ -481,21 +556,21 @@ binnedSumOnly <- function(bins, numvar, mcolname)
 #'
 #' @return an Rle within the running sum over x with a win o length k
 #' @keywords internal
-evenRunSum <- function(x, k, endrule = c("drop", "constant"), na.rm = FALSE)
-{
-    stopifnot(is(x, "Rle"))
-    endrule <- match.arg(endrule)
-    n <- length(x)
-    # k <- normArgRunK(k = k, n = n, endrule = endrule)
-    ans <- S4Vectors::.Call2("Rle_runsum", x, as.integer(k), as.logical(na.rm),
-                             PACKAGE="S4Vectors")
-    if (endrule == "constant") {
-        j <- (k + 1L) %/% 2L
-
-        S4Vectors::runLength(ans)[1L] <- S4Vectors::runLength(ans)[1L]+(j - 1L)
-        if( (k %% 2L) == 0 ) j=j+1 ##
-        S4Vectors::runLength(ans)[S4Vectors::nrun(ans)] <-
-                        S4Vectors::runLength(ans)[S4Vectors::nrun(ans)]+(j - 1L)
-    }
-    return(ans)
-}
+# evenRunSum <- function(x, k, endrule = c("drop", "constant"), na.rm = FALSE)
+# {
+#     stopifnot(is(x, "Rle"))
+#     endrule <- match.arg(endrule)
+#     n <- length(x)
+#     # k <- normArgRunK(k = k, n = n, endrule = endrule)
+#     ans <- S4Vectors::.Call2("Rle_runsum", x, as.integer(k), as.logical(na.rm),
+#                              PACKAGE="S4Vectors")
+#     if (endrule == "constant") {
+#         j <- (k + 1L) %/% 2L
+#
+#         S4Vectors::runLength(ans)[1L] <- S4Vectors::runLength(ans)[1L]+(j - 1L)
+#         if( (k %% 2L) == 0 ) j=j+1 ##
+#         S4Vectors::runLength(ans)[S4Vectors::nrun(ans)] <-
+#                         S4Vectors::runLength(ans)[S4Vectors::nrun(ans)]+(j - 1L)
+#     }
+#     return(ans)
+# }
