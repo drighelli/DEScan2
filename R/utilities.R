@@ -142,17 +142,16 @@ saveGRangesAsBed <- function(GRanges, filepath, filename, force=FALSE)
     dir.create(path=filepath, showWarnings=FALSE, recursive=TRUE)
     filePathName <- file.path(filepath, paste0(filename))
 
-        if(file.exists(filePathName)) {
-            if(!force)
-            {
-                stop(filePathName, " already exists!\n"
-                    , "Not overwriting!")
-            }
-            else
-            {
-                message("overwriting", filePathName)
-            }
+    if(file.exists(filePathName)) {
+        if(!force)
+        {
+            stop(filePathName, " already exists!\nNot overwriting!")
         }
+        else
+        {
+            message("overwriting", filePathName)
+        }
+    }
 
 
     GRanges <- GenomeInfoDb::sortSeqlevels(GRanges)

@@ -7,12 +7,10 @@
 #' @param filetype Character, either "bam" or "bed" indicating format of input
 #'                 file.
 #' @param fragmentLength Integer indicating the average DNA fragment length bp.
-#' @param minWin Integer indicating the minimum window size in units of 50 bp,
-#'               i.e., min_win=2 resulting in a 100 bp window.
-#' @param binSize Integer size in base pairs of the minimum window for scanning,
+#' @param minWin Integer indicating the minimum window size in bases notation.
+#' @param maxWin Integer indicating the maximum window size in bases notation.
+#' @param binSize Integer size in bases of the minimum window for scanning,
 #'                50 is the default.
-#' @param maxWin Integer indicating the maximum allowed window size in units of
-#'               50 bp.
 #' @param minCompWinWidth minimum bases width of a comparing window for Z-score
 #' @param maxCompWinWidth maximum bases width of a comparing window for Z-score
 #' @param zthresh Cuttoff value for z-scores. Only windows with greater z-scores
@@ -45,17 +43,17 @@
 #'                         full.names = T)
 #' peaks <- findPeaks(files=bed.files[1], chr="chr19", filetype="bed",
 #'                     fragmentLength=200,
-#'                     binSize=50, minWin=1, maxWin=20, genomeName="mm9",
+#'                     binSize=50, minWin=50, maxWin=1000,
+#'                     genomeName="mm9",
 #'                     minCompWinWidth=5000, maxCompWinWidth=10000,
 #'                     zthresh=5, minCount=0.1, verbose=FALSE, save=FALSE)
 #' head(peaks)
-#'
 findPeaks <- function(files, filetype=c("bam", "bed"),
                       genomeName=NULL,
-                      binSize=50, minWin=1, maxWin=20,
+                      binSize=50, minWin=50, maxWin=1000,
                       zthresh=5, minCount=0.1,
-                      minCompWinWidth=5000,
-                      maxCompWinWidth=10000,
+                      minCompWinWidth=100,
+                      maxCompWinWidth=200,
                       outputName="Peaks", save=TRUE,
                       verbose=FALSE,
                       fragmentLength=200,
@@ -73,7 +71,6 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
 
     fileGRangesList <- NULL
     winVector <- c(minWin:maxWin)
-
 
     for (fileIdx in 1:length(files))
     {
@@ -119,7 +116,7 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
             Z <- computeZ(lambdaChrRleList=lambdaChrRleList,
                           runWinRleList=runWinRleList,
                           chrLength=chrGRanges@seqinfo@seqlengths,
-                          minCount=minCount, binSize=50
+                          minCount=minCount, binSize=binSize
                           )
             newS <- get_disjoint_max_win(z0=Z,
                                           sigwin=fragmentLength/binSize,
@@ -127,7 +124,7 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
                                           two_sided=FALSE, verbose=verbose
                                           )
             chrZRanges <- createGranges(chrSeqInfo=chrGRanges@seqinfo,
-                                      starts=as.numeric(rownames(z)[newS[,1]]),
+                                      starts=as.numeric(rownames(Z)[newS[,1]]),
                                       widths=newS[,2]*binSize,
                                       mcolname="z-score",
                                       mcolvalues=newS[,3]
@@ -142,7 +139,7 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
         if(save)
         {
             # zGRangesToSave <- unlist(chrZRangesList)
-            filename <- paste0(file, "_zt", zthresh, "_mnw", minWin,
+            filename <- paste0(basename(file), "_zt", zthresh, "_mnw", minWin,
                                "_mxw", maxWin, "_bin", binSize)
             saveGRangesAsBed(GRanges=ZRanges, filepath=outputName,
                              filename=filename)
@@ -270,11 +267,12 @@ get_disjoint_max_win <- function(z0, sigwin=20, nmax=Inf,
 #' @param minChrRleWComp and Rle object within coverage of window of width
 #'                       minCompWinWidth
 #' @param minCompWinWidth the width of the window used for the coverage of
-#'                        minChrRleWComp
+#'                        minChrRleWComp in bases
 #' @param maxChrRleWComp and Rle object within coverage of window of width
 #'                       minCompWinWidth
 #' @param maxCompWinWidth the width of the window used for the coverage of
-#'                        maxChrRleWComp
+#'                        maxChrRleWComp in bases
+#' @param binSize the size of the bin in bases
 #' @param verbose verbose flag
 #' @return an RleList where each element is a window of winVector, within an Rle
 #'         representing the lambda computed for that window
@@ -288,10 +286,10 @@ get_disjoint_max_win <- function(z0, sigwin=20, nmax=Inf,
 computeLambdaOnChr <- function(chrGRanges,
                                 winVector=c(1:20),
                                 minChrRleWComp,
-                                minCompWinWidth=100,
+                                minCompWinWidth=5000,
                                 maxChrRleWComp,
-                                maxCompWinWidth=200,
-                               verbose=TRUE)
+                                maxCompWinWidth=10000,
+                                verbose=TRUE)
 {
     if(verbose) message("Computing lambdas")
     chrTotRds <- length(chrGRanges)
@@ -301,16 +299,16 @@ computeLambdaOnChr <- function(chrGRanges,
 
     chrLamb <- chrTotRds %*% t(winVector) / chrTotBases
 
-    # lamblMat <- rbind(chrLamb)[rep(1,length(minChrRleWComp)), ]
-    #
+    lamblMat <- rbind(chrLamb)[rep(1,length(minChrRleWComp)), ]
+
     # lamblRleList <- IRanges::RleList(apply(X=lamblMat, MARGIN=2,
     #                                        function(x){as(x,"Rle")}))
 
-    minchrLamWComp <- as.vector(minChrRleWComp) %*% t(winVector)/(minCompWinWidth*50)
-    # minchrLamWCompRleList <- apply(chrLamMinWComp, 2, S4Vectors::Rle)
+    minchrLamWComp <- as.vector(minChrRleWComp) %*% t(winVector)/(minCompWinWidth)
+    # minchrLamWCompRleList <- apply(minchrLamWComp, 2, S4Vectors::Rle)
 
 
-    maxChrLamWComp <- as.vector(maxChrRleWComp) %*% t(winVector)/(maxCompWinWidth*50)
+    maxChrLamWComp <- as.vector(maxChrRleWComp) %*% t(winVector)/(maxCompWinWidth)
     # maxChrLamWCompRleList <- apply(maxChrLamWComp, 2, S4Vectors::Rle)
 
     # lamlocRleList <-  IRanges::RleList(lapply(winVector, function(win) {
@@ -344,10 +342,14 @@ computeLambdaOnChr <- function(chrGRanges,
 #' @importFrom IRanges RleList
 #'
 #' @keywords internal
-computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=1,
-                                             maxWinWidth=20, binWidth=50,
+computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=50,
+                                             maxWinWidth=1000, binWidth=50,
                                              verbose=TRUE)
 {
+    ## converting base notation to bin notation
+    minWinWidth <- minWinWidth/binWidth
+    maxWinWidth <- maxWinWidth/binWidth
+
     ## dividing chromosome in bins of binWidth dimention each
     binnedChromosome <- GenomicRanges::tileGenome(seqlengths=chrBedGRanges@seqinfo,
                                                   tilewidth=binWidth,
@@ -356,9 +358,9 @@ computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=1,
     chrCoverage <- GenomicRanges::coverage(x=chrBedGRanges)
     ## computing coverage per each bin on chromosome
     if(verbose) message("Computing coverage on Chromosome ",
-                chrBedGRanges@seqnames@values,
-                " binned by ", binWidth, " bin dimension")
-    chrCovRle <- binnedMeanOnly(bins=binnedChromosome,
+                        chrBedGRanges@seqnames@values,
+                        " binned by ", binWidth, " bin dimension")
+    chrCovRle <- binnedCovOnly(bins=binnedChromosome,
                                numvar=chrCoverage,
                                mcolname="bin_cov")
     wins <- minWinWidth:maxWinWidth
@@ -367,91 +369,9 @@ computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=1,
                             message("Running window ", win, " of ", maxWinWidth)
                             evenRunSum(x=chrCovRle, k=win, endrule="constant")
                         })
-                    )
+                     )
     return(runWinRleList)
 }
-
-#' binToChrCoordMatRowNames
-#' @description computes the starting range of the bins for the
-#' binMatrix, taking in input the length of the chromosome of the matrix
-#'
-#' @param binMatrix a matrix where each row represents a bin
-#' @param chrLength the length of the chromosome of the binMatrix
-#' @param binWidth the width of the bin
-#'
-#' @return the binMatrix with start range as rownames
-#' @keywords internal
-binToChrCoordMatRowNames <- function(binMatrix, chrLength, binWidth=50)
-{
-    ## computing bin in base ranges to add as rownames
-    endBinRanges <- seq(from=binWidth-1, to=chrLength, by=binWidth)
-
-    if(chrLength != endBinRanges[length(endBinRanges)])
-    {
-        ## it can only be lesser than the length of the chromosome
-        ## adding the last missing bin
-        endBinRanges <- c(endBinRanges, (chrLength-1))
-    }
-    ## computing the start of regions
-    startBinRanges <- endBinRanges-(binWidth-1)
-    if(dim(binMatrix)[1] != length(startBinRanges))
-    {
-        stop("something went wrong! matrix row dimension
-             different than expected")
-    }
-    rownames(binMatrix) <- startBinRanges
-    return(binMatrix)
-}
-#'
-#' #' binnedSum
-#' #' @description  this function computes the summed coverage over a binned
-#' #' chromosome, starting from a per base computed coverage
-#' #' @source http://crazyhottommy.blogspot.com/2016/02/compute-averagessums-on-granges-or.html
-#' #'
-#' #' @param bins a GRanges object representing a chromosome binned
-#' #' @param numvar an RleList representing the per base coverage over the chr
-#' #' @param mcolname the name of column where the sum have to be stored
-#' #'
-#' #' @return the bins GRanges with the mcolname attached
-#' #' @export
-#' #'
-#' #' @importFrom GenomeInfoDb seqlevels seqnames
-#' #' @importFrom S4Vectors split mcols
-#' #' @importFrom IRanges ranges Views viewSums
-#' #' @examples
-#' #' ## dividing one chromosome in bins of 50 bp each
-#' #' seqinfo <- GenomeInfoDb::Seqinfo("mm9")
-#' #' bins <- GenomicRanges::tileGenome(seqlengths=seqinfo@chr1,
-#' #'                                              tilewidth=50,
-#' #'                                              cut.last.tile.in.chrom=TRUE)
-#' #' gr <- GenomicRanges::GRanges(seqnames = Rle("Chr1", 100),
-#' #' ranges <- IRanges::IRanges(start = seq(from=10, to=1000, by=10),
-#' #' end <- seq(from=20, to=1010, by = 10)))
-#' #' ## computing coverage per single base on granges
-#' #' cov <- GenomicRanges::coverage(x=gr)
-#' #'
-#' #' binnedCovGR <- binnedSum(bins, cov, "binned_cov")
-#' #' binnedCovGR
-#' #'
-#' binnedSum <- function(bins, numvar, mcolname)
-#' {
-#'     stopifnot(is(bins, "GRanges"))
-#'     stopifnot(is(numvar, "RleList"))
-#'     stopifnot(identical(GenomeInfoDb::seqlevels(bins), names(numvar)))
-#'
-#'     bins_per_chrom <- S4Vectors::split(IRanges::ranges(bins),
-#'                                        GenomeInfoDb::seqnames(bins))
-#'     sums_list <- lapply(names(numvar),
-#'                         function(seqname) {
-#'                             views <- IRanges::Views(numvar[[seqname]],
-#'                                            bins_per_chrom[[seqname]])
-#'                             IRanges::viewSums(views)
-#'                         })
-#'     new_mcol <- unsplit(sums_list, as.factor(GenomeInfoDb::seqnames(bins)))
-#'     S4Vectors::mcols(bins)[[mcolname]] <- new_mcol
-#'
-#'     return(bins)
-#' }
 
 
 #' binnedCoverage
@@ -474,7 +394,7 @@ binToChrCoordMatRowNames <- function(binMatrix, chrLength, binWidth=50)
 #'
 #' @importFrom GenomeInfoDb seqlevels seqnames
 #' @importFrom S4Vectors split mcols
-#' @importFrom IRanges ranges Views viewSums
+#' @importFrom IRanges ranges Views viewSums viewMaxs viewMeans viewMins
 #' @examples
 #' ## dividing one chromosome in bins of 50 bp each
 #' seqinfo <- GenomeInfoDb::Seqinfo("mm9")
@@ -487,9 +407,10 @@ binToChrCoordMatRowNames <- function(binMatrix, chrLength, binWidth=50)
 #' ## computing coverage per single base on granges
 #' cov <- GenomicRanges::coverage(x=gr)
 #'
-#' binnedCovGR <- binnedSum(bins, cov, "binned_cov")
-#' binnedCovGR
-#'
+#' (binnedMaxCovGR <- binnedCoverage(bins, cov, "binned_cov"))
+#' (binnedMeanCovGR <- binnedCoverage(bins, cov, "binned_cov",
+#'                                    covMethod="mean", roundingMethod="floor"))
+#' (binnedSumCovGR <- binnedCoverage(bins, cov, "binned_cov", covMethod="sum"))
 binnedCoverage <- function(bins, numvar, mcolname,
                            covMethod=c("max", "mean", "sum", "min"),
                            roundingMethod=c("none", "floor", "ceiling", "round"))
@@ -501,23 +422,26 @@ binnedCoverage <- function(bins, numvar, mcolname,
     stopifnot(identical(GenomeInfoDb::seqlevels(bins), names(numvar)))
 
     binsChr <- S4Vectors::split(IRanges::ranges(bins), GenomeInfoDb::seqnames(bins))
-    views <- IRanges::Views(numvar[[1]], binsChr[[1]])
-    binCovs <- switch(covMethod,
-                       max=IRanges::viewMaxs(views),
-                       mean=IRanges::viewMeans(views),
-                       sum=IRanges::viewSums(views),
-                       min=IRanges::viewMins(views)
-    )
+    binCovsR <- lapply(names(numvar), function(seqname)
+    {
+        views <- IRanges::Views(numvar[[seqname]], binsChr[[seqname]])
+        binCovs <- switch(covMethod,
+                          max=IRanges::viewMaxs(views),
+                          mean=IRanges::viewMeans(views),
+                          sum=IRanges::viewSums(views),
+                          min=IRanges::viewMins(views)
+        )
+        binCovsR <- switch(roundingMethod,
+                         none=binCovs,
+                         floor=floor(binCovs),
+                         ceiling=ceiling(binCovs),
+                         round=round(binCovs)
+        )
+        return(binCovsR)
+    })
 
-    binCovsR <- switch(roundingMethod,
-                        none=binCovs,
-                        floor=floor(binCovs),
-                        ceiling=ceiling(binCovs),
-                        round=round(binCovs)
-    )
-
-    new_mcol <- unsplit(means, as.factor(GenomeInfoDb::seqnames(bins)))
-    S4Vectors::mcols(bins)[[mcolname]] <- binCovsR
+    new_mcol <- unsplit(binCovsR, as.factor(GenomeInfoDb::seqnames(bins)))
+    S4Vectors::mcols(bins)[[mcolname]] <- new_mcol
 
     return(bins)
 }
@@ -556,21 +480,55 @@ binnedCovOnly <- function(bins, numvar, mcolname)
 #'
 #' @return an Rle within the running sum over x with a win o length k
 #' @keywords internal
-# evenRunSum <- function(x, k, endrule = c("drop", "constant"), na.rm = FALSE)
-# {
-#     stopifnot(is(x, "Rle"))
-#     endrule <- match.arg(endrule)
-#     n <- length(x)
-#     # k <- normArgRunK(k = k, n = n, endrule = endrule)
-#     ans <- S4Vectors::.Call2("Rle_runsum", x, as.integer(k), as.logical(na.rm),
-#                              PACKAGE="S4Vectors")
-#     if (endrule == "constant") {
-#         j <- (k + 1L) %/% 2L
-#
-#         S4Vectors::runLength(ans)[1L] <- S4Vectors::runLength(ans)[1L]+(j - 1L)
-#         if( (k %% 2L) == 0 ) j=j+1 ##
-#         S4Vectors::runLength(ans)[S4Vectors::nrun(ans)] <-
-#                         S4Vectors::runLength(ans)[S4Vectors::nrun(ans)]+(j - 1L)
-#     }
-#     return(ans)
-# }
+evenRunSum <- function(x, k, endrule = c("drop", "constant"), na.rm = FALSE)
+{
+    stopifnot(is(x, "Rle"))
+    endrule <- match.arg(endrule)
+    n <- length(x)
+    # k <- normArgRunK(k = k, n = n, endrule = endrule)
+    ans <- S4Vectors::.Call2("Rle_runsum", x, as.integer(k), as.logical(na.rm),
+                             PACKAGE="S4Vectors")
+    if (endrule == "constant") {
+        j <- (k + 1L) %/% 2L
+
+        S4Vectors::runLength(ans)[1L] <- S4Vectors::runLength(ans)[1L]+(j - 1L)
+        if( (k %% 2L) == 0 ) j=j+1 ##
+        S4Vectors::runLength(ans)[S4Vectors::nrun(ans)] <-
+                        S4Vectors::runLength(ans)[S4Vectors::nrun(ans)]+(j - 1L)
+    }
+    return(ans)
+}
+
+
+#' binToChrCoordMatRowNames
+#' @description computes the starting range of the bins for the
+#' binMatrix, taking in input the length of the chromosome of the matrix
+#'
+#' @param binMatrix a matrix where each row represents a bin
+#' @param chrLength the length of the chromosome of the binMatrix
+#' @param binWidth the width of the bin
+#'
+#' @return the binMatrix with start range as rownames
+#' @keywords internal
+binToChrCoordMatRowNames <- function(binMatrix, chrLength, binWidth=50)
+{
+    ## computing bin in base ranges to add as rownames
+    endBinRanges <- seq(from=binWidth-1, to=chrLength, by=binWidth)
+
+    if(chrLength != endBinRanges[length(endBinRanges)])
+    {
+        ## it can only be lesser than the length of the chromosome
+        ## adding the last missing bin
+        endBinRanges <- c(endBinRanges, (chrLength-1))
+    }
+    ## computing the start of regions
+    startBinRanges <- endBinRanges-(binWidth-1)
+    if(dim(binMatrix)[1] != length(startBinRanges))
+    {
+        stop("something went wrong! matrix row dimension
+             different than expected")
+    }
+    rownames(binMatrix) <- startBinRanges
+    return(binMatrix)
+}
+

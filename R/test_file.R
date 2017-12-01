@@ -6,7 +6,7 @@ file="inst/extdata/Bed/P43615_Sample_FC1_Input_fwd_chr19_Smartfilter.bed.zip"
 
 chr="chr19"; filetype="bed"; fragmentLength=200;
 binSize=50; minWin=1; maxWin=20; genomeName="mm9";
-minCompWinWidth=100; maxCompWinWidth=200;
+minCompWinWidth=5000; maxCompWinWidth=10000;
 zthresh=5; minCount=0.1; verbose=TRUE; save=FALSE
 onlyStdChrs=TRUE
 fileGRangesList <- NULL
@@ -23,10 +23,10 @@ winVector <- c(minWin:maxWin)
     if(verbose) message("Calling Peaks on chromosomes...")
     chrGRanges=bedGrangesChrsList[[1]]
 
-    chrBedGRanges=chrGRanges
-    minWinWidth=minWin
-    maxWinWidth=maxWin
-    binWidth=binSize
+    # chrBedGRanges=chrGRanges
+    # minWinWidth=minWin
+    # maxWinWidth=maxWin
+    # binWidth=binSize
             runWinRleList <- computeCoverageMovingWindowOnChr(
                 chrBedGRanges=chrGRanges,
                 minWinWidth=minWin,
