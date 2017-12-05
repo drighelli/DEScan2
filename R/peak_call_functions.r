@@ -381,7 +381,7 @@ computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=50,
     runWinRleList <- IRanges::RleList(
                         lapply(wins, function(win) {
                             message("Running window ", win, " of ", maxWinWidth)
-                            evenRunSum(x=chrCovRle, k=win, endrule="constant")
+                            floor(evenRunMean(x=chrCovRle, k=win, endrule="constant"))
                         })
                      )
     return(runWinRleList)
