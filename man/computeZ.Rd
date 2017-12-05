@@ -5,7 +5,7 @@
 \title{computeZ}
 \usage{
 computeZ(lambdaChrRleList, runWinRleList, chrLength, minCount = 0.1,
-  binSize = 50)
+  binSize = 50, verbose = TRUE)
 }
 \arguments{
 \item{lambdaChrRleList}{an RleList of lambda values computed

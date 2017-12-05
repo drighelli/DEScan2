@@ -5,7 +5,7 @@
 \title{computeCoverageMovingWindowOnChr}
 \usage{
 computeCoverageMovingWindowOnChr(chrBedGRanges, minWinWidth = 1,
-  maxWinWidth = 20, binWidth = 50)
+  maxWinWidth = 20, binWidth = 50, verbose = TRUE)
 }
 \arguments{
 \item{chrBedGRanges}{a GRanges to compute the coverage}
@@ -23,7 +23,4 @@ RleList where each element is a window within the Rle of its coverage
 computes the coverage on a chromosomewith a
 set of moving windows of dimensions minWinWidth:maxWinWidth
 }
-\examples{
-TBW
-
-}
+\keyword{internal}

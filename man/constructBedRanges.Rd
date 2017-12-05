@@ -25,3 +25,4 @@ a GRanges object
 \description{
 Constructs a GRanges object from a bam/bed file in a consistent way
 }
+\keyword{internal}

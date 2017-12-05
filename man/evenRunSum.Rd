@@ -23,3 +23,4 @@ this function computes a running sum over x with a window width k
 (modified from S4Vectors package to work on even k, in such a case
 it adds a length at the end of the output Rle)
 }
+\keyword{internal}

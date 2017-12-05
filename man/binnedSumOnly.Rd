@@ -19,3 +19,4 @@ an Rle within the per bin computed coverage
 \description{
 it's useful just to coerce the bin coverage to an Rle object
 }
+\keyword{internal}

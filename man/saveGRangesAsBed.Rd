@@ -4,7 +4,7 @@
 \alias{saveGRangesAsBed}
 \title{saveGRangesAsBed}
 \usage{
-saveGRangesAsBed(GRanges, filepath, filename)
+saveGRangesAsBed(GRanges, filepath, filename, force = FALSE)
 }
 \arguments{
 \item{GRanges}{the GRanges object}
@@ -12,6 +12,8 @@ saveGRangesAsBed(GRanges, filepath, filename)
 \item{filepath}{the path to store the files}
 
 \item{filename}{the name to give to the files}
+
+\item{force}{force overwriting}
 }
 \value{
 none
@@ -19,6 +21,4 @@ none
 \description{
 save a GRanges object as bed file and RData file
 }
-\examples{
-TBW
-}
+\keyword{internal}

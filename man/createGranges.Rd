@@ -24,6 +24,4 @@ a GRanges object
 \description{
 a simplified wrapper function to create a GRanges object
 }
-\examples{
-TBW
-}
+\keyword{internal}

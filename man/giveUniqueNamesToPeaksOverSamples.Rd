@@ -16,3 +16,4 @@ a GRangesList of samples within renamed peaks for each element
 given a GRangesList of samples assigns unique names to the peaks
              of each sample
 }
+\keyword{internal}

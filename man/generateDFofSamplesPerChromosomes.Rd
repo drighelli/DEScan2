@@ -18,3 +18,4 @@ generates a dataframe where each row is a sample (1st col) and
              a string with its chromosomes separated by ";" (2nd col)
              (useful to fromSamplesToChromosomesGRangesList function)
 }
+\keyword{internal}

@@ -20,3 +20,4 @@ the binMatrix with start range as rownames
 computes the starting range of the bins for the
 binMatrix, taking in input the length of the chromosome of the matrix
 }
+\keyword{internal}

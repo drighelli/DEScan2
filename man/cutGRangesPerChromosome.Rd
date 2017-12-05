@@ -17,6 +17,7 @@ takes in input a GRanges object, producing a LIST of
 GRanges, one for each chromosome
 }
 \examples{
+library("GenomicRanges")
 gr <- GRanges(
       seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
       ranges=IRanges(1:10, end=10),

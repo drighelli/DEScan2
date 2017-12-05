@@ -25,7 +25,7 @@ This document describes how to use DEScan to detect regions of differential enri
 DESCan2 is currently hosted on GitHub, so installation will make use of the devtools package.
 
 ```{r}
-library(devtools)
+library("devtools")
 ```
 
 Use the install_github function to install DEScan. The repo location and a personal access token (PAT) need to be supplied.
@@ -34,9 +34,9 @@ Use the install_github function to install DEScan. The repo location and a perso
 install_github(repo = "drighelli/DEScan2")
 ```
 ```{r, message=FALSE}
-library(DEScan)
-library(RUVSeq)
-library(EDASeq)
+library("DEScan2")
+library("RUVSeq")
+# library(EDASeq)
 ```
 
 ##Example data
@@ -44,7 +44,7 @@ library(EDASeq)
 This analysis will make use of mouse Sono-seq data from mouse chromosome 19. This data was obtained from hippocampus of mice following learning through contextual fear conditioning. The experiment has 4 fear conditioned (FC) and 4 homecage control (HC) replicates. The data was aligned to the mouse genome (mm9) using bowtie2, allowing for multi-mapping reads. Duplicates were removed if present in isolation from duplicated reads relative to genomic location. Aligned data in this example is provided as bed files, but DEScan accepts bam format alignments. 
 
 ```{r eval=TRUE}
-bed.files <- list.files(system.file("extdata/Bed", package = "DEScan"),
+bed.files <- list.files(system.file("extdata/Bed", package = "DEScan2"),
                         full.names = T)
 ```
 
@@ -54,40 +54,42 @@ First, peak calling for the samples will be done using the *findPeaks* function.
 
 Parameter description:  
 
-**chr**
-:  Chromosome number, if multiple chromosomes are present in the alignment file the range should be defined,  e.g. 1:19  
+**files** 
+: Character vector containing paths of files to be analyzed.
+**filetype** 
+: Character, either "bam" or "bed" indicating format of input file.
+**fragmentLength**
+: Integer indicating the average DNA fragment length bp.
+**minWin**
+: Integer indicating the minimum window size in units of 50 bp, i.e., min_win=2 resulting in a 100 bp window.
+**binSize** 
+: Integer size in base pairs of the minimum window for scanning, 50 is the default.
+**maxWin** 
+: Integer indicating the maximum allowed window size in units of 50 bp.
+**minCompWinWidth** 
+: minimum bases width of a comparing window for Z-score
+**maxCompWinWidth** 
+: maximum bases width of a comparing window for Z-score
+**zthresh** 
+: Cuttoff value for z-scores. Only windows with greater z-scores will be kept.
+**minCount** 
+: A small constant (usually no larger than one) to be added to the counts prior to the log transformation to avoid problems with log(0).
+**outputName** A string, Name of the folder to save the Peaks (optional), if the directory doesn't exist, it will be created. default is "Peaks"
+**save**
+: Flag indicating if tha output has to be saved
 
-**filetype**
-:  Format of the alignment file (bed or bam), default bam
-
-**fraglen**
-:  Length of fragment sequenced, default 200.  
-
-**rlen**
-:  Length of read sequenced, no default. It has to be specified.  
-
-**min_bin**
-:  Size in bp of the minimum window size to scan. This parameter should be smaller if working with transcription factor binding ChIP-seq data  
-
-**max_win**
-:  Multiplier of the min_bin that defines the maximum window to scan, default 20.  
-
-**blocksize**
-:  How much of the chromosome will be analyzed at a time to avoid memory issues, default 10,000  
-
-**ztresh**
-:  Z-score threshold for reporting peaks, default 5 (we recommend keeping this low as it can be made more stringent later)  
-
-**min_count**
-:  A small integer added to the counts to prevent problems with log 0, default 0.1  
-
-**output_name**
-:  Name of the folder to save the Peaks (optional), if the directory doesn’t exist it will be created. Default is “Peaks”
+**genomeName**
+: the code of the genome to use as reference for the input files. (cfr. constructBedRanges function parameters)
+**onlyStdChrs**
+: a flag to work only with standard chromosomes (cfr. constructBedRanges function parameters)
+**chr** if not NULL, a character like "chr#" indicating the chromosomes to use
 
 ```{r findPeaks, cache=TRUE, eval=TRUE}
-peaks <- findPeaks(bed.files[1], chr = 19, filetype = "bed", fraglen = 200,
-                   rlen = 100, min_bin = 50, max_win = 20, blocksize = 10000,
-                   zthresh = 5, min_count = 0.1, verbose = FALSE, save = FALSE)
+peaks <- findPeaks(files=bed.files[1], chr="chr19", filetype="bed", fragmentLength=200,
+                   binSize=50, minWin=1, maxWin=20, genomeName="mm9",
+                   minCompWinWidth=5000, maxCompWinWidth=10000,
+                   zthresh=5, minCount=0.1, verbose=FALSE, save=FALSE)
+saveRDS(object=peaks, file="peaks_new.RDS")
 head(peaks)
 ```
 

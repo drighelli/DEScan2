@@ -4,21 +4,29 @@
 \alias{keepRelevantChrs}
 \title{keepRelevantChrs}
 \usage{
-keepRelevantChrs(GRangesList, chr)
+keepRelevantChrs(chrGRangesList, chr = NULL)
 }
 \arguments{
+\item{chr}{a character vector of chromosomes names of the form "chr#"}
+
 \item{GRangesList}{where each element is a chromosome,
 tipically created with cutGRangesPerChromosome}
-
-\item{chr}{a character vector of chromosomes names of the form "chr#"}
 }
 \value{
-the input GRangesList with only the relevat chromosomes
+the input chrGRangesList with only the relevat chromosomes
 }
 \description{
 subselect a list of GRanges created with
 cutGRangesPerChromosome returning only the relevant chromosomes GRanges
 }
 \examples{
-TBW
+library("GenomicRanges")
+gr1 <- GRanges(
+      seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
+      ranges=IRanges(1:10, end=10),
+      strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
+      seqlengths=c(chr1=11, chr2=12, chr3=13))
+grlc <- cutGRangesPerChromosome(gr1)
+(grlChr <- keepRelevantChrs(grl, c("chr1", "chr3")))
+
 }

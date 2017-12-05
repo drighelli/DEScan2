@@ -5,7 +5,8 @@
 \title{computeLambdaOnChr}
 \usage{
 computeLambdaOnChr(chrGRanges, winVector = c(1:20), minChrRleWComp,
-  minCompWinWidth = 5000, maxChrRleWComp, maxCompWinWidth = 10000)
+  minCompWinWidth = 5000, maxChrRleWComp, maxCompWinWidth = 10000,
+  verbose = TRUE)
 }
 \arguments{
 \item{chrGRanges}{the GRanges representing the reads of the chromosome}
@@ -23,6 +24,8 @@ minCompWinWidth}
 
 \item{maxCompWinWidth}{the width of the window used for the coverage of
 maxChrRleWComp}
+
+\item{verbose}{verbose flag}
 }
 \value{
 an RleList where each element is a window of winVector, within an Rle
@@ -32,6 +35,4 @@ an RleList where each element is a window of winVector, within an Rle
 computes the lambdas on a chromosome for the
 winVector windows and other two windows (min/maxCompWinWidth) to compare with
 }
-\examples{
-TBW
-}
+\keyword{internal}

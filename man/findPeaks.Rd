@@ -47,6 +47,8 @@ default is "Peaks"}
 directory created (if not already present) in the current
 working directory.}
 
+\item{verbose}{if to show additional messages}
+
 \item{fragmentLength}{Integer indicating the average DNA fragment length bp.}
 
 \item{onlyStdChrs}{a flag to work only with standard chromosomes
@@ -66,6 +68,13 @@ variable window scan with a poisson model using the surrounding
 maxCompWinWidth (10kb) as background.
 }
 \examples{
-TBW
+bed.files <- list.files(system.file("extdata/Bed", package = "DEScan2"),
+                        full.names = T)
+peaks <- findPeaks(files=bed.files[1], chr="chr19", filetype="bed",
+                    fragmentLength=200,
+                    binSize=50, minWin=1, maxWin=20, genomeName="mm9",
+                    minCompWinWidth=5000, maxCompWinWidth=10000,
+                    zthresh=5, minCount=0.1, verbose=FALSE, save=FALSE)
+head(peaks)
 
 }

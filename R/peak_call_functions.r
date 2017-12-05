@@ -70,7 +70,7 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
     filetype <- match.arg(filetype)
 
     fileGRangesList <- NULL
-    winVector <- c(minWin:maxWin)
+    winVector <- c((minWin/binSize):(maxWin/binSize))
 
     for (fileIdx in 1:length(files))
     {
@@ -80,7 +80,8 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
                                          onlyStdChrs=onlyStdChrs)
 
         bedGrangesChrsList <- cutGRangesPerChromosome(bedGRanges)
-        if(!is.null(chr)) bedGrangesChrsList <- keepRelevantChrs(bedGrangesChrsList, chr)
+        if(!is.null(chr))
+            bedGrangesChrsList <- keepRelevantChrs(bedGrangesChrsList, chr)
 
         if(verbose) message("Calling Peaks on chromosomes...")
 
@@ -105,6 +106,7 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
                                                     maxWinWidth=maxCompWinWidth,
                                                     binWidth=binSize
                                                     )
+            ## test the lambdas with the old lambdas
             lambdaChrRleList <- computeLambdaOnChr(
                                        chrGRanges=chrGRanges,
                                        winVector=winVector,
@@ -355,23 +357,25 @@ computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=50,
     binnedChromosome <- GenomicRanges::tileGenome(seqlengths=chrBedGRanges@seqinfo,
                                                   tilewidth=binWidth,
                                                   cut.last.tile.in.chrom=TRUE)
-    olap <- summarizeOverlaps(binnedChromosome, chrBedGRanges,
-                              ignore.strand = TRUE,
-                              inter.feature = FALSE,
-                              mode = "IntersectionNotEmpty")
 
-    chrCovRle <- as(assay(olap)[,1], "Rle")
+    # olap <- GenomicAlignments::summarizeOverlaps(features=binnedChromosome,
+    #                                              reads=chrBedGRanges,
+    #                                              ignore.strand=TRUE,
+    #                                              inter.feature=FALSE,
+    #                                              mode="IntersectionNotEmpty")
+    # #
+    # # test the coverages with the old coverages using a small amount of reads
+    # chrCovRle1 <- as(SummarizedExperiment::assays(olap)$counts, "Rle")
 
-
-    # ## computing coverage per single base on bed
-    # chrCoverage <- GenomicRanges::coverage(x=chrBedGRanges)
-    # ## computing coverage per each bin on chromosome
-    # if(verbose) message("Computing coverage on Chromosome ",
-    #                     chrBedGRanges@seqnames@values,
-    #                     " binned by ", binWidth, " bin dimension")
-    # chrCovRle <- binnedCovOnly(bins=binnedChromosome,
-    #                            numvar=chrCoverage,
-    #                            mcolname="bin_cov")
+    ## computing coverage per single base on bed
+    chrCoverage <- GenomicRanges::coverage(x=chrBedGRanges)
+    ## computing coverage per each bin on chromosome
+    if(verbose) message("Computing coverage on Chromosome ",
+                        chrBedGRanges@seqnames@values,
+                        " binned by ", binWidth, " bin dimension")
+    chrCovRle <- binnedCovOnly(bins=binnedChromosome,
+                               numvar=chrCoverage,
+                               mcolname="bin_cov")
 
     wins <- minWinWidth:maxWinWidth
     runWinRleList <- IRanges::RleList(
@@ -508,6 +512,7 @@ evenRunSum <- function(x, k, endrule = c("drop", "constant"), na.rm = FALSE)
     }
     return(ans)
 }
+
 
 
 #' binToChrCoordMatRowNames

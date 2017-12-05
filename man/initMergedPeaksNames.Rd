@@ -15,3 +15,4 @@ a granges of renamed peaks
 \description{
 given a GRanges of merged peaks assigns them new names
 }
+\keyword{internal}
