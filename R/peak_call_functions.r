@@ -492,7 +492,7 @@ binnedCovOnly <- function(bins, numvar, mcolname)
 #'
 #' @importFrom S4Vectors .Call2 runLength nrun
 #'
-#' @return an Rle within the running sum over x with a win o length k
+#' @return an Rle within the running sum over x with a win of length k
 #' @keywords internal
 evenRunSum <- function(x, k, endrule = c("drop", "constant"), na.rm = FALSE)
 {
@@ -511,6 +511,35 @@ evenRunSum <- function(x, k, endrule = c("drop", "constant"), na.rm = FALSE)
                         S4Vectors::runLength(ans)[S4Vectors::nrun(ans)]+(j - 1L)
     }
     return(ans)
+}
+
+
+#' evenRunMean
+#' @description this function computes a running mean over x with a
+#' window width k (modified from S4Vectors package to work on even k,
+#' see evenRunSum)
+#'
+#' @param x an Rle object, typically a coverage object
+#' @param k window dimension for the running sum over x
+#' @param endrule refer to S4Vectors::runMean
+#' @param na.rm refer to S4Vectors::runMean
+#'
+#' @importFrom S4Vectors Rle
+#'
+#' @return an Rle within the running mean over x with a win of length k
+#' @keywords internal
+evenRunMean <- function(x, k, endrule = c("drop", "constant"), na.rm = FALSE)
+{
+    sums <- evenRunSum(x, k, endrule, na.rm)
+    if (na.rm)
+    {
+        d <- S4Vectors::Rle(rep(1L, length(x)))
+        d[is.na(x)] <- 0L
+        means <- (sums / evenRunSum(d, k, endrule, na.rm))
+    } else {
+        means <- (sums / k)
+    }
+    return(means)
 }
 
 

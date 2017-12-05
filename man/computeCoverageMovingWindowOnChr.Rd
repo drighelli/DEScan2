@@ -4,8 +4,8 @@
 \alias{computeCoverageMovingWindowOnChr}
 \title{computeCoverageMovingWindowOnChr}
 \usage{
-computeCoverageMovingWindowOnChr(chrBedGRanges, minWinWidth = 1,
-  maxWinWidth = 20, binWidth = 50, verbose = TRUE)
+computeCoverageMovingWindowOnChr(chrBedGRanges, minWinWidth = 50,
+  maxWinWidth = 1000, binWidth = 50, verbose = TRUE)
 }
 \arguments{
 \item{chrBedGRanges}{a GRanges to compute the coverage}

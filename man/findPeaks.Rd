@@ -5,10 +5,10 @@
 \title{findPeaks}
 \usage{
 findPeaks(files, filetype = c("bam", "bed"), genomeName = NULL,
-  binSize = 50, minWin = 1, maxWin = 20, zthresh = 5, minCount = 0.1,
-  minCompWinWidth = 5000, maxCompWinWidth = 10000, outputName = "Peaks",
-  save = TRUE, verbose = FALSE, fragmentLength = 200,
-  onlyStdChrs = TRUE, chr = NULL)
+  binSize = 50, minWin = 50, maxWin = 1000, zthresh = 5,
+  minCount = 0.1, minCompWinWidth = 100, maxCompWinWidth = 200,
+  outputName = "Peaks", save = TRUE, verbose = FALSE,
+  fragmentLength = 200, onlyStdChrs = TRUE, chr = NULL)
 }
 \arguments{
 \item{files}{Character vector containing paths of files to be analyzed.}
@@ -19,14 +19,12 @@ file.}
 \item{genomeName}{the code of the genome to use as reference for the input
 files. (cfr. constructBedRanges function parameters)}
 
-\item{binSize}{Integer size in base pairs of the minimum window for scanning,
+\item{binSize}{Integer size in bases of the minimum window for scanning,
 50 is the default.}
 
-\item{minWin}{Integer indicating the minimum window size in units of 50 bp,
-i.e., min_win=2 resulting in a 100 bp window.}
+\item{minWin}{Integer indicating the minimum window size in bases notation.}
 
-\item{maxWin}{Integer indicating the maximum allowed window size in units of
-50 bp.}
+\item{maxWin}{Integer indicating the maximum window size in bases notation.}
 
 \item{zthresh}{Cuttoff value for z-scores. Only windows with greater z-scores
 will be kept.}
@@ -72,9 +70,9 @@ bed.files <- list.files(system.file("extdata/Bed", package = "DEScan2"),
                         full.names = T)
 peaks <- findPeaks(files=bed.files[1], chr="chr19", filetype="bed",
                     fragmentLength=200,
-                    binSize=50, minWin=1, maxWin=20, genomeName="mm9",
+                    binSize=50, minWin=50, maxWin=1000,
+                    genomeName="mm9",
                     minCompWinWidth=5000, maxCompWinWidth=10000,
                     zthresh=5, minCount=0.1, verbose=FALSE, save=FALSE)
 head(peaks)
-
 }

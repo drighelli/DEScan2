@@ -16,7 +16,7 @@ evenRunSum(x, k, endrule = c("drop", "constant"), na.rm = FALSE)
 \item{na.rm}{refer to S4Vectors::runSum}
 }
 \value{
-an Rle within the running sum over x with a win o length k
+an Rle within the running sum over x with a win of length k
 }
 \description{
 this function computes a running sum over x with a window width k

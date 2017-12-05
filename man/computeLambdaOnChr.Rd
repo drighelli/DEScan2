@@ -17,15 +17,17 @@ computeLambdaOnChr(chrGRanges, winVector = c(1:20), minChrRleWComp,
 minCompWinWidth}
 
 \item{minCompWinWidth}{the width of the window used for the coverage of
-minChrRleWComp}
+minChrRleWComp in bases}
 
 \item{maxChrRleWComp}{and Rle object within coverage of window of width
 minCompWinWidth}
 
 \item{maxCompWinWidth}{the width of the window used for the coverage of
-maxChrRleWComp}
+maxChrRleWComp in bases}
 
 \item{verbose}{verbose flag}
+
+\item{binSize}{the size of the bin in bases}
 }
 \value{
 an RleList where each element is a window of winVector, within an Rle
