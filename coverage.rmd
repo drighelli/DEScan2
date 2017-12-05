@@ -11,6 +11,8 @@ Loading package
 
 ```{r}
 devtools::load_all()
+install.packages("corrplot")
+library("corrplot")
 ```
 
 computing coverages
@@ -78,15 +80,6 @@ message("correlation is: ", cor(as.vector(chrCovRle), as.vector(chrCovRle1)))
 
 
 ```{r}
-chrCoverage <- GenomicRanges::coverage(x=chrBedGRanges)
-    ## computing coverage per each bin on chromosome
-    if(verbose) message("Computing coverage on Chromosome ",
-                        chrBedGRanges@seqnames@values,
-                        " binned by ", binWidth, " bin dimension")
-    chrCovRle <- binnedCovOnly(bins=binnedChromosome,
-                               numvar=chrCoverage,
-                               mcolname="bin_cov")
-
     wins <- minWinWidth:maxWinWidth
     runWinRleList <- IRanges::RleList(
                         lapply(wins, function(win) {
@@ -94,6 +87,8 @@ chrCoverage <- GenomicRanges::coverage(x=chrBedGRanges)
                             evenRunSum(x=chrCovRle, k=win, endrule="constant")
                         })
                      )
+    runWinMat=matrix(unlist(runWinRleList), ncol=20, byrow=TRUE)
+    print(dim(runWinMat))
 ```
 
 
@@ -145,7 +140,11 @@ old coverage con complete grid
                                     verbose = FALSE)
         ed.time=Sys.time()
         message("old Cov time: ", ed.tm-st.tm)
+        print(dim(cmat))
 
+        print(dim(cmat)[1] - dim(runWinMat)[1])        
+        message("cor :", cor(runWinMat[-c(1:60260),], cmat))
+        corrplot(cor(runWinMat[-c(1:60260),], cmat))
 
 ```
 
