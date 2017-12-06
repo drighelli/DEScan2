@@ -4,7 +4,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo=TRUE)
 ```
 
 Loading package
@@ -15,7 +15,7 @@ devtools::load_all()
 # library("corrplot")
 ```
 
-computing coverages
+computing coverages DEScan2
 
 ```{r}
 
@@ -59,21 +59,14 @@ olap <- GenomicAlignments::summarizeOverlaps(features=binnedChromosome,
                                          ignore.strand=TRUE,
                                          inter.feature=FALSE,
                                          mode="IntersectionNotEmpty")
-#
+
 # test the coverages with the old coverages using a small amount of reads
 chrCovRle1 <- as(SummarizedExperiment::assays(olap)$counts, "Rle")
 ed.tm=Sys.time()
 message("Summ overl time: ", ed.tm-st.tm)
-
-wins <- minWinWidth:maxWinWidth
-    runWinRleList1 <- IRanges::RleList(
-                        lapply(wins, function(win) {
-                            message("Running window ", win, " of ", maxWinWidth)
-                            floor(evenRunMean(x=chrCovRle1, k=win, endrule="constant"))
-                        })
-                     )
-    
 st.tm=Sys.time()
+
+
 ## computing coverage per single base on bed
 chrCoverage <- GenomicRanges::coverage(x=chrBedGRanges)
 ## computing coverage per each bin on chromosome
@@ -82,9 +75,28 @@ chrCovRle <- binnedCovOnly(bins=binnedChromosome,
                        mcolname="bin_cov")
 ed.tm=Sys.time()
 message("binned Cov time: ", ed.tm-st.tm)
-
 message("correlation is: ", cor(as.vector(chrCovRle), as.vector(chrCovRle1)))
 
+wins <- minWinWidth:maxWinWidth
+runWinRleListSum <- IRanges::RleList(
+                    lapply(wins, function(win) {
+                        message("Running window ", win, " of ", maxWinWidth)
+                        floor(evenRunSum(x=chrCovRle, k=win, endrule="constant"))
+                    })
+                 )
+
+
+
+wins <- minWinWidth:maxWinWidth
+    runWinRleListMean <- IRanges::RleList(
+                        lapply(wins, function(win) {
+                            message("Running window ", win, " of ", maxWinWidth)
+                            floor(evenRunMean(x=chrCovRle, k=win, endrule="constant"))
+                        })
+                     )
+
+message("run sum on first col != 0", length(which(runWinRleListSum[[1]]!=0)))
+message("run mean on first col != 0", length(which(runWinRleListMean[[1]]!=0)))
 
 ```
 
@@ -98,9 +110,8 @@ message("correlation is: ", cor(as.vector(chrCovRle), as.vector(chrCovRle1)))
                         })
                      )
     runWinRleList
+    runWinMat=matrix(unlist(runWinRleList), ncol=maxWinWidth, byrow=FALSE)
 ```
-
-
 
 old coverage con complete grid
 
@@ -111,19 +122,21 @@ old coverage con complete grid
     min_win=1;
     rlen = 100; min_bin = 50; max_win = 20; blocksize = 10000;
     zthresh = 5; min_count = 0.1; verbose = FALSE; save = FALSE
-
-
-        chr <- paste0("chr", chr)
-        if (tools::file_ext(file) == "zip") {
-            tmp <- unzip(file, list = T)$Name
-            file <- unz(file, tmp)
-        }
-        bed <- utils::read.table(file, sep = "\t", header = FALSE)[, c(1:3, 6)]
-        colnames(bed) <- c("seqnames","start","end","strand")
-        bed <- bed[bed[,1] == chr,]
+    chrLen=bedGRanges@seqinfo@seqlengths
+    
+    chr <- paste0("chr", chr)
+    if (tools::file_ext(file) == "zip") {
+        tmp <- unzip(file, list = T)$Name
+        file <- unz(file, tmp)
+    }
+    bed <- utils::read.table(file, sep = "\t", header = FALSE)[, c(1:3, 6)]
+    colnames(bed) <- c("seqnames","start","end","strand")
+    bed <- bed[bed[,1] == chr,]
 
     # grid = vector of integers describing the start coordinates for each bin
-    grid <- make_grid(bed, fraglen, rlen, min_bin = min_bin)
+    # grid <- make_grid(bed, fraglen, rlen, min_bin = min_bin)
+    gridFrom0 = seq(from=0, to=chrLen, by=50)
+    grid=gridFrom0
     ngrid <- length(grid)
     gsize <- grid[2] - grid[1]
 
@@ -147,15 +160,22 @@ old coverage con complete grid
         cmat <- window_coverage_old(Fr = fr, Rr = rr, grid = grid, fraglen = fraglen,
                                     rlen = rlen, max_win = max_win, min_win = min_win,
                                     verbose = FALSE)
-        ed.time=Sys.time()
-        message("old Cov time: ", ed.tm-st.tm)
+        ed.tm=Sys.time()
+        message("OLD Cov time: ", ed.tm-st.tm)
         print(dim(cmat))
 
         print(dim(cmat)[1] - dim(runWinMat)[1])
         # message("cor :", cor(runWinMat[-c(1:60260),], cmat))
         # corrplot(cor(runWinMat[-c(1:60260),], cmat))
-
+        for(i in 1:20) 
+        {
+            message("windi ", i, " != 0 ", length(which(as.vector(runWinRleList[[i]]) != 0)))
+            message("cmati ", i, " != 0 ", length(which(cmat[,i] != 0)))
+        }
+        print(cor(as.vector(runWinRleList[[i]]), cmat[,i]))
 ```
+
+Computing old lambdas and Z
 
 ```{r}
             # compute coverage using a 5kb window
@@ -210,7 +230,7 @@ old coverage con complete grid
 
 ```
 
-
+computing new lambdas with run Mean
 
 ```{r}
 computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=50,
@@ -226,24 +246,24 @@ computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=50,
                                                   tilewidth=binWidth,
                                                   cut.last.tile.in.chrom=TRUE)
 
-    # olap <- GenomicAlignments::summarizeOverlaps(features=binnedChromosome,
-    #                                              reads=chrBedGRanges,
-    #                                              ignore.strand=TRUE,
-    #                                              inter.feature=FALSE,
-    #                                              mode="IntersectionNotEmpty")
-    # #
-    # # test the coverages with the old coverages using a small amount of reads
-    # chrCovRle1 <- as(SummarizedExperiment::assays(olap)$counts, "Rle")
+    olap <- GenomicAlignments::summarizeOverlaps(features=binnedChromosome,
+                                                 reads=chrBedGRanges,
+                                                 ignore.strand=TRUE,
+                                                 inter.feature=FALSE,
+                                                 mode="IntersectionNotEmpty")
+    #
+    # test the coverages with the old coverages using a small amount of reads
+    chrCovRle <- as(SummarizedExperiment::assays(olap)$counts, "Rle")
 
-    ## computing coverage per single base on bed
-    chrCoverage <- GenomicRanges::coverage(x=chrBedGRanges)
-    ## computing coverage per each bin on chromosome
-    if(verbose) message("Computing coverage on Chromosome ",
-                        chrBedGRanges@seqnames@values,
-                        " binned by ", binWidth, " bin dimension")
-    chrCovRle <- binnedCovOnly(bins=binnedChromosome,
-                               numvar=chrCoverage,
-                               mcolname="bin_cov")
+    # ## computing coverage per single base on bed
+    # chrCoverage <- GenomicRanges::coverage(x=chrBedGRanges)
+    # ## computing coverage per each bin on chromosome
+    # if(verbose) message("Computing coverage on Chromosome ",
+    #                     chrBedGRanges@seqnames@values,
+    #                     " binned by ", binWidth, " bin dimension")
+    # chrCovRle <- binnedCovOnly(bins=binnedChromosome,
+    #                            numvar=chrCoverage,
+    #                            mcolname="bin_cov")
 
     wins <- minWinWidth:maxWinWidth
     runWinRleList <- IRanges::RleList(
@@ -280,9 +300,10 @@ computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=50,
                           chrLength=chrGRanges@seqinfo@seqlengths,
                           minCount=minCount, binSize=binSize
                           )
-             length(Z[which(Zm > 100, arr.ind=TRUE)])
+             length(Zm[which(Zm > 100, arr.ind=TRUE)])
 ```
 
+computing new lambdas with run sum
 
 ```{r}
 computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=50,
@@ -354,9 +375,6 @@ computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=50,
                           )
             length(Zs[which(Zs > 100, arr.ind=TRUE)])
 ```
-
-
-
 
 
 
