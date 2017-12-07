@@ -1,0 +1,676 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, cache=FALSE)
+devtools::load_all()
+```
+
+
+Summ Overl Running Sum 
+
+```{r}
+
+computeCoverageMovingWindowOnChrSOS <- function(chrBedGRanges, minWinWidth=50,
+                                             maxWinWidth=1000, binWidth=50,
+                                             verbose=TRUE)
+{
+    ## converting base notation to bin notation
+    minWinWidth <- minWinWidth/binWidth
+    maxWinWidth <- maxWinWidth/binWidth
+
+    ## dividing chromosome in bins of binWidth dimention each
+    binnedChromosome <- GenomicRanges::tileGenome(seqlengths=chrBedGRanges@seqinfo,
+                                                  tilewidth=binWidth,
+                                                  cut.last.tile.in.chrom=TRUE)
+
+    olap <- GenomicAlignments::summarizeOverlaps(features=binnedChromosome,
+                                                 reads=chrBedGRanges,
+                                                 ignore.strand=TRUE,
+                                                 inter.feature=FALSE,
+                                                 mode="IntersectionNotEmpty")
+    #
+    # test the coverages with the old coverages using a small amount of reads
+    chrCovRle <- as(SummarizedExperiment::assays(olap)$counts, "Rle")
+
+    ## computing coverage per single base on bed
+    # chrCoverage <- GenomicRanges::coverage(x=chrBedGRanges)
+    # ## computing coverage per each bin on chromosome
+    # if(verbose) message("Computing coverage on Chromosome ",
+    #                     chrBedGRanges@seqnames@values,
+    #                     " binned by ", binWidth, " bin dimension")
+    # chrCovRle <- binnedCovOnly(bins=binnedChromosome,
+    #                            numvar=chrCoverage,
+    #                            mcolname="bin_cov")
+
+    wins <- minWinWidth:maxWinWidth
+    runWinRleList <- IRanges::RleList(
+                        lapply(wins, function(win) {
+                            message("Running window ", win, " of ", maxWinWidth)
+                            floor(evenRunSum(x=chrCovRle, k=win, endrule="constant"))
+                        })
+                     )
+    return(runWinRleList)
+}
+
+
+
+# file="inst/extdata/Bed/P43615_Sample_FC1_Input_fwd_chr19_Smartfilter.bed.zip"
+file="/home/dario/Scrivania/Dropbox/Lavori/WCM/risso_peixoto/coding/DEScan2/inst/extdata/Bed/P43615_Sample_FC1_Input_fwd_chr19_Smartfilter.bed.zip"
+
+chr="chr19"; filetype="bed"; fragmentLength=200;
+binSize=50; minWin=50; maxWin=1000; genomeName="mm9";
+minCompWinWidth=5000; maxCompWinWidth=10000;
+zthresh=5; minCount=0.1; verbose=TRUE; save=FALSE
+onlyStdChrs=TRUE
+
+winVector <- c((minWin/binSize):(maxWin/binSize))
+
+# newPeaks <- findPeaks(files=file, filetype=filetype, genomeName=genomeName, 
+#                       binSize=binSize, minWin=minWin, maxWin=maxWin, zthresh=zthresh,
+#                       minCount=minCount, verbose=verbose,save=FALSE, 
+#                       minCompWinWidth=minCompWinWidth, maxCompWinWidth=maxCompWinWidth,
+#                       fragmentLength=fragmentLength, onlyStdChrs=onlyStdChrs, chr=chr)
+
+
+bedGRanges <- constructBedRanges(filename=file, filetype=filetype,
+                                         genomeName=genomeName,
+                                         onlyStdChrs=onlyStdChrs)
+
+bedGrangesChrsList <- cutGRangesPerChromosome(bedGRanges)
+if(!is.null(chr)) bedGrangesChrsList <- keepRelevantChrs(bedGrangesChrsList, chr)
+chrGRanges = bedGrangesChrsList[[1]]
+
+
+runWinRleList <- computeCoverageMovingWindowOnChrSOS(
+                                           chrBedGRanges=chrGRanges,
+                                           minWinWidth=minWin,
+                                           maxWinWidth=maxWin,
+                                           binWidth=binSize
+                                           )
+minCompRunWinRleList <- computeCoverageMovingWindowOnChrSOS(
+                                        chrBedGRanges=chrGRanges,
+                                        minWinWidth=minCompWinWidth,
+                                        maxWinWidth=minCompWinWidth,
+                                        binWidth=binSize
+                                        )
+maxCompRunWinRleList <- computeCoverageMovingWindowOnChrSOS(
+                                        chrBedGRanges=chrGRanges,
+                                        minWinWidth=maxCompWinWidth,
+                                        maxWinWidth=maxCompWinWidth,
+                                        binWidth=binSize
+                                        )
+## test the lambdas with the old lambdas
+lambdaChrRleList <- computeLambdaOnChr(
+                           chrGRanges=chrGRanges,
+                           winVector=winVector,
+                           minChrRleWComp=minCompRunWinRleList[[1]],
+                           minCompWinWidth=minCompWinWidth,
+                           maxChrRleWComp=maxCompRunWinRleList[[1]],
+                           maxCompWinWidth=maxCompWinWidth
+                           )
+Z <- computeZ(lambdaChrRleList=lambdaChrRleList,
+              runWinRleList=runWinRleList,
+              chrLength=chrGRanges@seqinfo@seqlengths,
+              minCount=minCount, binSize=binSize
+              )
+newS <- get_disjoint_max_win(z0=Z,
+                              sigwin=fragmentLength/binSize,
+                              nmax=Inf, zthresh=zthresh,
+                              two_sided=FALSE, verbose=verbose
+                              )
+chrZRanges <- createGranges(chrSeqInfo=chrGRanges@seqinfo,
+                          starts=as.numeric(rownames(Z)[newS[,1]]),
+                          widths=newS[,2]*binSize,
+                          mcolname="z-score",
+                          mcolvalues=newS[,3]
+                          )
+
+
+
+ZRangesSOS <- sort(chrZRanges)
+saveGRangesAsBed(GRanges=ZRangesSOS, filepath="~/Scrivania", filename="ZRangesSOS", force=TRUE)
+```
+
+Summ Overl Running Mean
+
+```{r}
+
+computeCoverageMovingWindowOnChrSOM <- function(chrBedGRanges, minWinWidth=50,
+                                             maxWinWidth=1000, binWidth=50,
+                                             verbose=TRUE)
+{
+    ## converting base notation to bin notation
+    minWinWidth <- minWinWidth/binWidth
+    maxWinWidth <- maxWinWidth/binWidth
+
+    ## dividing chromosome in bins of binWidth dimention each
+    binnedChromosome <- GenomicRanges::tileGenome(seqlengths=chrBedGRanges@seqinfo,
+                                                  tilewidth=binWidth,
+                                                  cut.last.tile.in.chrom=TRUE)
+
+    olap <- GenomicAlignments::summarizeOverlaps(features=binnedChromosome,
+                                                 reads=chrBedGRanges,
+                                                 ignore.strand=TRUE,
+                                                 inter.feature=FALSE,
+                                                 mode="IntersectionNotEmpty")
+    #
+    # test the coverages with the old coverages using a small amount of reads
+    chrCovRle <- as(SummarizedExperiment::assays(olap)$counts, "Rle")
+
+    ## computing coverage per single base on bed
+    # chrCoverage <- GenomicRanges::coverage(x=chrBedGRanges)
+    # ## computing coverage per each bin on chromosome
+    # if(verbose) message("Computing coverage on Chromosome ",
+    #                     chrBedGRanges@seqnames@values,
+    #                     " binned by ", binWidth, " bin dimension")
+    # chrCovRle <- binnedCovOnly(bins=binnedChromosome,
+    #                            numvar=chrCoverage,
+    #                            mcolname="bin_cov")
+
+    wins <- minWinWidth:maxWinWidth
+    runWinRleList <- IRanges::RleList(
+                        lapply(wins, function(win) {
+                            message("Running window ", win, " of ", maxWinWidth)
+                            floor(evenRunMean(x=chrCovRle, k=win, endrule="constant"))
+                        })
+                     )
+    return(runWinRleList)
+}
+
+
+
+
+# file="inst/extdata/Bed/P43615_Sample_FC1_Input_fwd_chr19_Smartfilter.bed.zip"
+file="/home/dario/Scrivania/Dropbox/Lavori/WCM/risso_peixoto/coding/DEScan2/inst/extdata/Bed/P43615_Sample_FC1_Input_fwd_chr19_Smartfilter.bed.zip"
+
+chr="chr19"; filetype="bed"; fragmentLength=200;
+binSize=50; minWin=50; maxWin=1000; genomeName="mm9";
+minCompWinWidth=5000; maxCompWinWidth=10000;
+zthresh=5; minCount=0.1; verbose=TRUE; save=FALSE
+onlyStdChrs=TRUE
+
+winVector <- c((minWin/binSize):(maxWin/binSize))
+
+# newPeaks <- findPeaks(files=file, filetype=filetype, genomeName=genomeName, 
+#                       binSize=binSize, minWin=minWin, maxWin=maxWin, zthresh=zthresh,
+#                       minCount=minCount, verbose=verbose,save=FALSE, 
+#                       minCompWinWidth=minCompWinWidth, maxCompWinWidth=maxCompWinWidth,
+#                       fragmentLength=fragmentLength, onlyStdChrs=onlyStdChrs, chr=chr)
+
+
+bedGRanges <- constructBedRanges(filename=file, filetype=filetype,
+                                         genomeName=genomeName,
+                                         onlyStdChrs=onlyStdChrs)
+
+bedGrangesChrsList <- cutGRangesPerChromosome(bedGRanges)
+if(!is.null(chr)) bedGrangesChrsList <- keepRelevantChrs(bedGrangesChrsList, chr)
+chrGRanges = bedGrangesChrsList[[1]]
+
+
+runWinRleList <- computeCoverageMovingWindowOnChrSOM(
+                                           chrBedGRanges=chrGRanges,
+                                           minWinWidth=minWin,
+                                           maxWinWidth=maxWin,
+                                           binWidth=binSize
+                                           )
+minCompRunWinRleList <- computeCoverageMovingWindowOnChrSOM(
+                                        chrBedGRanges=chrGRanges,
+                                        minWinWidth=minCompWinWidth,
+                                        maxWinWidth=minCompWinWidth,
+                                        binWidth=binSize
+                                        )
+maxCompRunWinRleList <- computeCoverageMovingWindowOnChrSOM(
+                                        chrBedGRanges=chrGRanges,
+                                        minWinWidth=maxCompWinWidth,
+                                        maxWinWidth=maxCompWinWidth,
+                                        binWidth=binSize
+                                        )
+## test the lambdas with the old lambdas
+lambdaChrRleList <- computeLambdaOnChr(
+                           chrGRanges=chrGRanges,
+                           winVector=winVector,
+                           minChrRleWComp=minCompRunWinRleList[[1]],
+                           minCompWinWidth=minCompWinWidth,
+                           maxChrRleWComp=maxCompRunWinRleList[[1]],
+                           maxCompWinWidth=maxCompWinWidth
+                           )
+Z <- computeZ(lambdaChrRleList=lambdaChrRleList,
+              runWinRleList=runWinRleList,
+              chrLength=chrGRanges@seqinfo@seqlengths,
+              minCount=minCount, binSize=binSize
+              )
+newS <- get_disjoint_max_win(z0=Z,
+                              sigwin=fragmentLength/binSize,
+                              nmax=Inf, zthresh=zthresh,
+                              two_sided=FALSE, verbose=verbose
+                              )
+chrZRanges <- createGranges(chrSeqInfo=chrGRanges@seqinfo,
+                          starts=as.numeric(rownames(Z)[newS[,1]]),
+                          widths=newS[,2]*binSize,
+                          mcolname="z-score",
+                          mcolvalues=newS[,3]
+                          )
+
+
+
+ZRangesSOM <- sort(chrZRanges)
+saveGRangesAsBed(GRanges=ZRangesSOM, filepath="~/Scrivania/", filename="ZRangesSOM")
+```
+
+Binned Coverage Running Sum
+
+```{r}
+
+computeCoverageMovingWindowOnChrBCS <- function(chrBedGRanges, minWinWidth=50,
+                                             maxWinWidth=1000, binWidth=50,
+                                             verbose=TRUE)
+{
+    ## converting base notation to bin notation
+    minWinWidth <- minWinWidth/binWidth
+    maxWinWidth <- maxWinWidth/binWidth
+
+    ## dividing chromosome in bins of binWidth dimention each
+    binnedChromosome <- GenomicRanges::tileGenome(seqlengths=chrBedGRanges@seqinfo,
+                                                  tilewidth=binWidth,
+                                                  cut.last.tile.in.chrom=TRUE)
+
+    # olap <- GenomicAlignments::summarizeOverlaps(features=binnedChromosome,
+    #                                              reads=chrBedGRanges,
+    #                                              ignore.strand=TRUE,
+    #                                              inter.feature=FALSE,
+    #                                              mode="IntersectionNotEmpty")
+    # #
+    # # test the coverages with the old coverages using a small amount of reads
+    # chrCovRle <- as(SummarizedExperiment::assays(olap)$counts, "Rle")
+
+    ## computing coverage per single base on bed
+    chrCoverage <- GenomicRanges::coverage(x=chrBedGRanges)
+    ## computing coverage per each bin on chromosome
+    if(verbose) message("Computing coverage on Chromosome ",
+                        chrBedGRanges@seqnames@values,
+                        " binned by ", binWidth, " bin dimension")
+    chrCovRle <- binnedCovOnly(bins=binnedChromosome,
+                               numvar=chrCoverage,
+                               mcolname="bin_cov")
+
+    wins <- minWinWidth:maxWinWidth
+    runWinRleList <- IRanges::RleList(
+                        lapply(wins, function(win) {
+                            message("Running window ", win, " of ", maxWinWidth)
+                            floor(evenRunSum(x=chrCovRle, k=win, endrule="constant"))
+                        })
+                     )
+    return(runWinRleList)
+}
+
+
+
+# file="inst/extdata/Bed/P43615_Sample_FC1_Input_fwd_chr19_Smartfilter.bed.zip"
+file="/home/dario/Scrivania/Dropbox/Lavori/WCM/risso_peixoto/coding/DEScan2/inst/extdata/Bed/P43615_Sample_FC1_Input_fwd_chr19_Smartfilter.bed.zip"
+
+chr="chr19"; filetype="bed"; fragmentLength=200;
+binSize=50; minWin=50; maxWin=1000; genomeName="mm9";
+minCompWinWidth=5000; maxCompWinWidth=10000;
+zthresh=5; minCount=0.1; verbose=TRUE; save=FALSE
+onlyStdChrs=TRUE
+
+winVector <- c((minWin/binSize):(maxWin/binSize))
+
+# newPeaks <- findPeaks(files=file, filetype=filetype, genomeName=genomeName, 
+#                       binSize=binSize, minWin=minWin, maxWin=maxWin, zthresh=zthresh,
+#                       minCount=minCount, verbose=verbose,save=FALSE, 
+#                       minCompWinWidth=minCompWinWidth, maxCompWinWidth=maxCompWinWidth,
+#                       fragmentLength=fragmentLength, onlyStdChrs=onlyStdChrs, chr=chr)
+
+st.tm=Sys.time()
+bedGRanges <- constructBedRanges(filename=file, filetype=filetype,
+                                         genomeName=genomeName,
+                                         onlyStdChrs=onlyStdChrs)
+
+bedGrangesChrsList <- cutGRangesPerChromosome(bedGRanges)
+if(!is.null(chr)) bedGrangesChrsList <- keepRelevantChrs(bedGrangesChrsList, chr)
+chrGRanges = bedGrangesChrsList[[1]]
+
+
+runWinRleList <- computeCoverageMovingWindowOnChrBCS(
+                                           chrBedGRanges=chrGRanges,
+                                           minWinWidth=minWin,
+                                           maxWinWidth=maxWin,
+                                           binWidth=binSize
+                                           )
+minCompRunWinRleList <- computeCoverageMovingWindowOnChrBCS(
+                                        chrBedGRanges=chrGRanges,
+                                        minWinWidth=minCompWinWidth,
+                                        maxWinWidth=minCompWinWidth,
+                                        binWidth=binSize
+                                        )
+maxCompRunWinRleList <- computeCoverageMovingWindowOnChrBCS(
+                                        chrBedGRanges=chrGRanges,
+                                        minWinWidth=maxCompWinWidth,
+                                        maxWinWidth=maxCompWinWidth,
+                                        binWidth=binSize
+                                        )
+## test the lambdas with the old lambdas
+lambdaChrRleList <- computeLambdaOnChr(
+                           chrGRanges=chrGRanges,
+                           winVector=winVector,
+                           minChrRleWComp=minCompRunWinRleList[[1]],
+                           minCompWinWidth=minCompWinWidth,
+                           maxChrRleWComp=maxCompRunWinRleList[[1]],
+                           maxCompWinWidth=maxCompWinWidth
+                           )
+Z <- computeZ(lambdaChrRleList=lambdaChrRleList,
+              runWinRleList=runWinRleList,
+              chrLength=chrGRanges@seqinfo@seqlengths,
+              minCount=minCount, binSize=binSize
+              )
+newS <- get_disjoint_max_win(z0=Z,
+                              sigwin=fragmentLength/binSize,
+                              nmax=Inf, zthresh=zthresh,
+                              two_sided=FALSE, verbose=verbose
+                              )
+chrZRanges <- createGranges(chrSeqInfo=chrGRanges@seqinfo,
+                          starts=as.numeric(rownames(Z)[newS[,1]]),
+                          widths=newS[,2]*binSize,
+                          mcolname="z-score",
+                          mcolvalues=newS[,3]
+                          )
+
+
+
+ZRangesBCS <- sort(chrZRanges)
+print((Sys.time()-st.tm))
+saveGRangesAsBed(GRanges=ZRangesBCS, filepath="~/Scrivania/", filename="ZRangesBCS")
+```
+
+Binned Coverage Running Mean
+
+```{r}
+
+computeCoverageMovingWindowOnChrBCM <- function(chrBedGRanges, minWinWidth=50,
+                                             maxWinWidth=1000, binWidth=50,
+                                             verbose=TRUE)
+{
+    ## converting base notation to bin notation
+    minWinWidth <- minWinWidth/binWidth
+    maxWinWidth <- maxWinWidth/binWidth
+
+    ## dividing chromosome in bins of binWidth dimention each
+    binnedChromosome <- GenomicRanges::tileGenome(seqlengths=chrBedGRanges@seqinfo,
+                                                  tilewidth=binWidth,
+                                                  cut.last.tile.in.chrom=TRUE)
+
+    # olap <- GenomicAlignments::summarizeOverlaps(features=binnedChromosome,
+    #                                              reads=chrBedGRanges,
+    #                                              ignore.strand=TRUE,
+    #                                              inter.feature=FALSE,
+    #                                              mode="IntersectionNotEmpty")
+    # #
+    # # test the coverages with the old coverages using a small amount of reads
+    # chrCovRle <- as(SummarizedExperiment::assays(olap)$counts, "Rle")
+
+    ## computing coverage per single base on bed
+    chrCoverage <- GenomicRanges::coverage(x=chrBedGRanges)
+    ## computing coverage per each bin on chromosome
+    if(verbose) message("Computing coverage on Chromosome ",
+                        chrBedGRanges@seqnames@values,
+                        " binned by ", binWidth, " bin dimension")
+    chrCovRle <- binnedCovOnly(bins=binnedChromosome,
+                               numvar=chrCoverage,
+                               mcolname="bin_cov")
+
+    wins <- minWinWidth:maxWinWidth
+    runWinRleList <- IRanges::RleList(
+                        lapply(wins, function(win) {
+                            message("Running window ", win, " of ", maxWinWidth)
+                            floor(evenRunMean(x=chrCovRle, k=win, endrule="constant"))
+                        })
+                     )
+    return(runWinRleList)
+}
+
+
+
+# file="inst/extdata/Bed/P43615_Sample_FC1_Input_fwd_chr19_Smartfilter.bed.zip"
+file="/home/dario/Scrivania/Dropbox/Lavori/WCM/risso_peixoto/coding/DEScan2/inst/extdata/Bed/P43615_Sample_FC1_Input_fwd_chr19_Smartfilter.bed.zip"
+
+chr="chr19"; filetype="bed"; fragmentLength=200;
+binSize=50; minWin=50; maxWin=1000; genomeName="mm9";
+minCompWinWidth=5000; maxCompWinWidth=10000;
+zthresh=5; minCount=0.1; verbose=TRUE; save=FALSE
+onlyStdChrs=TRUE
+
+winVector <- c((minWin/binSize):(maxWin/binSize))
+
+# newPeaks <- findPeaks(files=file, filetype=filetype, genomeName=genomeName, 
+#                       binSize=binSize, minWin=minWin, maxWin=maxWin, zthresh=zthresh,
+#                       minCount=minCount, verbose=verbose,save=FALSE, 
+#                       minCompWinWidth=minCompWinWidth, maxCompWinWidth=maxCompWinWidth,
+#                       fragmentLength=fragmentLength, onlyStdChrs=onlyStdChrs, chr=chr)
+
+
+bedGRanges <- constructBedRanges(filename=file, filetype=filetype,
+                                         genomeName=genomeName,
+                                         onlyStdChrs=onlyStdChrs)
+
+bedGrangesChrsList <- cutGRangesPerChromosome(bedGRanges)
+if(!is.null(chr)) bedGrangesChrsList <- keepRelevantChrs(bedGrangesChrsList, chr)
+chrGRanges = bedGrangesChrsList[[1]]
+
+
+runWinRleList <- computeCoverageMovingWindowOnChrBCM(
+                                           chrBedGRanges=chrGRanges,
+                                           minWinWidth=minWin,
+                                           maxWinWidth=maxWin,
+                                           binWidth=binSize
+                                           )
+minCompRunWinRleList <- computeCoverageMovingWindowOnChrBCM(
+                                        chrBedGRanges=chrGRanges,
+                                        minWinWidth=minCompWinWidth,
+                                        maxWinWidth=minCompWinWidth,
+                                        binWidth=binSize
+                                        )
+maxCompRunWinRleList <- computeCoverageMovingWindowOnChrBCM(
+                                        chrBedGRanges=chrGRanges,
+                                        minWinWidth=maxCompWinWidth,
+                                        maxWinWidth=maxCompWinWidth,
+                                        binWidth=binSize
+                                        )
+## test the lambdas with the old lambdas
+lambdaChrRleList <- computeLambdaOnChr(
+                           chrGRanges=chrGRanges,
+                           winVector=winVector,
+                           minChrRleWComp=minCompRunWinRleList[[1]],
+                           minCompWinWidth=minCompWinWidth,
+                           maxChrRleWComp=maxCompRunWinRleList[[1]],
+                           maxCompWinWidth=maxCompWinWidth
+                           )
+Z <- computeZ(lambdaChrRleList=lambdaChrRleList,
+              runWinRleList=runWinRleList,
+              chrLength=chrGRanges@seqinfo@seqlengths,
+              minCount=minCount, binSize=binSize
+              )
+newS <- get_disjoint_max_win(z0=Z,
+                              sigwin=fragmentLength/binSize,
+                              nmax=Inf, zthresh=zthresh,
+                              two_sided=FALSE, verbose=verbose
+                              )
+chrZRanges <- createGranges(chrSeqInfo=chrGRanges@seqinfo,
+                          starts=as.numeric(rownames(Z)[newS[,1]]),
+                          widths=newS[,2]*binSize,
+                          mcolname="z-score",
+                          mcolvalues=newS[,3]
+                          )
+
+
+
+ZRangesBCM <- sort(chrZRanges)
+saveGRangesAsBed(GRanges=ZRangesBCM, filepath="~/Scrivania/", filename="ZRangesBCM")
+```
+
+old Peaks
+
+```{r}
+
+# file="testData/Bed/chr19/P43615_Sample_FC1_Input_fwd_chr19_Smartfilter.bed.zip"
+file="/home/dario/Scrivania/Dropbox/Lavori/WCM/risso_peixoto/coding/DEScan2/inst/extdata/Bed/P43615_Sample_FC1_Input_fwd_chr19_Smartfilter.bed.zip"
+    chr = 19; filetype = "bed"; fraglen = 200;
+    min_win=1;
+    rlen = 100; min_bin = 50; max_win = 20; blocksize = 10000;
+    zthresh = 5; min_count = 0.1; verbose = FALSE; save = FALSE
+    chrLen=bedGRanges@seqinfo@seqlengths
+    
+ 
+        if (is.character(chr) != TRUE) {
+            chr <- paste0("chr", chr)
+        }
+        if (filetype == "bam") {
+            bed <- read_bam(file, chr)
+        }
+        if (filetype == "bed") {
+            if (tools::file_ext(file) == "zip") {
+                tmp <- unzip(file, list = T)$Name
+                file <- unz(file, tmp)
+            }
+            bed <- utils::read.table(file, sep = "\t", header = FALSE)[, c(1:3, 6)]
+            colnames(bed) <- c("seqnames","start","end","strand")
+            bed <- bed[bed[,1] == chr,]
+        }
+
+        # grid = vector of integers describing the start coordinates for each bin
+        # grid <- make_grid(bed, fraglen, rlen, min_bin = min_bin)
+        gridFrom0 = seq(from=0, to=chrLen, by=50)
+        grid=gridFrom0
+        ngrid <- length(grid)
+        gsize <- grid[2] - grid[1]
+
+        fr <- sort(bed[which(bed[, 4] == "+"), 2]) ## only starts
+        rr <- sort(bed[which(bed[, 4] == "-"), 2]) ## only starts
+
+        tot_rds <- length(fr) + length(rr)
+        tot_base <- max(rr[length(rr)], fr[length(fr)]) - min(fr[1], rr[1]) ## max start - min start
+
+        # do analysis blockwise due to memory issues
+        # fill initial block
+        block <- c(1, blocksize + max_win)
+        finalblock <- FALSE
+        s <- matrix(ncol = 3, nrow = 0, data = 0)
+        while (TRUE) {
+            blocksize_i <- blocksize
+            ptm <- proc.time()
+
+            # conditions to stop once as end of grid has been reached
+            if (block[1] > ngrid) break
+            if (block[2] >= ngrid) {
+                block[2] <- min(block[2], ngrid)
+                blocksize_i <- block[2] - block[1] + 1
+                finalblock <- TRUE
+            }
+            if (verbose) {
+                cat("Doing block ", block[1], " to ", block[2], " out of ", ngrid, "\n")
+            }
+            grid0 <- grid[block[1]:block[2]]
+
+            if (verbose) {
+                cat("\tComputing coverage stats...\n")
+            }
+            # cmat = coverage matrix with bins as rows and window sizes as columns
+            cmat <- window_coverage_old(Fr = fr, Rr = rr, grid = grid0, fraglen = fraglen,
+                                    rlen = rlen, max_win = max_win, min_win = min_win,
+                                    verbose = FALSE)
+
+            # Get lambdalocal.
+
+            # compute coverage using a 5kb window
+            headstart <- ceiling(5000 / gsize) * gsize
+            # grid05k <- c(seq(grid0[1] - headstart, grid0[1], by = gsize), grid0)
+            grid05k <-  grid0
+            offset5k <- length(grid05k) - length(grid0)
+            c5k <- window_coverage_old(fr, rr, grid05k, fraglen = fraglen, rlen = rlen,
+                                   max_win = 5000, min_win = 5000, verbose = FALSE)
+            # compute coverage using a 10kb window
+            headstart <- ceiling(10000 / gsize) * gsize
+            # grid010k <- c(seq(grid0[1] - headstart, grid0[1], by = gsize), grid0)
+            grid010k <- grid0
+            offset10k <- length(grid010k) - length(grid0)
+            c10k <- window_coverage_old(fr, rr, grid010k, fraglen = fraglen,
+                                    rlen = rlen, max_win = 10000,
+                                    min_win = 10000, verbose = FALSE)
+            # determine lambda for 5k, 10k windows and baseline
+            lamloc <- matrix(nrow = nrow(cmat), ncol = ncol(cmat), data = 0)
+            lam5k <- matrix(nrow = nrow(cmat), ncol = ncol(cmat), data = 0)
+            lam10k <- matrix(nrow = nrow(cmat), ncol = ncol(cmat), data = 0)
+            lambl <- matrix(nrow = nrow(cmat), ncol = ncol(cmat), data = 0)
+            for (win in min_win:max_win) {
+                # lam5k[, win - min_win + 1] <- c5k[offset5k + c(1:length(grid0)) - floor(win / 2)] * win / 5000
+                # lam10k[, win - min_win + 1] <- c10k[offset10k + c(1:length(grid0)) - floor(win / 2)] * win / 10000
+                lam5k[, win - min_win + 1] <- c5k[c(1:length(grid0))] * win / 5000
+                lam10k[, win - min_win + 1] <- c10k[c(1:length(grid0))] * win / 10000
+                lambl[, win - min_win + 1] <- tot_rds * win / tot_base
+            }
+            lamloc <- pmax(lam5k, lam10k, lambl)
+            # calculate z score for each bin x window combination
+            z <- sqrt(2) * sign(cmat - lamloc) *
+                sqrt(cmat * log(pmax(cmat, min_count) / lamloc) - (cmat - lamloc))
+            if(length(which(z>100)) >0 ) print(z[which(z>100, arr.ind=TRUE)])
+            # find high z scores keeping one with no intersecting other bin/windows
+            new_ss <- get_disjoint_max_win_old(z0 = z[1:blocksize_i, ],
+                                          sigwin = fraglen / gsize, nmax = Inf,
+                                          zthresh = zthresh, two_sided = FALSE,
+                                          verbose = FALSE)
+            # convert new_s bins and width into genomic coordinates and append to s
+            new_s=matrix(nrow=nrow(new_ss), ncol=ncol(new_ss))
+            if (nrow(new_ss) >= 1) {
+                new_s[, 1] <- new_ss[, 1] + block[1] - 1
+                new_s <- cbind(grid[new_ss[, 1, drop = FALSE]],
+                               ## when the window is equal to 1 then the end is equal to the start,
+                               ## but the window should be multiplicated by the binsize
+                               grid[new_ss[, 1, drop = FALSE] + new_ss[, 2, drop = FALSE] - 1],
+                               new_ss[, 3, drop = FALSE])
+                s <- rbind(s, new_s)
+            }
+
+            elapsed <- proc.time() - ptm
+            if (verbose) {
+                cat("\tDone. That took ", format(elapsed[3] / 60, digits = 1),
+                    " minutes.\n")
+            }
+            if (finalblock) break
+
+            # shift block by blocksize and repeat
+            block <- c(block[1] + blocksize_i, block[2] + blocksize_i)
+        }
+
+        peaks <- cbind(rep(chr, dim(s)[1]), s)
+        write.table(x=peaks, file="~/Scrivania/peaks.bed", append=FALSE, quote=FALSE, sep="\t", row.names=FALSE, col.names=TRUE)
+```
+
+
+```{r}
+mm=matrix(ncol=5, nrow=max(dim(peaks)[1], length(ZRangesBCM), length(ZRangesBCS), length(ZRangesSOM), length(ZRangesSOS)), data=NA)
+
+mm[,1]=c( as.numeric(peaks[,4]), rep.int(NA, times=(dim(mm)[1]-dim(peaks)[1])) )
+mm[,2]=c( ZRangesBCM$`z-score`, rep.int(NA, times=(dim(mm)[1]-length(ZRangesBCM))) )
+mm[,3]=c( ZRangesBCS$`z-score`, rep.int(NA, times=(dim(mm)[1]-length(ZRangesBCS))) )
+mm[,4]=c( ZRangesSOS$`z-score`, rep.int(NA, times=(dim(mm)[1]-length(ZRangesSOS))) )
+mm[,5]=c( ZRangesSOM$`z-score`, rep.int(NA, times=(dim(mm)[1]-length(ZRangesSOM))) )
+
+values=c(as.numeric(peaks[,4]), ZRangesBCM$`z-score`, ZRangesBCS$`z-score`, ZRangesSOS$`z-score`, ZRangesSOM$`z-score`)
+peaks=c(
+    rep("old_peaks", times=dim(peaks)[1]),
+    rep("ZRangesBCM", times=length(ZRangesBCM)),
+    rep("ZRangesBCS", times=length(ZRangesBCS)),
+    rep("ZRangesSOS", times=length(ZRangesSOS)),
+    rep("ZRangesSOM", times=length(ZRangesSOM))
+) 
+
+df=cbind(values, peaks)
+
+library(ggplot2)
+ggplot(df, aes_string(values, colour = peaks)) + geom_density()
+
+```
+

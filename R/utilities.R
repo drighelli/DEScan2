@@ -140,7 +140,7 @@ saveGRangesAsBed <- function(GRanges, filepath, filename, force=FALSE)
     stopifnot(is(GRanges, "GRanges"))
     ## add some parameters
     dir.create(path=filepath, showWarnings=FALSE, recursive=TRUE)
-    filePathName <- file.path(filepath, paste0(filename))
+    filePathName <- file.path(filepath, paste0(filename, ".bed"))
 
     if(file.exists(filePathName)) {
         if(!force)
@@ -157,12 +157,12 @@ saveGRangesAsBed <- function(GRanges, filepath, filename, force=FALSE)
     GRanges <- GenomeInfoDb::sortSeqlevels(GRanges)
     GRanges <- sort(GRanges)
 
-    if( length(S4Vectors::mcols(GRanges) %in% "z-score") > 0 )
-        if( length(S4Vectors::mcols(GRanges) %in% "score") == 0 )
+    if(length(which(colnames(S4Vectors::mcols(GRanges)) %in% "z-score")) > 0)
+        if(length(which(colnames(S4Vectors::mcols(GRanges)) %in% "score")) == 0)
             S4Vectors::mcols(GRanges)$score <- S4Vectors::mcols(GRanges)$`z-score`
 
-    rtracklayer::export.bed(object=GRanges, con=paste0(filePathName, ".bed"))
-    message("file ", filePathName, ".bed written on disk!")
+    rtracklayer::export.bed(object=GRanges, con=filePathName)
+    message("file ", filePathName, " written on disk!")
     # save(GRanges, file=paste0(filePathName, ".RData"))
 }
 
@@ -227,6 +227,18 @@ createGranges <- function(chrSeqInfo, starts, widths,
                           mcolname=NULL, mcolvalues=NULL) {
     stopifnot(is(chrSeqInfo, "Seqinfo"))
     stopifnot(identical(length(starts), length(widths)))
+
+    maxlengths <- starts+widths
+    idxm <- which(maxlengths > chrSeqInfo@seqlengths)
+    if( (length(idxm) > 0) && (!chrSeqInfo@is_circular) )
+    {
+        warning("GRanges object contains ", length(idxm), " out-of-bound range",
+                " located on sequence ",  chrSeqInfo@seqnames, ".",
+                " A non-circular sequence!",
+                "\nTrimming out-of-bound range to the admitted seqlength."
+                )
+        widths[idxm] <- chrSeqInfo@seqlengths - starts[idxm]
+    }
 
     gr <- GenomicRanges::GRanges(seqnames=as.character(chrSeqInfo@seqnames),
                                  ranges=IRanges::IRanges(start=starts, width=widths),
