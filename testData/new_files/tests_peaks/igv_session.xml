@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Session genome="mm9" hasGeneTrack="true" hasSequenceTrack="true" locus="chr19:3223628-3244165" path="/home/dario/Scrivania/Dropbox/Lavori/WCM/risso_peixoto/coding/DEScan2/testData/new_files/tests_peaks/igv_session.xml" version="8">
+    <Resources>
+        <Resource path="/home/dario/Scrivania/Dropbox/Lavori/WCM/risso_peixoto/coding/DEScan2/testData/new_files/tests_peaks/ZRangesBCM.bed"/>
+        <Resource path="/home/dario/Scrivania/Dropbox/Lavori/WCM/risso_peixoto/coding/DEScan2/testData/new_files/tests_peaks/ZRangesSOM.bed"/>
+        <Resource path="/home/dario/Scrivania/Dropbox/Lavori/WCM/risso_peixoto/coding/DEScan2/testData/bams/P43615_Sample_FC1_Input_fwd_chr19_Smartfilter.bam"/>
+        <Resource path="/home/dario/Scrivania/Dropbox/Lavori/WCM/risso_peixoto/coding/DEScan2/testData/new_files/tests_peaks/ZRangesBCS.bed"/>
+        <Resource path="/home/dario/Scrivania/Dropbox/Lavori/WCM/risso_peixoto/coding/DEScan2/testData/new_files/tests_peaks/peaks.bed"/>
+        <Resource path="/home/dario/Scrivania/Dropbox/Lavori/WCM/risso_peixoto/coding/DEScan2/testData/new_files/tests_peaks/ZRangesSOS.bed"/>
+    </Resources>
+    <Panel height="2928" name="Panel1512685033363" width="1131">
+        <Track altColor="0,0,178" autoScale="true" color="175,175,175" colorScale="ContinuousColorScale;0.0;10.0;255,255,255;175,175,175" displayMode="COLLAPSED" featureVisibilityWindow="-1" fontSize="10" id="/home/dario/Scrivania/Dropbox/Lavori/WCM/risso_peixoto/coding/DEScan2/testData/bams/P43615_Sample_FC1_Input_fwd_chr19_Smartfilter.bam_coverage" name="P43615_Sample_FC1_Input_fwd_chr19_Smartfilter.bam Coverage" showReference="false" snpThreshold="0.2" sortable="true" visible="true">
+            <DataRange baseline="0.0" drawBaseline="true" flipAxis="false" maximum="39.0" minimum="0.0" type="LINEAR"/>
+        </Track>
+        <Track altColor="0,0,178" autoScale="false" clazz="org.broad.igv.track.FeatureTrack" color="0,0,178" displayMode="COLLAPSED" featureVisibilityWindow="-1" fontSize="10" height="60" id="/home/dario/Scrivania/Dropbox/Lavori/WCM/risso_peixoto/coding/DEScan2/testData/bams/P43615_Sample_FC1_Input_fwd_chr19_Smartfilter.bam_junctions" name="P43615_Sample_FC1_Input_fwd_chr19_Smartfilter.bam Junctions" sortable="false" visible="false" windowFunction="count">
+            <DataRange baseline="0.0" drawBaseline="true" flipAxis="false" maximum="60.0" minimum="0.0" type="LINEAR"/>
+        </Track>
+        <Track altColor="0,0,178" autoScale="false" color="0,0,178" displayMode="EXPANDED" featureVisibilityWindow="-1" fontSize="10" id="/home/dario/Scrivania/Dropbox/Lavori/WCM/risso_peixoto/coding/DEScan2/testData/bams/P43615_Sample_FC1_Input_fwd_chr19_Smartfilter.bam" name="P43615_Sample_FC1_Input_fwd_chr19_Smartfilter.bam" sortable="true" visible="true">
+            <RenderOptions/>
+        </Track>
+    </Panel>
+    <Panel height="352" name="FeaturePanel" width="1131">
+        <Track altColor="0,0,178" autoScale="false" color="0,0,178" displayMode="COLLAPSED" featureVisibilityWindow="-1" fontSize="10" id="Reference sequence" name="Reference sequence" sortable="false" visible="true"/>
+        <Track altColor="0,0,178" autoScale="false" clazz="org.broad.igv.track.FeatureTrack" color="0,0,178" colorScale="ContinuousColorScale;0.0;292.0;255,255,255;0,0,178" displayMode="COLLAPSED" featureVisibilityWindow="-1" fontSize="10" height="35" id="mm9_genes" name="Refseq genes" renderer="BASIC_FEATURE" sortable="false" visible="true" windowFunction="count">
+            <DataRange baseline="0.0" drawBaseline="true" flipAxis="false" maximum="292.0" minimum="0.0" type="LINEAR"/>
+        </Track>
+        <Track altColor="0,0,178" autoScale="false" clazz="org.broad.igv.track.FeatureTrack" color="0,0,178" colorScale="ContinuousColorScale;0.0;0.0;255,255,255;0,0,178" displayMode="COLLAPSED" featureVisibilityWindow="-1" fontSize="10" id="/home/dario/Scrivania/Dropbox/Lavori/WCM/risso_peixoto/coding/DEScan2/testData/new_files/tests_peaks/ZRangesBCM.bed" name="ZRangesBCM.bed" renderer="BASIC_FEATURE" sortable="false" visible="true" windowFunction="count">
+            <DataRange baseline="0.0" drawBaseline="true" flipAxis="false" maximum="0.0" minimum="0.0" type="LINEAR"/>
+        </Track>
+        <Track altColor="0,0,178" autoScale="false" clazz="org.broad.igv.track.FeatureTrack" color="0,0,178" colorScale="ContinuousColorScale;0.0;0.0;255,255,255;0,0,178" displayMode="COLLAPSED" featureVisibilityWindow="-1" fontSize="10" id="/home/dario/Scrivania/Dropbox/Lavori/WCM/risso_peixoto/coding/DEScan2/testData/new_files/tests_peaks/ZRangesBCS.bed" name="ZRangesBCS.bed" renderer="BASIC_FEATURE" sortable="false" visible="true" windowFunction="count">
+            <DataRange baseline="0.0" drawBaseline="true" flipAxis="false" maximum="0.0" minimum="0.0" type="LINEAR"/>
+        </Track>
+        <Track altColor="0,0,178" autoScale="false" clazz="org.broad.igv.track.FeatureTrack" color="0,0,178" colorScale="ContinuousColorScale;0.0;0.0;255,255,255;0,0,178" displayMode="COLLAPSED" featureVisibilityWindow="-1" fontSize="10" id="/home/dario/Scrivania/Dropbox/Lavori/WCM/risso_peixoto/coding/DEScan2/testData/new_files/tests_peaks/ZRangesSOM.bed" name="ZRangesSOM.bed" renderer="BASIC_FEATURE" sortable="false" visible="true" windowFunction="count">
+            <DataRange baseline="0.0" drawBaseline="true" flipAxis="false" maximum="0.0" minimum="0.0" type="LINEAR"/>
+        </Track>
+        <Track altColor="0,0,178" autoScale="false" clazz="org.broad.igv.track.FeatureTrack" color="0,0,178" colorScale="ContinuousColorScale;0.0;0.0;255,255,255;0,0,178" displayMode="COLLAPSED" featureVisibilityWindow="-1" fontSize="10" id="/home/dario/Scrivania/Dropbox/Lavori/WCM/risso_peixoto/coding/DEScan2/testData/new_files/tests_peaks/ZRangesSOS.bed" name="ZRangesSOS.bed" renderer="BASIC_FEATURE" sortable="false" visible="true" windowFunction="count">
+            <DataRange baseline="0.0" drawBaseline="true" flipAxis="false" maximum="0.0" minimum="0.0" type="LINEAR"/>
+        </Track>
+        <Track altColor="0,0,178" autoScale="false" clazz="org.broad.igv.track.FeatureTrack" color="0,0,178" displayMode="COLLAPSED" featureVisibilityWindow="-1" fontSize="10" id="/home/dario/Scrivania/Dropbox/Lavori/WCM/risso_peixoto/coding/DEScan2/testData/new_files/tests_peaks/peaks.bed" name="peaks.bed" renderer="BASIC_FEATURE" sortable="false" visible="true" windowFunction="count"/>
+    </Panel>
+    <PanelLayout dividerFractions="0.010186757215619695,0.3938879456706282"/>
+    <HiddenAttributes>
+        <Attribute name="DATA FILE"/>
+        <Attribute name="DATA TYPE"/>
+        <Attribute name="NAME"/>
+    </HiddenAttributes>
+</Session>

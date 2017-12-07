@@ -645,7 +645,13 @@ file="/home/dario/Scrivania/Dropbox/Lavori/WCM/risso_peixoto/coding/DEScan2/inst
         }
 
         peaks <- cbind(rep(chr, dim(s)[1]), s)
-        write.table(x=peaks, file="~/Scrivania/peaks.bed", append=FALSE, quote=FALSE, sep="\t", row.names=FALSE, col.names=TRUE)
+        #### not working
+        # write.table(x=peaks, file="~/Scrivania/peaks.bed", append=FALSE, quote=FALSE, sep="\t", row.names=FALSE, col.names=TRUE)
+        load("./testData/Peaks/chr19/Peaks_P43615_Sample_FC1_Input_fwd_chr19_Smartfilter.RData")
+        peaksgr <- createGranges(chrSeqInfo=ZRangesBCM@seqinfo, starts=as.numeric(peaks[,2]), widths=(as.numeric(peaks[,3])-as.numeric(peaks[,2])+1) , mcolname='z-score',
+                                 mcolvalues=as.numeric(peaks[,4]))
+        
+        saveGRangesAsBed(peaksgr, filepath="~/Scrivania", filename="peaks", force=TRUE)
 ```
 
 
@@ -667,10 +673,10 @@ peaks=c(
     rep("ZRangesSOM", times=length(ZRangesSOM))
 ) 
 
-df=cbind(values, peaks)
+df=as.data.frame(cbind(values, peaks))
 
-library(ggplot2)
-ggplot(df, aes_string(values, colour = peaks)) + geom_density()
+# library(ggplot2)
+ggplot2::ggplot(df, ggplot2::aes_string("values", colour = "peaks")) + ggplot2::geom_density()
 
 ```
 
