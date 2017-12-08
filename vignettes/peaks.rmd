@@ -617,7 +617,7 @@ file="/home/dario/Scrivania/Dropbox/Lavori/WCM/risso_peixoto/coding/DEScan2/inst
                 sqrt(cmat * log(pmax(cmat, min_count) / lamloc) - (cmat - lamloc))
             if(length(which(z>100)) >0 ) print(z[which(z>100, arr.ind=TRUE)])
             # find high z scores keeping one with no intersecting other bin/windows
-            new_ss <- get_disjoint_max_win_old(z0 = z[1:blocksize_i, ],
+            new_ss <- get_disjoint_max_win_old(z0 = z,
                                           sigwin = fraglen / gsize, nmax = Inf,
                                           zthresh = zthresh, two_sided = FALSE,
                                           verbose = FALSE)

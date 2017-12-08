@@ -229,7 +229,7 @@ createGranges <- function(chrSeqInfo, starts, widths,
     stopifnot(identical(length(starts), length(widths)))
 
     maxlengths <- starts+widths
-    idxm <- which(maxlengths > chrSeqInfo@seqlengths)
+    idxm <- which(maxlengths >= chrSeqInfo@seqlengths)
     if( (length(idxm) > 0) && (!chrSeqInfo@is_circular) )
     {
         warning("GRanges object contains ", length(idxm), " out-of-bound range",
