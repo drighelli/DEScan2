@@ -46,30 +46,49 @@ test_that("Test if the new findPeaks is consistent with the older one", {
 
 test_that("Test if new findPeaks works", {
     # file="/home/dario/SRR3595211_sorted.bam"
-    bam.path <- system.file("extdata/Bam/chr19", package = "DEScan")
-    bam.files <- list.files(bam.path, full.names = TRUE, pattern="bam")
-    bam.files<- bam.files[-grep(pattern="bai", x=bam.files)]
-    file <- bam.files[1]
+    # bam.path <- system.file("extdata/Bam/chr19", package = "DEScan")
+    # bam.files <- list.files(bam.path, full.names = TRUE, pattern="bam")
+    # bam.files<- bam.files[-grep(pattern="bai", x=bam.files)]
+    # file <- bam.files[1]
+    #
+    # binSize=50; minWin=1; maxWin=20;
+    # zthresh=5; minCount=0.1;
+    # minCompWinWidth=5000;
+    # maxCompWinWidth=10000;
+    # outputName="Peaks"; save=TRUE; verbose=FALSE;
+    # fragmentLength=200;
+    # onlyStdChrs=TRUE
+    # chr=NULL
+    # filetype="bam"
+    #
+    # peaks12 <- DEScan::findPeaks(files=bam.files[c(1:2)],
+    #                     filetype=filetype,
+    #                     binSize=binSize,
+    #                     minWin=minWin, maxWin=maxWin,
+    #                     zthresh=zthresh, minCount=minCount,
+    #                     minCompWinWidth=minCompWinWidth,
+    #                     maxCompWinWidth=maxCompWinWidth,
+    #                     outputName="Peaks", save=FALSE, verbose=FALSE,
+    #                     fragmentLength=fragmentLength)
+    # saveRDS(peaks12, "peaks12.rds")
 
-    binSize=50; minWin=1; maxWin=20;
-    zthresh=5; minCount=0.1;
-    minCompWinWidth=5000;
-    maxCompWinWidth=10000;
-    outputName="Peaks"; save=TRUE; verbose=FALSE;
-    fragmentLength=200;
-    onlyStdChrs=TRUE
-    chr=NULL
-    filetype="bam"
+})
 
-    peaks12 <- DEScan::findPeaks(files=bam.files[c(1:2)],
-                        filetype=filetype,
-                        binSize=binSize,
-                        minWin=minWin, maxWin=maxWin,
-                        zthresh=zthresh, minCount=minCount,
-                        minCompWinWidth=minCompWinWidth,
-                        maxCompWinWidth=maxCompWinWidth,
-                        outputName="Peaks", save=FALSE, verbose=FALSE,
-                        fragmentLength=fragmentLength)
-    saveRDS(peaks12, "peaks12.rds")
+test_that("Test disjoint function R & C", {
+    zzz <- readRDS("testData/z/z_matrix.rds")
+    sigw=4
+    zthr=5
+    nmax=Inf
+    verb=TRUE
+    cTime <- system.time({
+        smatC <- c_get_disjoint_max_win(z0=zzz, sigwin=sigw, zthresh=zthr,
+                                               nmax=nmax, verbose=verb)
+    })
+    rTime <- system.time({
+        smatR <- get_disjoint_max_win(z0=zzz, sigwin=sigw, zthresh=zthr,
+                                      nmax=nmax, verbose=verb)
+    })
+    message("cTime (mins): ", cTime/60, " rTime (mins): ", rTime/60)
 
+    expect_identical(smatC, smatR)
 })
