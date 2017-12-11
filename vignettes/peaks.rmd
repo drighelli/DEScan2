@@ -142,3 +142,63 @@ ZRangesBCM4 <- sort(chrZRanges)
 saveGRangesAsBed(GRanges=ZRangesBCM4, filepath="~/Scrivania", filename="ZRangesZ10S20", force=TRUE)
 ```
 
+Z 10 S 5
+```{R}
+zthreshold=10
+sigwin=5 ## 200/50
+newS <- c_get_disjoint_max_win(z0=Z,
+                              sigwin=sigwin,
+                              zthresh=zthreshold,
+                              verbose=verbose
+                              )
+chrZRanges <- createGranges(chrSeqInfo=chrGRanges@seqinfo,
+                          starts=as.numeric(rownames(Z)[newS[,1]]),
+                          widths=newS[,2]*binSize,
+                          mcolname="z-score",
+                          mcolvalues=newS[,3]
+                          )
+ZRangesBCM4 <- sort(chrZRanges)
+saveGRangesAsBed(GRanges=ZRangesBCM4, filepath="~/Scrivania", filename="ZRangesZ10S5", force=TRUE)
+```
+
+
+
+Z 10 S 10
+```{R}
+zthreshold=10
+sigwin=10 ## 200/50
+newS <- c_get_disjoint_max_win(z0=Z,
+                              sigwin=sigwin,
+                              zthresh=zthreshold,
+                              verbose=verbose
+                              )
+chrZRanges <- createGranges(chrSeqInfo=chrGRanges@seqinfo,
+                          starts=as.numeric(rownames(Z)[newS[,1]]),
+                          widths=newS[,2]*binSize,
+                          mcolname="z-score",
+                          mcolvalues=newS[,3]
+                          )
+ZRangesBCM4 <- sort(chrZRanges)
+saveGRangesAsBed(GRanges=ZRangesBCM4, filepath="~/Scrivania", filename="ZRangesZ10S10", force=TRUE)
+```
+
+
+
+Z 10 S 15
+```{R}
+zthreshold=10
+sigwin=15 ## 200/50
+newS <- c_get_disjoint_max_win(z0=Z,
+                              sigwin=sigwin,
+                              zthresh=zthreshold,
+                              verbose=verbose
+                              )
+chrZRanges <- createGranges(chrSeqInfo=chrGRanges@seqinfo,
+                          starts=as.numeric(rownames(Z)[newS[,1]]),
+                          widths=newS[,2]*binSize,
+                          mcolname="z-score",
+                          mcolvalues=newS[,3]
+                          )
+ZRangesBCM4 <- sort(chrZRanges)
+saveGRangesAsBed(GRanges=ZRangesBCM4, filepath="~/Scrivania", filename="ZRangesZ10S15", force=TRUE)
+```
