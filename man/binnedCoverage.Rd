@@ -32,16 +32,14 @@ chromosome, starting from a per base computed coverage.
 }
 \examples{
 ## dividing one chromosome in bins of 50 bp each
-seqinfo <- GenomeInfoDb::Seqinfo("mm9")
-bins <- GenomicRanges::tileGenome(seqlengths=seqinfo@chr1,
+seqinfo <- GenomeInfoDb::Seqinfo(genome="mm9")
+bins <- GenomicRanges::tileGenome(seqlengths=GenomeInfoDb::seqlengths(seqinfo)[1],
                                              tilewidth=50,
                                              cut.last.tile.in.chrom=TRUE)
-gr <- GenomicRanges::GRanges(seqnames = Rle("Chr1", 100),
-ranges <- IRanges::IRanges(start = seq(from=10, to=1000, by=10),
-end <- seq(from=20, to=1010, by = 10)))
-## computing coverage per single base on granges
+gr <- GenomicRanges::GRanges(seqnames = S4Vectors::Rle("chr1", 100),
+                ranges=IRanges::IRanges(start = seq(from=10, to=1000, by=10),
+                end=seq(from=20, to=1010, by = 10)))
 cov <- GenomicRanges::coverage(x=gr)
-
 (binnedMaxCovGR <- binnedCoverage(bins, cov, "binned_cov"))
 (binnedMeanCovGR <- binnedCoverage(bins, cov, "binned_cov",
                                    covMethod="mean", roundingMethod="floor"))

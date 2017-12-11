@@ -16,8 +16,7 @@ constructBedRanges(filename, filetype = c("bam", "bed"), genomeName = NULL,
 N.B. if NOT NULL the GRanges Seqinfo will be forced to
 genomeName Seqinfo}
 
-\item{onlySrdChrs}{a flag to keep only standard chromosomes from the input
-files.}
+\item{onlyStdChrs}{flag to keep only standard chromosome}
 }
 \value{
 a GRanges object

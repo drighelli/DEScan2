@@ -18,7 +18,7 @@
 #' @export
 #' @importFrom GenomicAlignments summarizeOverlaps
 #' @importFrom SummarizedExperiment assay
-#' @examples TBW
+# @examples TBW
 countFinalRegions <- function(regionsGRanges, readsFilePath=NULL,
                               fileType=c("bam", "bed"),
                               minCarriers=2,

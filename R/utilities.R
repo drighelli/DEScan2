@@ -56,9 +56,7 @@ readBedFile <- function(filename) {
 #' @param genomeName the name of the genome used to map the reads (i.e. mm9)
 #'                   N.B. if NOT NULL the GRanges Seqinfo will be forced to
 #'                   genomeName Seqinfo
-#' @param onlySrdChrs a flag to keep only standard chromosomes from the input
-#'                    files.
-#'
+#' @param onlyStdChrs flag to keep only standard chromosome
 #' @return a GRanges object
 #' @keywords internal
 #' @importFrom GenomeInfoDb keepStandardChromosomes seqinfo Seqinfo
@@ -180,11 +178,11 @@ saveGRangesAsBed <- function(GRanges, filepath, filename, force=FALSE)
 #' library("DelayedArray")
 #' lengths <-  c(3, 1, 2)
 #' values <- c(15, 5, 20)
-#' el1 <- Rle(values=values, lengths=lengths)
+#' el1 <- S4Vectors::Rle(values=values, lengths=lengths)
 #'
-#' el2 <- Rle(values=sort(values), lengths=lengths)
+#' el2 <- S4Vectors::Rle(values=sort(values), lengths=lengths)
 #'
-#' rleList <- RleList(el1, el2)
+#' rleList <- IRanges::RleList(el1, el2)
 #' names(rleList) <- c("one", "two")
 #' (rleMat <- RleListToRleMatrix(rleList))
 RleListToRleMatrix <- function(RleList, dimnames=NULL)
@@ -309,8 +307,7 @@ cutGRangesPerChromosome <- function(GRanges)
 #' keepRelevantChrs
 #' @description  subselect a list of GRanges created with
 #' cutGRangesPerChromosome returning only the relevant chromosomes GRanges
-#'
-#' @param GRangesList where each element is a chromosome,
+#' @param chrGRangesList where each element is a chromosome,
 #'                    tipically created with cutGRangesPerChromosome
 #' @param chr a character vector of chromosomes names of the form "chr#"
 #'

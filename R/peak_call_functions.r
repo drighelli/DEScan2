@@ -120,10 +120,10 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
                           chrLength=chrGRanges@seqinfo@seqlengths,
                           minCount=minCount, binSize=binSize
                           )
-            newS <- get_disjoint_max_win(z0=Z,
+            newS <- c_get_disjoint_max_win(z0=Z,
                                           sigwin=fragmentLength/binSize,
                                           nmax=Inf, zthresh=zthresh,
-                                          two_sided=FALSE, verbose=verbose
+                                          verbose=verbose
                                           )
             chrZRanges <- createGranges(chrSeqInfo=chrGRanges@seqinfo,
                                       starts=as.numeric(rownames(Z)[newS[,1]]),
@@ -204,6 +204,33 @@ computeZ <- function(lambdaChrRleList, runWinRleList, chrLength,
 }
 
 
+#' c_get_disjoint_max_win
+#' @description just a wrapper for the C function. Useful to modify indexes and
+#' colnames
+#'
+#' @param z0 the z matrix
+#' @param sigwin the sigwin
+#' @param nmax the nmax
+#' @param zthresh peaks lower than this value will not be kept
+#' @param verbose verbose flag
+#'
+#' @return a matrix
+#' @keywords internal
+c_get_disjoint_max_win <- function(z0, sigwin=20, nmax=9999999,
+                                   zthresh=-9999999, verbose=FALSE)
+{
+    m <- rcpparma_get_disjoint_max_win(z0=z0,
+                                       sigwin=sigwin,
+                                       zthresh = zthresh,
+                                       nmax=nmax,
+                                       verbose=verbose)
+    ## changing indexes to R style
+    m[,1] <- m[,1]+1
+    m[,2] <- m[,2]+1
+    colnames(m) <- c("bin", "window", "z")
+    return(m)
+}
+
 #' get_disjoint_max_win
 #' @description find significant z score windows keeping the max value
 #' without intersections
@@ -243,13 +270,18 @@ get_disjoint_max_win <- function(z0, sigwin=20, nmax=Inf,
 
         s <- rbind(s, c(t, w, z0[t, w]))
         if(verbose)
-            if((i %% 100) == 0)
+        {
+            if((i %% 100) == 0){
                 message("Maximizing window: ", t, ",", w, " Score=", z0[t, w], "\n")
+            }
+        }
+
         i=i+1
 
 
         st <- max(1, t - sigwin - maxwin + 1)
         ed <- min(t + w + sigwin - 1, nrow(z0))
+        # message("st: ", st, " ed: ", ed, "\n")
         z0[st:ed, ] <- -Inf
 
         if (nrow(s) >= nmax) break
@@ -411,16 +443,15 @@ computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=50,
 #' @importFrom IRanges ranges Views viewSums viewMaxs viewMeans viewMins
 #' @examples
 #' ## dividing one chromosome in bins of 50 bp each
-#' seqinfo <- GenomeInfoDb::Seqinfo("mm9")
-#' bins <- GenomicRanges::tileGenome(seqlengths=seqinfo@chr1,
+#' seqinfo <- GenomeInfoDb::Seqinfo(genome="mm9")
+#' bins <- GenomicRanges::tileGenome(seqlengths=GenomeInfoDb::seqlengths(seqinfo)[1],
 #'                                              tilewidth=50,
 #'                                              cut.last.tile.in.chrom=TRUE)
-#' gr <- GenomicRanges::GRanges(seqnames = Rle("Chr1", 100),
-#' ranges <- IRanges::IRanges(start = seq(from=10, to=1000, by=10),
-#' end <- seq(from=20, to=1010, by = 10)))
-#' ## computing coverage per single base on granges
+#' gr <- GenomicRanges::GRanges(seqnames = S4Vectors::Rle("chr1", 100),
+#'                 ranges=IRanges::IRanges(start = seq(from=10, to=1000, by=10),
+#'                 end=seq(from=20, to=1010, by = 10)))
+## computing coverage per single base on granges
 #' cov <- GenomicRanges::coverage(x=gr)
-#'
 #' (binnedMaxCovGR <- binnedCoverage(bins, cov, "binned_cov"))
 #' (binnedMeanCovGR <- binnedCoverage(bins, cov, "binned_cov",
 #'                                    covMethod="mean", roundingMethod="floor"))

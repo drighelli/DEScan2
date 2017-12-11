@@ -35,6 +35,3 @@ Matrix containing read counts with regions as rows and samples as
 \description{
 count reads falling within the final regions.
 }
-\examples{
-TBW
-}

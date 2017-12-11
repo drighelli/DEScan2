@@ -1,4 +1,4 @@
 library("testthat")
-library("DEScan")
+library("DEScan2")
 
-test_check("DEScan")
+# test_check("DEScan2")

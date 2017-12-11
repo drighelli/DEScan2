@@ -7,10 +7,10 @@
 keepRelevantChrs(chrGRangesList, chr = NULL)
 }
 \arguments{
-\item{chr}{a character vector of chromosomes names of the form "chr#"}
-
-\item{GRangesList}{where each element is a chromosome,
+\item{chrGRangesList}{where each element is a chromosome,
 tipically created with cutGRangesPerChromosome}
+
+\item{chr}{a character vector of chromosomes names of the form "chr#"}
 }
 \value{
 the input chrGRangesList with only the relevat chromosomes

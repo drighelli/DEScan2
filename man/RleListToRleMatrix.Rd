@@ -21,11 +21,11 @@ a wrapper to create a RleMatrix from a RleList object
 library("DelayedArray")
 lengths <-  c(3, 1, 2)
 values <- c(15, 5, 20)
-el1 <- Rle(values=values, lengths=lengths)
+el1 <- S4Vectors::Rle(values=values, lengths=lengths)
 
-el2 <- Rle(values=sort(values), lengths=lengths)
+el2 <- S4Vectors::Rle(values=sort(values), lengths=lengths)
 
-rleList <- RleList(el1, el2)
+rleList <- IRanges::RleList(el1, el2)
 names(rleList) <- c("one", "two")
 (rleMat <- RleListToRleMatrix(rleList))
 }
