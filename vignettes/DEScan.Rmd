@@ -84,7 +84,7 @@ Parameter description:
 **chr** if not NULL, a character like "chr#" indicating the chromosomes to use
 
 ```{r findPeaks, cache=TRUE, eval=TRUE}
-peaks <- findPeaks(files=bam.files[1], chr="chr19", filetype="bam", fragmentLength=200,
+peaks <- findPeaks(files=bam.files, chr="chr19", filetype="bam", fragmentLength=200,
                    binSize=50, minWin=50, maxWin=1000, genomeName="mm9",
                    minCompWinWidth=5000, maxCompWinWidth=10000,
                    zthresh=5, minCount=0.1, verbose=FALSE, save=FALSE)
@@ -106,7 +106,7 @@ Parameter description:
 :  Format of the output (bed or RData), default bed
 
 ```{r finalRegions, cache=TRUE, eval=TRUE, message=FALSE}
-peak.path <- system.file("extdata/Peaks", package = "DEScan")
+# peak.path <- system.file("extdata/Peaks", package = "DEScan")
 
 regions <- finalRegions(peakSamplesGRangesList=peaks,
                         zThreshold=20, minCarriers=4, 

@@ -8,8 +8,8 @@
 #' @importFrom GenomicRanges granges
 #' @importFrom GenomicAlignments readGAlignments
 #' @importFrom GenomeInfoDb seqlevelsStyle
-readBamAsBed <- function(file) {
-    message("processing ", file)
+readBamAsBed <- function(file)
+{
     ga <- GenomicAlignments::readGAlignments(file, index=file)
     gr <- GenomicRanges::granges(x = ga)
     GenomeInfoDb::seqlevelsStyle(gr) <- "UCSC"
@@ -30,7 +30,8 @@ readBamAsBed <- function(file) {
 #' @importFrom GenomicRanges GRanges
 #' @importFrom rtracklayer import.bed
 #' @importFrom GenomeInfoDb seqlevelsStyle
-readBedFile <- function(filename) {
+readBedFile <- function(filename)
+{
     if (tools::file_ext(filename) == "zip") {
         tmp <- utils::unzip(filename, list=T)$Name
         file <- base::unz(filename, tmp)

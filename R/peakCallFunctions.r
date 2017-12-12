@@ -152,7 +152,7 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
     }
     names(fileGRangesList) <- files
 
-    return(fileGRangesList)
+    return(GenomicRanges::GRangesList(fileGRangesList))
 }
 
 #' computeZ
