@@ -9,25 +9,21 @@ findOverlapsOverSamples(samplePeaksGRangelist, extendRegions = 200,
 }
 \arguments{
 \item{samplePeaksGRangelist}{given a granges list of samples finds
-the overlapping regions between them}
+the overlapping regions between them.}
 
 \item{extendRegions}{the number of bases to extend each region at its start
-and end}
+and end.}
 
-\item{minOverlap}{the minimum overlap each peak needs to have
+\item{minOverlap}{the minimum overlap each peak needs to have.
 (see ChipPeakAnno::findOverlapsOfPeaks)}
 
-\item{maxGap}{the maximum gap admissible between the peaks
+\item{maxGap}{the maximum gap admissible between the peaks.
 (see ChipPeakAnno::findOverlapsOfPeaks)}
 }
 \value{
-a GRanges of peaks overlapped and unique between samples
+a GRanges of peaks overlapped and unique between samples.
 }
 \description{
 given in input a GRangeList where each element is a sample
-             computes the coverage extending a both direction window of
-             prefixed length.
-}
-\examples{
-TBW
+computes the coverage extending a both direction window of prefixed length.
 }

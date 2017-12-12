@@ -7,12 +7,13 @@
 initMergedPeaksNames(mergedGRanges)
 }
 \arguments{
-\item{mergedGRanges}{}
+\item{mergedGRanges}{A GRanges object.
+(Tipically Generated in findOverlapsOverSamples function )}
 }
 \value{
-a granges of renamed peaks
+a granges of renamed peaks.
 }
 \description{
-given a GRanges of merged peaks assigns them new names
+given a GRanges of merged peaks assigns them new names.
 }
 \keyword{internal}

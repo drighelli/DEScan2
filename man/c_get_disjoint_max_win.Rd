@@ -4,25 +4,25 @@
 \alias{c_get_disjoint_max_win}
 \title{c_get_disjoint_max_win}
 \usage{
-c_get_disjoint_max_win(z0, sigwin = 20, nmax = 9999999,
-  zthresh = -9999999, verbose = FALSE)
+c_get_disjoint_max_win(z0, sigwin = 10, nmax = 9999999, zthresh = 10,
+  verbose = FALSE)
 }
 \arguments{
-\item{z0}{the z matrix}
+\item{z0}{the z matrix.}
 
-\item{sigwin}{the sigwin}
+\item{sigwin}{the sigwin.}
 
-\item{nmax}{the nmax}
+\item{nmax}{the nmax.}
 
-\item{zthresh}{peaks lower than this value will not be kept}
+\item{zthresh}{peaks lower than this value will not be kept.}
 
-\item{verbose}{verbose flag}
+\item{verbose}{verbose flag.}
 }
 \value{
 a matrix
 }
 \description{
 just a wrapper for the C function. Useful to modify indexes and
-colnames
+colnames.
 }
 \keyword{internal}

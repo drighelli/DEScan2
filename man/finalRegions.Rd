@@ -9,27 +9,24 @@ finalRegions(peakSamplesGRangesList, zThreshold = 20, minCarriers = 2,
 }
 \arguments{
 \item{peakSamplesGRangesList}{GRangesList where each element is a sample
-of called peaks.
-a z-score mcols values is needed for each GRanges
-(tipically returned by findPeaks function)}
+of called peaks. A z-score mcols values is needed for each GRanges.
+(tipically returned by findPeaks function).}
 
-\item{zThreshold}{a threshold for the z score}
+\item{zThreshold}{a threshold for the z score.}
 
-\item{minCarriers}{a threshold of minimum samples (carriers) for overlapped regions}
+\item{minCarriers}{a threshold of minimum samples (carriers) for overlapped
+regions.}
 
-\item{saveFlag}{a flag for saving results in a bed file}
+\item{saveFlag}{a flag for saving results in a bed file.}
 
-\item{outputName}{the directory name to store the bed file}
+\item{outputName}{the directory name to store the bed file.}
 }
 \value{
 a GRanges of overlapping peaks selected with z-score,
-        n-peaks, k-carriers as mcols
+n-peaks, k-carriers as mcols.
 }
 \description{
 Align peaks to form common regions then filter regions for
 presence in multiple replicates taking in input a GRangesList where each
-element is a sample of called peaks
-}
-\examples{
-TBW
+element is a sample of called peaks.
 }

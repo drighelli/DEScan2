@@ -15,13 +15,11 @@ binnedCoverage(bins, numvar, mcolname, covMethod = c("max", "mean", "sum",
 \item{mcolname}{the name of column where the sum have to be stored.}
 
 \item{covMethod}{a method to apply for the computing of the coverate
-it can be one of "max", "mean", "sum", "min".
-("max" is default)}
+it can be one of "max", "mean", "sum", "min". ("max" is default)}
 
 \item{roundingMethod}{a method to apply to round the computations
 it can be one of "none", "floor", "ceiling", "round".
-It's useful only when using covMethod="mean".
-("none" is default)}
+It's useful only when using covMethod="mean". ("none" is default)}
 }
 \value{
 the bins GRanges with the mcolname attached
@@ -33,15 +31,16 @@ chromosome, starting from a per base computed coverage.
 \examples{
 ## dividing one chromosome in bins of 50 bp each
 seqinfo <- GenomeInfoDb::Seqinfo(genome="mm9")
-bins <- GenomicRanges::tileGenome(seqlengths=GenomeInfoDb::seqlengths(seqinfo)[1],
-                                             tilewidth=50,
-                                             cut.last.tile.in.chrom=TRUE)
+bins <- GenomicRanges::tileGenome(
+            seqlengths=GenomeInfoDb::seqlengths(seqinfo)[1],
+            tilewidth=50,
+            cut.last.tile.in.chrom=TRUE)
 gr <- GenomicRanges::GRanges(seqnames = S4Vectors::Rle("chr1", 100),
-                ranges=IRanges::IRanges(start = seq(from=10, to=1000, by=10),
-                end=seq(from=20, to=1010, by = 10)))
+            ranges=IRanges::IRanges(start = seq(from=10, to=1000, by=10),
+            end=seq(from=20, to=1010, by = 10)))
 cov <- GenomicRanges::coverage(x=gr)
 (binnedMaxCovGR <- binnedCoverage(bins, cov, "binned_cov"))
 (binnedMeanCovGR <- binnedCoverage(bins, cov, "binned_cov",
-                                   covMethod="mean", roundingMethod="floor"))
+                                covMethod="mean", roundingMethod="floor"))
 (binnedSumCovGR <- binnedCoverage(bins, cov, "binned_cov", covMethod="sum"))
 }

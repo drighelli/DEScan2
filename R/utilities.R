@@ -41,16 +41,16 @@ readBedFile <- function(filename) {
 
     bed <- rtracklayer::import.bed(con = file)
     bed <- GenomicRanges::GRanges(seqnames=bed@seqnames,
-                                  ranges=bed@ranges,
-                                  strand=bed@strand)
+                                    ranges=bed@ranges,
+                                    strand=bed@strand)
     GenomeInfoDb::seqlevelsStyle(bed) <- "UCSC"
     return(bed)
 }
 
 
 #' constructBedRanges
-#' @description Constructs a GRanges object from a bam/bed file in a consistent way
-#'
+#' @description Constructs a GRanges object from a bam/bed file in a consistent
+#'                way
 #' @param filename the complete file path of a bam?bed file
 #' @param filetype the file type bam/bed
 #' @param genomeName the name of the genome used to map the reads (i.e. mm9)
@@ -63,8 +63,8 @@ readBedFile <- function(filename) {
 #' @importFrom glue collapse
 #' @importFrom GenomicRanges sort
 constructBedRanges <- function(filename,
-                               filetype=c("bam", "bed"),
-                               genomeName=NULL, onlyStdChrs=FALSE)
+                                filetype=c("bam", "bed"),
+                                genomeName=NULL, onlyStdChrs=FALSE)
 {
     filetype <- match.arg(filetype)
 
@@ -76,13 +76,12 @@ constructBedRanges <- function(filename,
     if(onlyStdChrs)
     {
         bedGRanges <- GenomeInfoDb::keepStandardChromosomes(x=bedGRanges,
-                                                         pruning.mode="coarse")
+                                                        pruning.mode="coarse")
     }
     uniqueSeqnames <- droplevels(unique(bedGRanges@seqnames))
 
     if( !is.null(genomeName) )
     {
-
         message("Get seqlengths from genome ", genomeName)
         genomeInfo <- GenomeInfoDb::Seqinfo(genome=genomeName)
         seqNamesIdx <- which(genomeInfo@seqnames %in% uniqueSeqnames)
@@ -93,8 +92,8 @@ constructBedRanges <- function(filename,
         else
         {
             stop("Cannot find the ", glue::collapse(uniqueSeqnames, " "),
-                 " in genome ", genomeName, "
-                 Maybe a problem of chromosome labels")
+                    " in genome ", genomeName,
+                    " Maybe a problem of chromosome labels")
         }
         return(bedGRanges)
     }
@@ -104,9 +103,10 @@ constructBedRanges <- function(filename,
         (length(GenomeInfoDb::seqinfo(bedGRanges)@seqnames) == 0 ))
     {
         stop("No seqlengths present in file ", filename,
-             "\nPlease provide the correct genomeName to setup the GRanges!")
+                "\nPlease provide the correct genomeName to setup the GRanges!")
     }
-    else if(length(uniqueSeqnames) < length(GenomeInfoDb::seqinfo(bedGRanges)@seqnames))
+    else if(length(uniqueSeqnames) <
+                length(GenomeInfoDb::seqinfo(bedGRanges)@seqnames))
     {
         message("Keeping only necessary seqInfos")
         bedGRanges@seqinfo <- bedGRanges@seqinfo[as.character(uniqueSeqnames)]
@@ -157,7 +157,7 @@ saveGRangesAsBed <- function(GRanges, filepath, filename, force=FALSE)
 
     if(length(which(colnames(S4Vectors::mcols(GRanges)) %in% "z-score")) > 0)
         if(length(which(colnames(S4Vectors::mcols(GRanges)) %in% "score")) == 0)
-            S4Vectors::mcols(GRanges)$score <- S4Vectors::mcols(GRanges)$`z-score`
+        S4Vectors::mcols(GRanges)$score <- S4Vectors::mcols(GRanges)$`z-score`
 
     rtracklayer::export.bed(object=GRanges, con=filePathName)
     message("file ", filePathName, " written on disk!")
@@ -191,17 +191,16 @@ RleListToRleMatrix <- function(RleList, dimnames=NULL)
     stopifnot(all.equal(lengths, rep(lengths[1], length(lengths))))
     if(!is.null(dimnames)) {
         rlem <- DelayedArray::RleArray(rle=unlist(RleList, use.names=FALSE),
-                                       dim=c(length(RleList[[1]]),
-                                       length(RleList)),
-                                       dimnames=dimnames
+                                        dim=c(length(RleList[[1]]),
+                                        length(RleList)),
+                                        dimnames=dimnames
         )
     } else {
         rlem <- DelayedArray::RleArray(rle=unlist(RleList, use.names=FALSE),
-                                       dim=c(length(RleList[[1]]),
-                                       length(RleList)))
+                                        dim=c(length(RleList[[1]]),
+                                        length(RleList)))
     }
     return(rlem)
-
 }
 
 
@@ -220,9 +219,8 @@ RleListToRleMatrix <- function(RleList, dimnames=NULL)
 #' @importFrom IRanges IRanges
 #' @importFrom S4Vectors mcols
 #' @keywords internal
-#'
 createGranges <- function(chrSeqInfo, starts, widths,
-                          mcolname=NULL, mcolvalues=NULL) {
+                            mcolname=NULL, mcolvalues=NULL) {
     stopifnot(is(chrSeqInfo, "Seqinfo"))
     stopifnot(identical(length(starts), length(widths)))
 
@@ -239,21 +237,22 @@ createGranges <- function(chrSeqInfo, starts, widths,
     }
 
     gr <- GenomicRanges::GRanges(seqnames=as.character(chrSeqInfo@seqnames),
-                                 ranges=IRanges::IRanges(start=starts, width=widths),
-                                 seqinfo=chrSeqInfo)
+                            ranges=IRanges::IRanges(start=starts, width=widths),
+                            seqinfo=chrSeqInfo)
 
     if(!is.null(mcolname) )
     {
         if(!is.null(mcolvalues)
-           &&
-           (length(gr@ranges@start) == length(mcolvalues))
+            &&
+            (length(gr@ranges@start) == length(mcolvalues))
         )
         {
             S4Vectors::mcols(gr)[[mcolname]] <- mcolvalues
         }
         else
         {
-            warning("Cannot set mcols values! Vector length not matching Ranges")
+            warning("Cannot set mcols values!",
+                    " Vector length not matching Ranges")
         }
     }
     return(gr)
@@ -275,10 +274,10 @@ createGranges <- function(chrSeqInfo, starts, widths,
 #' @examples
 #' library("GenomicRanges")
 #' gr <- GRanges(
-#'       seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
-#'       ranges=IRanges(1:10, end=10),
-#'       strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
-#'       seqlengths=c(chr1=11, chr2=12, chr3=13))
+#'         seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
+#'         ranges=IRanges(1:10, end=10),
+#'         strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
+#'         seqlengths=c(chr1=11, chr2=12, chr3=13))
 #' (grchrlist <- cutGRangesPerChromosome(gr))
 #'
 cutGRangesPerChromosome <- function(GRanges)
@@ -292,7 +291,8 @@ cutGRangesPerChromosome <- function(GRanges)
         if(length(bgr) > 0)
         {
             bgr@seqinfo <- GRanges@seqinfo[x]
-            GenomeInfoDb::seqnames(bgr) <- droplevels(GenomeInfoDb::seqnames(bgr))
+            GenomeInfoDb::seqnames(bgr) <-
+                                        droplevels(GenomeInfoDb::seqnames(bgr))
             return(bgr)
         }
     })
@@ -317,13 +317,12 @@ cutGRangesPerChromosome <- function(GRanges)
 #' @examples
 #' library("GenomicRanges")
 #' gr1 <- GRanges(
-#'       seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
-#'       ranges=IRanges(1:10, end=10),
-#'       strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
-#'       seqlengths=c(chr1=11, chr2=12, chr3=13))
+#'             seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
+#'             ranges=IRanges(1:10, end=10),
+#'             strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
+#'             seqlengths=c(chr1=11, chr2=12, chr3=13))
 #' grlc <- cutGRangesPerChromosome(gr1)
 #' (grlChr <- keepRelevantChrs(grl, c("chr1", "chr3")))
-#'
 keepRelevantChrs <- function(chrGRangesList, chr=NULL)
 {
     if(!is.null(chr) && length(grep(pattern="chr", chr))!=length(chr))
@@ -333,7 +332,7 @@ keepRelevantChrs <- function(chrGRangesList, chr=NULL)
     idxs <- which(names(chrGRangesList) %in% chr)
     if(length(idxs) == 0)
         stop("Something went wrong in the chr subselection!",
-             "\nPlease check the Chromosomes names!")
+                "\nPlease check the Chromosomes names!")
 
     chrGRangesList <- chrGRangesList[idxs]
 
@@ -355,15 +354,15 @@ keepRelevantChrs <- function(chrGRangesList, chr=NULL)
 #' @examples
 #' library("GenomicRanges")
 #' gr1 <- GRanges(
-#'       seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
-#'       ranges=IRanges(1:10, end=10),
-#'       strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
-#'       seqlengths=c(chr1=11, chr2=12, chr3=13))
+#'             seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
+#'             ranges=IRanges(1:10, end=10),
+#'             strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
+#'             seqlengths=c(chr1=11, chr2=12, chr3=13))
 #' gr2 <- GRanges(
-#'       seqnames=Rle(c("chr1", "chr4", "chr1", "chr3"), c(1, 3, 2, 4)),
-#'       ranges=IRanges(1:10, end=10),
-#'       strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
-#'       seqlengths=c(chr1=11, chr4=12, chr3=13))
+#'             seqnames=Rle(c("chr1", "chr4", "chr1", "chr3"), c(1, 3, 2, 4)),
+#'             ranges=IRanges(1:10, end=10),
+#'             strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
+#'             seqlengths=c(chr1=11, chr4=12, chr3=13))
 #' sgrl <- GRangesList(gr1, gr2)
 #' names(sgrl) <- c("samp1", "samp2")
 #' (chrGrlSampGr <- fromSamplesToChromosomesGRangesList(sgrl))
@@ -392,9 +391,9 @@ fromSamplesToChromosomesGRangesList <- function(samplesGRangesList)
 }
 
 #' divideEachSampleByChromosomes
-#' @description taken in input a grangeslist of samples, generate a list of samples
-#'              where each element has a GRangesList each element of the
-#'              GRangesList represents a single chromosome
+#' @description taken in input a grangeslist of samples, generate a list of
+#'                samples where each element has a GRangesList each element of
+#'                the GRangesList represents a single chromosome
 #' @param samplesGRangesList a GRangesList of samples
 #'
 #' @return list of samples where each element is a list of chromosomes and each
@@ -404,15 +403,15 @@ fromSamplesToChromosomesGRangesList <- function(samplesGRangesList)
 #' @examples
 #' library("GenomicRanges")
 #' gr1 <- GRanges(
-#'         seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
-#'         ranges=IRanges(1:10, end=10),
-#'         strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
-#'         seqlengths=c(chr1=11, chr2=12, chr3=13))
+#'             seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
+#'             ranges=IRanges(1:10, end=10),
+#'             strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
+#'             seqlengths=c(chr1=11, chr2=12, chr3=13))
 #' gr2 <- GRanges(
-#'         seqnames=Rle(c("chr1", "chr4", "chr1", "chr3"), c(1, 3, 2, 4)),
-#'         ranges=IRanges(1:10, end=10),
-#'         strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
-#'         seqlengths=c(chr1=11, chr4=12, chr3=13))
+#'             seqnames=Rle(c("chr1", "chr4", "chr1", "chr3"), c(1, 3, 2, 4)),
+#'             ranges=IRanges(1:10, end=10),
+#'             strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
+#'             seqlengths=c(chr1=11, chr4=12, chr3=13))
 #' sgrl <- GRangesList(gr1, gr2)
 #' names(sgrl) <- c("samp1", "samp2")
 #' (sampChrGrl <- divideEachSampleByChromosomes(sgrl))

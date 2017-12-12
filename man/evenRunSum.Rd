@@ -7,20 +7,20 @@
 evenRunSum(x, k, endrule = c("drop", "constant"), na.rm = FALSE)
 }
 \arguments{
-\item{x}{an Rle object, typically a coverage object}
+\item{x}{an Rle object, typically a coverage object.}
 
-\item{k}{window dimension for the running sum over x}
+\item{k}{window dimension for the running sum over x.}
 
-\item{endrule}{refer to S4Vectors::runSum}
+\item{endrule}{refer to S4Vectors::runSum.}
 
-\item{na.rm}{refer to S4Vectors::runSum}
+\item{na.rm}{refer to S4Vectors::runSum.}
 }
 \value{
-an Rle within the running sum over x with a win of length k
+an Rle within the running sum over x with a win of length k.
 }
 \description{
-this function computes a running sum over x with a window width k
-(modified from S4Vectors package to work on even k, in such a case
-it adds a length at the end of the output Rle)
+this function computes a running sum over x with a window
+width k (modified from S4Vectors package to work on even k, in such a case
+it adds a length at the end of the output Rle).
 }
 \keyword{internal}

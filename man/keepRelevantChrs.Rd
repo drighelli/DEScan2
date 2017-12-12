@@ -22,11 +22,10 @@ cutGRangesPerChromosome returning only the relevant chromosomes GRanges
 \examples{
 library("GenomicRanges")
 gr1 <- GRanges(
-      seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
-      ranges=IRanges(1:10, end=10),
-      strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
-      seqlengths=c(chr1=11, chr2=12, chr3=13))
+            seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
+            ranges=IRanges(1:10, end=10),
+            strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
+            seqlengths=c(chr1=11, chr2=12, chr3=13))
 grlc <- cutGRangesPerChromosome(gr1)
 (grlChr <- keepRelevantChrs(grl, c("chr1", "chr3")))
-
 }

@@ -7,20 +7,19 @@
 evenRunMean(x, k, endrule = c("drop", "constant"), na.rm = FALSE)
 }
 \arguments{
-\item{x}{an Rle object, typically a coverage object}
+\item{x}{an Rle object, typically a coverage object.}
 
-\item{k}{window dimension for the running sum over x}
+\item{k}{window dimension for the running sum over x.}
 
-\item{endrule}{refer to S4Vectors::runMean}
+\item{endrule}{refer to S4Vectors::runMean.}
 
-\item{na.rm}{refer to S4Vectors::runMean}
+\item{na.rm}{refer to S4Vectors::runMean.}
 }
 \value{
-an Rle within the running mean over x with a win of length k
+an Rle within the running mean over x with a win of length k.
 }
 \description{
-this function computes a running mean over x with a
-window width k (modified from S4Vectors package to work on even k,
-see evenRunSum)
+this function computes a running mean over x with a window
+width k (modified from S4Vectors package to work on even k, see evenRunSum).
 }
 \keyword{internal}

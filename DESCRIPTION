@@ -1,7 +1,7 @@
 Package: DEScan2
 Type: Package
 Title: Differential Enrichment Scan 2
-Version: 1.99.1
+Version: 2.00.0
 Date: 2017-11-28
 Authors@R: c(
     person("John", "Koberstein", role="aut", email="jnkoberstein@gmail.com"),
@@ -40,4 +40,3 @@ LinkingTo: Rcpp, RcppArmadillo
 RoxygenNote: 6.0.1
 Suggests: BiocStyle, knitr, rmarkdown, testthat
 VignetteBuilder: knitr
-

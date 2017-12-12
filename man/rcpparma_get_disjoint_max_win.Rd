@@ -3,24 +3,27 @@
 \name{rcpparma_get_disjoint_max_win}
 \alias{rcpparma_get_disjoint_max_win}
 \title{rcpparma_get_disjoint_max_win
-it computes the disjoint max_win matrix}
+Computes the disjoint max_win matrix.}
 \usage{
-rcpparma_get_disjoint_max_win(z0, sigwin = 20L, zthresh = -9999999,
+rcpparma_get_disjoint_max_win(z0, sigwin = 10L, zthresh = 10,
   nmax = 9999999L, verbose = TRUE)
 }
 \arguments{
-\item{z0}{a matrix}
+\item{z0}{a matrix.}
 
-\item{sigwin}{sigwin}
+\item{sigwin}{sigwin.}
 
-\item{zthresh}{zthresh}
+\item{zthresh}{zthresh.}
 
-\item{nmax}{nmax}
+\item{nmax}{nmax.}
 
-\item{verbose}{verbose}
+\item{verbose}{verbose.}
+}
+\value{
+a matrix of three columns (bin_idx, win_idx, z_val) idxs in C style.
 }
 \description{
 rcpparma_get_disjoint_max_win
-it computes the disjoint max_win matrix
+Computes the disjoint max_win matrix.
 }
 \keyword{internal}

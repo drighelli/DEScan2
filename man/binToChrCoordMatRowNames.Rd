@@ -7,17 +7,17 @@
 binToChrCoordMatRowNames(binMatrix, chrLength, binWidth = 50)
 }
 \arguments{
-\item{binMatrix}{a matrix where each row represents a bin}
+\item{binMatrix}{a matrix where each row represents a bin.}
 
-\item{chrLength}{the length of the chromosome of the binMatrix}
+\item{chrLength}{the length of the chromosome of the binMatrix.}
 
-\item{binWidth}{the width of the bin}
+\item{binWidth}{the width of the bin.}
 }
 \value{
-the binMatrix with start range as rownames
+the binMatrix with start range as rownames.
 }
 \description{
 computes the starting range of the bins for the
-binMatrix, taking in input the length of the chromosome of the matrix
+binMatrix, taking in input the length of the chromosome of the matrix.
 }
 \keyword{internal}

@@ -14,22 +14,22 @@ list of samples where each element is a list of chromosomes and each
          of these elements is a granges
 }
 \description{
-taken in input a grangeslist of samples, generate a list of samples
-             where each element has a GRangesList each element of the
-             GRangesList represents a single chromosome
+taken in input a grangeslist of samples, generate a list of
+               samples where each element has a GRangesList each element of
+               the GRangesList represents a single chromosome
 }
 \examples{
 library("GenomicRanges")
 gr1 <- GRanges(
-        seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
-        ranges=IRanges(1:10, end=10),
-        strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
-        seqlengths=c(chr1=11, chr2=12, chr3=13))
+            seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
+            ranges=IRanges(1:10, end=10),
+            strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
+            seqlengths=c(chr1=11, chr2=12, chr3=13))
 gr2 <- GRanges(
-        seqnames=Rle(c("chr1", "chr4", "chr1", "chr3"), c(1, 3, 2, 4)),
-        ranges=IRanges(1:10, end=10),
-        strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
-        seqlengths=c(chr1=11, chr4=12, chr3=13))
+            seqnames=Rle(c("chr1", "chr4", "chr1", "chr3"), c(1, 3, 2, 4)),
+            ranges=IRanges(1:10, end=10),
+            strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
+            seqlengths=c(chr1=11, chr4=12, chr3=13))
 sgrl <- GRangesList(gr1, gr2)
 names(sgrl) <- c("samp1", "samp2")
 (sampChrGrl <- divideEachSampleByChromosomes(sgrl))

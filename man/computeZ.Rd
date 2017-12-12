@@ -8,29 +8,26 @@ computeZ(lambdaChrRleList, runWinRleList, chrLength, minCount = 0.1,
   binSize = 50, verbose = TRUE)
 }
 \arguments{
-\item{lambdaChrRleList}{an RleList of lambda values computed
-by computeLambdaOnChr function
-each element of the list is an Rle representing the
-lambda for the moving window in the list position}
+\item{lambdaChrRleList}{an RleList of lambda values computed by
+computeLambdaOnChr function each element of the list is an Rle representing
+the lambda for the moving window in the list position.}
 
-\item{runWinRleList}{an RleList of coverage values computed
-by computeCoverageMovingWindowOnChr function
-each element of the list is an Rle representing the
-coverage for the moving window in the list position}
+\item{runWinRleList}{an RleList of coverage values computed.
+by computeCoverageMovingWindowOnChr function each element of the list is an
+Rle representing the coverage for the moving window in the list position.}
 
-\item{chrLength}{the length of the chr in analysis}
+\item{chrLength}{the length of the chr in analysis.}
 
 \item{minCount}{A small constant (usually no larger than one) to be added to
-the counts prior to the log transformation to avoid problems
-with log(0).}
+the counts prior to the log transformation to avoid problems with log(0).}
 
-\item{binSize}{the size of the bin}
+\item{binSize}{the size of the bin.}
 }
 \value{
 z a matrix of z scores for each window (column) and bin (row).
-        where the rownames represent the starting base of each bin
+where the rownames represent the starting base of each bin.
 }
 \description{
-Computes Z-Scores returning the z matrix
+Computes Z-Scores returning the z matrix.
 }
-\keyword{internal}
+\keyword{internal.}

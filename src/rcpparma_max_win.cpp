@@ -1,5 +1,6 @@
 // -*- mode: C++; c-indent-level: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*-
 
+
 #include "RcppArmadillo.h"
 #include <algorithm>
 #include <limits>
@@ -20,17 +21,21 @@ arma::mat rcpparma_fill_matrix(arma::mat matrix, arma::uword row,
     return(matrix);
 }
 //' rcpparma_get_disjoint_max_win
-//' it computes the disjoint max_win matrix
-//' @param z0 a matrix
-//' @param sigwin sigwin
-//' @param zthresh zthresh
-//' @param nmax nmax
-//' @param verbose verbose
+//' Computes the disjoint max_win matrix.
+//' @param z0 a matrix.
+//' @param sigwin sigwin.
+//' @param zthresh zthresh.
+//' @param nmax nmax.
+//' @param verbose verbose.
+//' @return a matrix of three columns (bin_idx, win_idx, z_val) idxs in C style.
 //' @keywords internal
 // [[Rcpp::export]]
-arma::mat  rcpparma_get_disjoint_max_win(arma::mat z0,  int sigwin=20, double zthresh=-9999999, int nmax=9999999, bool verbose=true) {
+arma::mat  rcpparma_get_disjoint_max_win(arma::mat z0,  int sigwin=10,
+                                            double zthresh=10, int nmax=9999999,
+                                            bool verbose=true) {
 
-    if(verbose) Rcpp::Rcout << "Maximizing with zthresh: " << zthresh << "\tsigwin: " << sigwin << "\n" ;
+    if(verbose) Rcpp::Rcout << "Maximizing with zthresh: " << zthresh <<
+                                "\tsigwin: " << sigwin << "\n" ;
 
     int maxwin=z0.n_cols;
     int i=1;
@@ -56,7 +61,8 @@ arma::mat  rcpparma_get_disjoint_max_win(arma::mat z0,  int sigwin=20, double zt
         // Rcpp::Rcout << "maxr: " << maxr << "\tmaxc: " << maxc << "\n" ;
         s=rcpparma_fill_matrix(s, maxr, maxc, z0(maxr, maxc));
         if(verbose) {
-             if((i % 100) == 0) Rcpp::Rcout << "Maximizing window: " << maxr << ",\t" << maxc << "\tScore=" << z0(maxr, maxc) << "\n" ;
+             if((i % 100) == 0) Rcpp::Rcout << "Maximizing window: " << maxr <<
+                        ",\t" << maxc << "\tScore=" << z0(maxr, maxc) << "\n" ;
         }
         i++;
         int val = (maxr - sigwin - maxwin + 1);

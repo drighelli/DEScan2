@@ -26,6 +26,6 @@ a matrix of integer containing founded peaks
 }
 \description{
 find significant z score windows keeping the max value
-without intersections
+               without intersections
 }
 \keyword{internal}

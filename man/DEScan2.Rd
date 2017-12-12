@@ -6,7 +6,8 @@
 \alias{DEScan2-package}
 \title{DEScan2}
 \description{
-integrated peak and differential caller, specifically designed for broad epigenomic signals.
+integrated peak and differential caller,
+specifically designed for broad epigenomic signals.
 }
 \author{
 some authors

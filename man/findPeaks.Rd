@@ -30,35 +30,32 @@ files. (cfr. constructBedRanges function parameters)}
 will be kept.}
 
 \item{minCount}{A small constant (usually no larger than one) to be added to
-the counts prior to the log transformation to avoid
-problems with log(0).}
+the counts prior to the log transformation to avoid problems with log(0).}
 
-\item{minCompWinWidth}{minimum bases width of a comparing window for Z-score}
+\item{minCompWinWidth}{minimum bases width of a comparing window for Z-score.}
 
-\item{maxCompWinWidth}{maximum bases width of a comparing window for Z-score}
+\item{maxCompWinWidth}{maximum bases width of a comparing window for Z-score.}
 
 \item{outputName}{A string, Name of the folder to save the Peaks (optional),
-if the directory doesn't exist, it will be created.
-default is "Peaks"}
+if the directory doesn't exist, it will be created. (Default is "Peaks")}
 
 \item{save}{Boolean, if TRUE files will be saved in a "./Peaks/chr*"
-directory created (if not already present) in the current
-working directory.}
+directory created (if not already present) in the current working directory.}
 
 \item{verbose}{if to show additional messages}
 
 \item{fragmentLength}{Integer indicating the average DNA fragment length bp.}
 
-\item{onlyStdChrs}{a flag to work only with standard chromosomes
-(cfr. constructBedRanges function parameters)}
+\item{onlyStdChrs}{a flag to work only with standard chromosomes.
+(cfr. constructBedRanges function parameters).}
 
-\item{chr}{if not NULL, a character like "chr#" indicating the
-chromosomes to use}
+\item{chr}{if not NULL, a character like "chr#" indicating the chromosomes
+to use.}
 }
 \value{
 A GRangesList where each element is a sample.
-        each GRanges represents the founded peaks and attached the z-score
-        of the peak as mcols.
+Each GRanges represents the founded peaks and attached the z-score of
+the peak as mcols.
 }
 \description{
 This function calls peaks from bed or bam inputs using a
@@ -67,12 +64,12 @@ maxCompWinWidth (10kb) as background.
 }
 \examples{
 bed.files <- list.files(system.file("extdata/Bed", package = "DEScan2"),
-                        full.names = T)
+                       full.names = T)
 peaks <- findPeaks(files=bed.files[1], chr="chr19", filetype="bed",
-                    fragmentLength=200,
-                    binSize=50, minWin=50, maxWin=1000,
-                    genomeName="mm9",
-                    minCompWinWidth=5000, maxCompWinWidth=10000,
-                    zthresh=5, minCount=0.1, verbose=FALSE, save=FALSE)
+                        fragmentLength=200,
+                        binSize=50, minWin=50, maxWin=1000,
+                        genomeName="mm9",
+                        minCompWinWidth=5000, maxCompWinWidth=10000,
+                        zthresh=5, minCount=0.1, verbose=FALSE, save=FALSE)
 head(peaks)
 }

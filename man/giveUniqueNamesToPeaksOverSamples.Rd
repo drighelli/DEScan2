@@ -7,13 +7,14 @@
 giveUniqueNamesToPeaksOverSamples(samplePeaksGRangelist)
 }
 \arguments{
-\item{samplePeaksGRangelist}{}
+\item{samplePeaksGRangelist}{a GRangeList of peaks, one GRanges for each
+sample.}
 }
 \value{
-a GRangesList of samples within renamed peaks for each element
+a GRangesList of samples within renamed peaks for each element.
 }
 \description{
 given a GRangesList of samples assigns unique names to the peaks
-             of each sample
+of each sample.
 }
 \keyword{internal}
