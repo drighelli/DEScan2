@@ -44,7 +44,7 @@ library("RUVSeq")
 This analysis will make use of mouse Sono-seq data from mouse chromosome 19. This data was obtained from hippocampus of mice following learning through contextual fear conditioning. The experiment has 4 fear conditioned (FC) and 4 homecage control (HC) replicates. The data was aligned to the mouse genome (mm9) using bowtie2, allowing for multi-mapping reads. Duplicates were removed if present in isolation from duplicated reads relative to genomic location. Aligned data in this example is provided as bed files, but DEScan accepts bam format alignments. 
 
 ```{r eval=TRUE}
-bed.files <- list.files(system.file("extdata/Bed", package = "DEScan2"),
+bed.files <- list.files(system.file("extdata/bam/chr19", package = "DEScan2"),
                         full.names = T)
 ```
 
