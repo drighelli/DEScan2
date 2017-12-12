@@ -191,13 +191,21 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
         grj <- namedSamplePeaksGRL[[i]]
 
         grij <- ChIPpeakAnno::findOverlapsOfPeaks(gri,
-                                                grj,
-                                                minoverlap=minOverlap,
-                                                maxgap=maxGap,
-                                                connectedPeaks="merge")
+                                                    grj,
+                                                    minoverlap=minOverlap,
+                                                    maxgap=maxGap,
+                                                    connectedPeaks="merge")
 
         mmpeaks <- grij$peaksInMergedPeaks
-        if(length(grij$peaksInMergedPeaks) == 0) stop("No merged peaks found!")
+        if(length(mmpeaks) == 0)
+        {
+            message("No merged peaks found at sample ", i,
+                 " and chromosome ", as.character(grj@seqnames@values),
+                 "\nNB: skipping this sample!")
+            foundedPeaks <- gri
+            next
+        }
+
         ## cleaning peaks names
         mrgPks <- grij$mergedPeaks
         mrgPksNms <- as.list(mrgPks$peakNames)
