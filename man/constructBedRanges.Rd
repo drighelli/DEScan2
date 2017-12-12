@@ -5,7 +5,7 @@
 \title{constructBedRanges}
 \usage{
 constructBedRanges(filename, filetype = c("bam", "bed"), genomeName = NULL,
-  onlyStdChrs = FALSE)
+  onlyStdChrs = FALSE, verbose = FALSE)
 }
 \arguments{
 \item{filename}{the complete file path of a bam?bed file}

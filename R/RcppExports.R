@@ -10,9 +10,7 @@
 #' @param verbose verbose.
 #' @return a matrix of three columns (bin_idx, win_idx, z_val) idxs in C style.
 #' @keywords internal
-rcpparma_get_disjoint_max_win <- function(z0, sigwin = 10L, zthresh = 10,
-                                          nmax = 9999999L, verbose = TRUE) {
-    .Call('_DEScan2_rcpparma_get_disjoint_max_win', PACKAGE = 'DEScan2',
-          z0, sigwin, zthresh, nmax, verbose)
+rcpparma_get_disjoint_max_win <- function(z0, sigwin = 10L, zthresh = 10, nmax = 9999999L, verbose = TRUE) {
+    .Call('_DEScan2_rcpparma_get_disjoint_max_win', PACKAGE = 'DEScan2', z0, sigwin, zthresh, nmax, verbose)
 }
 
