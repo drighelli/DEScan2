@@ -195,7 +195,9 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
                                                 minoverlap=minOverlap,
                                                 maxgap=maxGap,
                                                 connectedPeaks="merge")
+
         mmpeaks <- grij$peaksInMergedPeaks
+        if(length(grij$peaksInMergedPeaks) == 0) stop("No merged peaks found!")
         ## cleaning peaks names
         mrgPks <- grij$mergedPeaks
         mrgPksNms <- as.list(mrgPks$peakNames)
