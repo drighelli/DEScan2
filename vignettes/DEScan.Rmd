@@ -44,7 +44,7 @@ library("RUVSeq")
 This analysis will make use of mouse Sono-seq data from mouse chromosome 19. This data was obtained from hippocampus of mice following learning through contextual fear conditioning. The experiment has 4 fear conditioned (FC) and 4 homecage control (HC) replicates. The data was aligned to the mouse genome (mm9) using bowtie2, allowing for multi-mapping reads. Duplicates were removed if present in isolation from duplicated reads relative to genomic location. Aligned data in this example is provided as bed files, but DEScan accepts bam format alignments. 
 
 ```{r eval=TRUE}
-bed.files <- list.files(system.file("extdata/bam/chr19", package = "DEScan2"),
+bam.files <- list.files(system.file("extdata/Bam/chr19", package = "DEScan2"),
                         full.names = T)
 ```
 
@@ -77,7 +77,6 @@ Parameter description:
 **outputName** A string, Name of the folder to save the Peaks (optional), if the directory doesn't exist, it will be created. default is "Peaks"
 **save**
 : Flag indicating if tha output has to be saved
-
 **genomeName**
 : the code of the genome to use as reference for the input files. (cfr. constructBedRanges function parameters)
 **onlyStdChrs**
@@ -85,8 +84,8 @@ Parameter description:
 **chr** if not NULL, a character like "chr#" indicating the chromosomes to use
 
 ```{r findPeaks, cache=TRUE, eval=TRUE}
-peaks <- findPeaks(files=bed.files[1], chr="chr19", filetype="bed", fragmentLength=200,
-                   binSize=50, minWin=1, maxWin=20, genomeName="mm9",
+peaks <- findPeaks(files=bam.files[1], chr="chr19", filetype="bam", fragmentLength=200,
+                   binSize=50, minWin=50, maxWin=1000, genomeName="mm9",
                    minCompWinWidth=5000, maxCompWinWidth=10000,
                    zthresh=5, minCount=0.1, verbose=FALSE, save=FALSE)
 saveRDS(object=peaks, file="peaks_new.RDS")

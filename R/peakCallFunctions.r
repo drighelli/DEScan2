@@ -119,7 +119,7 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
                             )
             newS <- c_get_disjoint_max_win(z0=Z,
                                     sigwin=fragmentLength/binSize,
-                                    nmax=Inf, zthresh=zthresh,
+                                    zthresh=zthresh,
                                     verbose=verbose
                                     )
             chrZRanges <- createGranges(chrSeqInfo=chrGRanges@seqinfo,
@@ -411,7 +411,10 @@ computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=50,
     wins <- minWinWidth:maxWinWidth
     runWinRleList <- IRanges::RleList(
                         lapply(wins, function(win) {
-                            message("Running window ", win, " of ", maxWinWidth)
+                            if(verbose) {
+                                message("Running window ", (win*binWidth),
+                                        " of ", (maxWinWidth*binWidth))
+                            }
                             floor(evenRunMean(x=chrCovRle, k=win,
                                                 endrule="constant"))
                         })
