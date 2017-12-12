@@ -119,7 +119,8 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
             Z <- computeZ(lambdaChrRleList=lambdaChrRleList,
                             runWinRleList=runWinRleList,
                             chrLength=chrGRanges@seqinfo@seqlengths,
-                            minCount=minCount, binSize=binSize
+                            minCount=minCount, binSize=binSize,
+                            verbose=verbose
                             )
             newS <- c_get_disjoint_max_win(z0=Z,
                                     sigwin=fragmentLength/binSize,
@@ -145,7 +146,7 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
             filename <- paste0(basename(file), "_zt", zthresh, "_mnw", minWin,
                             "_mxw", maxWin, "_bin", binSize)
             saveGRangesAsBed(GRanges=ZRanges, filepath=outputName,
-                            filename=filename)
+                            filename=filename, verbose=verbose)
         }
         fileGRangesList <- c(fileGRangesList, ZRanges)
     }
@@ -172,7 +173,7 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
 #' where the rownames represent the starting base of each bin.
 #' @keywords internal.
 computeZ <- function(lambdaChrRleList, runWinRleList, chrLength,
-                        minCount=0.1, binSize=50, verbose=TRUE)
+                        minCount=0.1, binSize=50, verbose=FALSE)
 {
     # runWinRleM <- RleListToRleMatrix(runWinRleList)
     # lambdaChrRleM <- RleListToRleMatrix(lambdaChrRleList)

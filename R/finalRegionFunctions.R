@@ -18,18 +18,20 @@
 #' @importFrom GenomicRanges GRangesList
 # @examples TBW
 finalRegions <- function(peakSamplesGRangesList, zThreshold=20, minCarriers=2,
-                                    saveFlag=TRUE, outputName="overlappedPeaks")
+                                    saveFlag=TRUE, outputName="overlappedPeaks",
+                                    verbose=FALSE)
 {
     stopifnot(is(peakSamplesGRangesList, "GRangesList"))
 
+    if(verbose) message("computing final regions on ",
+                        length(peakSamplesGRangesList), " samples...")
     zedPeaksSamplesGRList <- GenomicRanges::GRangesList(
                     lapply(peakSamplesGRangesList, function(sample)
                     {
                         return(sample[which(sample$`z-score` >= zThreshold),])
                     }))
 
-    zedPeaksChrsGRList <- fromSamplesToChromosomesGRangesList(
-                                                        zedPeaksSamplesGRList)
+    zedPeaksChrsGRList <- fromSamplesToChrsGRangesList(zedPeaksSamplesGRList)
 
     #### to parallelize over chrs
     overlappedPeaksGRList <- GenomicRanges::GRangesList(
@@ -44,9 +46,9 @@ finalRegions <- function(peakSamplesGRangesList, zThreshold=20, minCarriers=2,
         ##################### check
         filename <- paste0(file, "_zt", zThreshold, "_minK", minCarriers)
         saveGRangesAsBed(GRanges=overlMinKPeaksGR, filepath=outputName,
-                        filename=filename)
+                        filename=filename, verbose=verbose)
     }
-
+    if(verbose) message("done\n")
     return(overlMinKPeaksGR)
 }
 

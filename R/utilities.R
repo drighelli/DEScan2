@@ -31,7 +31,6 @@ readBamAsBed <- function(file) {
 #' @importFrom rtracklayer import.bed
 #' @importFrom GenomeInfoDb seqlevelsStyle
 readBedFile <- function(filename) {
-    message("processing ", filename)
     if (tools::file_ext(filename) == "zip") {
         tmp <- utils::unzip(filename, list=T)$Name
         file <- base::unz(filename, tmp)
@@ -64,9 +63,11 @@ readBedFile <- function(filename) {
 #' @importFrom GenomicRanges sort
 constructBedRanges <- function(filename,
                                 filetype=c("bam", "bed"),
-                                genomeName=NULL, onlyStdChrs=FALSE)
+                                genomeName=NULL, onlyStdChrs=FALSE,
+                                verbose=FALSE)
 {
     filetype <- match.arg(filetype)
+    if(verbose) message("processing ", filename)
 
     if(filetype == "bam") {
         bedGRanges <- readBamAsBed(file=filename)
@@ -82,7 +83,7 @@ constructBedRanges <- function(filename,
 
     if( !is.null(genomeName) )
     {
-        message("Get seqlengths from genome ", genomeName)
+        if(verbose) message("Get seqlengths from genome ", genomeName)
         genomeInfo <- GenomeInfoDb::Seqinfo(genome=genomeName)
         seqNamesIdx <- which(genomeInfo@seqnames %in% uniqueSeqnames)
         if(length(seqNamesIdx) != 0)
@@ -133,7 +134,8 @@ constructBedRanges <- function(filename,
 #'
 #' @return none
 #' @keywords internal
-saveGRangesAsBed <- function(GRanges, filepath, filename, force=FALSE)
+saveGRangesAsBed <- function(GRanges, filepath, filename, force=FALSE,
+                            verbose=FALSE)
 {
     stopifnot(is(GRanges, "GRanges"))
     ## add some parameters
@@ -160,8 +162,7 @@ saveGRangesAsBed <- function(GRanges, filepath, filename, force=FALSE)
         S4Vectors::mcols(GRanges)$score <- S4Vectors::mcols(GRanges)$`z-score`
 
     rtracklayer::export.bed(object=GRanges, con=filePathName)
-    message("file ", filePathName, " written on disk!")
-    # save(GRanges, file=paste0(filePathName, ".RData"))
+    if(verbose) message("file ", filePathName, " written on disk!")
 }
 
 
@@ -339,7 +340,7 @@ keepRelevantChrs <- function(chrGRangesList, chr=NULL)
     return(chrGRangesList)
 }
 
-#' fromSamplesToChromosomesGRangesList
+#' fromSamplesToChrsGRangesList
 #' @description converts a GRangesList orgnized per samples to a GRangesList
 #'              organized per Chromosomes where each element
 #'              is a GRangesList of samples
@@ -365,8 +366,8 @@ keepRelevantChrs <- function(chrGRangesList, chr=NULL)
 #'             seqlengths=c(chr1=11, chr4=12, chr3=13))
 #' sgrl <- GRangesList(gr1, gr2)
 #' names(sgrl) <- c("samp1", "samp2")
-#' (chrGrlSampGr <- fromSamplesToChromosomesGRangesList(sgrl))
-fromSamplesToChromosomesGRangesList <- function(samplesGRangesList)
+#' (chrGrlSampGr <- fromSamplesToChrsGRangesList(sgrl))
+fromSamplesToChrsGRangesList <- function(samplesGRangesList)
 {
     stopifnot(is(samplesGRangesList, "GRangesList"))
     samplesChrList <- divideEachSampleByChromosomes(samplesGRangesList)

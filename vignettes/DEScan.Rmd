@@ -88,8 +88,7 @@ peaks <- findPeaks(files=bam.files[1], chr="chr19", filetype="bam", fragmentLeng
                    binSize=50, minWin=50, maxWin=1000, genomeName="mm9",
                    minCompWinWidth=5000, maxCompWinWidth=10000,
                    zthresh=5, minCount=0.1, verbose=FALSE, save=FALSE)
-saveRDS(object=peaks, file="peaks_new.RDS")
-head(peaks)
+peaks
 ```
 
 ##Aligning peaks across replicates to produce regions
@@ -109,8 +108,9 @@ Parameter description:
 ```{r finalRegions, cache=TRUE, eval=TRUE, message=FALSE}
 peak.path <- system.file("extdata/Peaks", package = "DEScan")
 
-regions <- finalRegions(peak_path = peak.path, chr = 19, zthresh = 20, 
-                        min_carriers = 4, save_file = "bed", verbose = FALSE)
+regions <- finalRegions(peakSamplesGRangesList=peaks,
+                        zThreshold=20, minCarriers=4, 
+                        saveFlag=FALSE, verbose=FALSE)
 head(regions)
 ```
 
