@@ -89,19 +89,22 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
                                                 chrBedGRanges=chrGRanges,
                                                 minWinWidth=minWin,
                                                 maxWinWidth=maxWin,
-                                                binWidth=binSize
+                                                binWidth=binSize,
+                                                verbose=verbose
                                                 )
             minCompRunWinRleList <- computeCoverageMovingWindowOnChr(
                                                 chrBedGRanges=chrGRanges,
                                                 minWinWidth=minCompWinWidth,
                                                 maxWinWidth=minCompWinWidth,
-                                                binWidth=binSize
+                                                binWidth=binSize,
+                                                verbose=verbose
                                                 )
             maxCompRunWinRleList <- computeCoverageMovingWindowOnChr(
                                                 chrBedGRanges=chrGRanges,
                                                 minWinWidth=maxCompWinWidth,
                                                 maxWinWidth=maxCompWinWidth,
-                                                binWidth=binSize
+                                                binWidth=binSize,
+                                                verbose=verbose
                                                 )
             ## test the lambdas with the old lambdas
             lambdaChrRleList <- computeLambdaOnChr(
@@ -110,7 +113,8 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
                                     minChrRleWComp=minCompRunWinRleList[[1]],
                                     minCompWinWidth=minCompWinWidth,
                                     maxChrRleWComp=maxCompRunWinRleList[[1]],
-                                    maxCompWinWidth=maxCompWinWidth
+                                    maxCompWinWidth=maxCompWinWidth,
+                                    verbose=verbose
                                     )
             Z <- computeZ(lambdaChrRleList=lambdaChrRleList,
                             runWinRleList=runWinRleList,
@@ -143,9 +147,6 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
             saveGRangesAsBed(GRanges=ZRanges, filepath=outputName,
                             filename=filename)
         }
-
-        # fileGRangesList <- c(fileGRangesList, chrZRangesList)
-
         fileGRangesList <- c(fileGRangesList, ZRanges)
     }
     names(fileGRangesList) <- files
