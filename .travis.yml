@@ -33,17 +33,17 @@ r_check_args: "--no-vignettes"
 
 notifications:
   email:
-    on_success: change
-    on_failure: change
+    on_success: always
+    on_failure: always
 
 ## Code coverage
 r_packages:
-  -
+  - covr
 
 ## BiocCheck
 bioc_packages:
   - BiocCheck
 
 after_success:
-  - Rscript -e 'library(covr); codecov()'
+  - Rscript -e 'library("covr"); codecov()'
   - R CMD BiocCheck .

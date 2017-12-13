@@ -47,15 +47,55 @@ readBedFile <- function(filename)
     return(bed)
 }
 
+#' setGRGenomeInfo
+#' given a genome code (i.e. "mm9","mm10","hg19","hg38") retrieve the SeqInfo of
+#' that genome and assigns it to the input GRanges. Finally filters out those
+#' Infos not necessary to the GRanges.
+#'
+#' @param GRanges a GRanges object.
+#' @param genomeName a genome code (i.e. "mm9")
+#' @param verbose verbose output
+#'
+#' @return a GRanges object with the seqinfo of the genome code
+#' @export
+#'
+# @examples TBW
+setGRGenomeInfo <- function(GRanges, genomeName=NULL, verbose=FALSE)
+{
+    stopifnot(is(GRanges, "GRanges"))
+    stopifnot(!is.null(genomeName))
+    if(length(genomeName)>1) stop("Please provide just one genome code!\n")
+
+    uniqueSeqnames <- droplevels(unique(GRanges@seqnames))
+
+    if(verbose) message("Get seqlengths from genome ", genomeName)
+
+    genomeInfo <- GenomeInfoDb::Seqinfo(genome=genomeName)
+    seqNamesIdx <- which(genomeInfo@seqnames %in% uniqueSeqnames)
+    if(length(seqNamesIdx) != 0)
+    {
+        GRanges@seqinfo <- genomeInfo[genomeInfo@seqnames[seqNamesIdx]]
+    }
+    else
+    {
+        stop("Cannot find the ", glue::collapse(uniqueSeqnames, " "),
+             " in genome ", genomeName,
+             " Maybe a problem of chromosome labels")
+    }
+    GenomeInfoDb::seqnames(GRanges) <- droplevels(
+                                                GenomeInfoDb::seqnames(GRanges))
+    return(GRanges)
+}
 
 #' constructBedRanges
 #' @description Constructs a GRanges object from a bam/bed file in a consistent
 #'                way
 #' @param filename the complete file path of a bam?bed file
 #' @param filetype the file type bam/bed
-#' @param genomeName the name of the genome used to map the reads (i.e. mm9)
+#' @param genomeName the name of the genome used to map the reads (i.e. "mm9")
+#'
 #'                   N.B. if NOT NULL the GRanges Seqinfo will be forced to
-#'                   genomeName Seqinfo
+#'                   genomeName Seqinfo (strongly suggested!)
 #' @param onlyStdChrs flag to keep only standard chromosome
 #' @return a GRanges object
 #' @keywords internal
@@ -64,7 +104,8 @@ readBedFile <- function(filename)
 #' @importFrom GenomicRanges sort
 constructBedRanges <- function(filename,
                                 filetype=c("bam", "bed"),
-                                genomeName=NULL, onlyStdChrs=FALSE,
+                                genomeName=NULL,
+                                onlyStdChrs=FALSE,
                                 verbose=FALSE)
 {
     filetype <- match.arg(filetype)
@@ -80,23 +121,14 @@ constructBedRanges <- function(filename,
         bedGRanges <- GenomeInfoDb::keepStandardChromosomes(x=bedGRanges,
                                                         pruning.mode="coarse")
     }
+
     uniqueSeqnames <- droplevels(unique(bedGRanges@seqnames))
 
     if( !is.null(genomeName) )
     {
-        if(verbose) message("Get seqlengths from genome ", genomeName)
-        genomeInfo <- GenomeInfoDb::Seqinfo(genome=genomeName)
-        seqNamesIdx <- which(genomeInfo@seqnames %in% uniqueSeqnames)
-        if(length(seqNamesIdx) != 0)
-        {
-            bedGRanges@seqinfo <- genomeInfo[genomeInfo@seqnames[seqNamesIdx]]
-        }
-        else
-        {
-            stop("Cannot find the ", glue::collapse(uniqueSeqnames, " "),
-                    " in genome ", genomeName,
-                    " Maybe a problem of chromosome labels")
-        }
+        bedGRanges <- setGRGenomeInfo(GRanges=bedGRanges,
+                                        genomeName=genomeName,
+                                        verbose=verbose)
         return(bedGRanges)
     }
 
@@ -110,7 +142,7 @@ constructBedRanges <- function(filename,
     else if(length(uniqueSeqnames) <
                 length(GenomeInfoDb::seqinfo(bedGRanges)@seqnames))
     {
-        message("Keeping only necessary seqInfos")
+        if(verbose) message("Keeping only necessary seqInfos")
         bedGRanges@seqinfo <- bedGRanges@seqinfo[as.character(uniqueSeqnames)]
         bedGRanges@seqnames <- droplevels(bedGRanges@seqnames)
     }

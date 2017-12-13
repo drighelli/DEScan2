@@ -6,7 +6,8 @@
 \usage{
 countFinalRegions(regionsGRanges, readsFilePath = NULL, fileType = c("bam",
   "bed"), minCarriers = 2, genomeName = NULL, onlyStdChrs = FALSE,
-  ignStrand = TRUE, saveFlag = FALSE, savePath = "finalRegions")
+  ignStrandSO = TRUE, modeSO = "Union", saveFlag = FALSE,
+  savePath = "finalRegions", verbose = FALSE)
 }
 \arguments{
 \item{regionsGRanges}{a GRanges objects representing the peaks to compute
@@ -16,22 +17,28 @@ the coverage, with a "k-carriers" mcols.
 \item{readsFilePath}{the filepath of bam or bed files necessary to compute
 the coverage.}
 
-\item{fileType}{the fileType of the input files.}
+\item{fileType}{the file type of the input files.}
 
 \item{minCarriers}{minimum number of carriers (samples).}
 
-\item{genomeName}{code name of the genome of reads files (optional).}
+\item{genomeName}{code name of the genome of reads files (i.e. "mm9").}
 
 \item{onlyStdChrs}{a flag indicating if to keep only the standard chromosomes}
 
-\item{ignStrand}{}
+\item{ignStrandSO}{a flag indicating if to ignore the reads strand.
+(see GenomicAlignments::summarizeOverlaps).}
+
+\item{modeSO}{the mode to use, default is "Union".
+(see GenomicAlignments::summarizeOverlaps).}
 
 \item{saveFlag}{a flag indicating if to save the results.}
 
 \item{savePath}{the path where to store the results.}
+
+\item{verbose}{verbose output.}
 }
 \value{
-Matrix containing read counts with regions as rows and samples as
+A Matrix containing read counts with regions as rows and samples as
 columns.
 }
 \description{

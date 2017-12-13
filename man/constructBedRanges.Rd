@@ -12,9 +12,10 @@ constructBedRanges(filename, filetype = c("bam", "bed"), genomeName = NULL,
 
 \item{filetype}{the file type bam/bed}
 
-\item{genomeName}{the name of the genome used to map the reads (i.e. mm9)
-N.B. if NOT NULL the GRanges Seqinfo will be forced to
-genomeName Seqinfo}
+\item{genomeName}{the name of the genome used to map the reads (i.e. "mm9")
+
+                  N.B. if NOT NULL the GRanges Seqinfo will be forced to
+                  genomeName Seqinfo (strongly suggested!)}
 
 \item{onlyStdChrs}{flag to keep only standard chromosome}
 }
