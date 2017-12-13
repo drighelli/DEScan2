@@ -12,6 +12,7 @@
 #' @param onlyStdChrs a flag indicating if to keep only the standard chromosomes
 #' @param saveFlag a flag indicating if to save the results.
 #' @param savePath the path where to store the results.
+#' @param ignStrand
 #'
 #' @return Matrix containing read counts with regions as rows and samples as
 #' columns.
@@ -25,6 +26,8 @@ countFinalRegions <- function(regionsGRanges, readsFilePath=NULL,
                                 #minCoverage=0,
                                 genomeName=NULL,
                                 onlyStdChrs=FALSE,
+                                ignStrandSO=TRUE,
+                                modeSO="IntersectionNotEmpty",
                                 saveFlag=FALSE,
                                 savePath="finalRegions")
 {
@@ -45,8 +48,12 @@ countFinalRegions <- function(regionsGRanges, readsFilePath=NULL,
                                         filetype=fileType,
                                         genomeName=genomeName,
                                         onlyStdChrs=onlyStdChrs)
-        summReg <- GenomicAlignments::summarizeOverlaps(features=regionsGRanges,
-                                                        reads=fileReads)
+
+        summReg <- GenomicAlignments::summarizeOverlaps(
+                                                    features=regionsGRanges,
+                                                    reads=fileReads,
+                                                    ignore.strand=ignStrandSO,
+                                                    mode=modeSO)
         return(SummarizedExperiment::assay(summReg))
     })
 

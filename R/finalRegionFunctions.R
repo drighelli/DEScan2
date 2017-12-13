@@ -3,8 +3,8 @@
 #' presence in multiple replicates taking in input a GRangesList where each
 #' element is a sample of called peaks.
 #'
-#' @param peakSamplesGRangesList GRangesList where each element is a sample
-#' of called peaks. A z-score mcols values is needed for each GRanges.
+#' @param peakSamplesGRangesList named GRangesList where each element is a
+#' sample of called peaks. A z-score mcols values is needed for each GRanges.
 #' (tipically returned by findPeaks function).
 #' @param zThreshold a threshold for the z score.
 #' @param minCarriers a threshold of minimum samples (carriers) for overlapped
@@ -12,8 +12,8 @@
 #' @param saveFlag a flag for saving results in a bed file.
 #' @param outputName the directory name to store the bed file.
 #'
-#' @return a GRanges of overlapping peaks selected with z-score,
-#' n-peaks, k-carriers as mcols.
+#' @return a GRanges of selected overlapping peaks with z-score,
+#' n-peaks, k-carriers as mcols object.
 #' @export
 #' @importFrom GenomicRanges GRangesList
 # @examples TBW
@@ -262,3 +262,42 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
     grl <- GenomicRanges::GRangesList(lgr)
     return(grl)
 }
+
+.loadPeaks <- function(peakdirname, verbose = FALSE)
+{
+    files <- list.files(peakdirname, pattern="Peaks", full.names=TRUE)
+    if (verbose)
+    {
+        message("Found", length(files), "peak files.\n")
+    }
+    peaks_all <- list()
+
+    for (i in 1:length(files))
+    {
+        p = load(files[i])
+        if(length(p) > 1 )
+        {
+            peaksi <- eval(expr=parse(text=paste("peaksi <- ", p[1])))
+        } else {
+            peaksi <- eval(parse(text=paste("peaksi <- ", p)))
+        }
+        if (ncol(peaksi) == 3) {
+            chr <- strsplit(peakdirname, split = "/")[[1]][2]
+            peaksi <- cbind(rep(chr, nrow(peaksi)), peaksi)
+        }
+        peaks_all[[files[[i]]]] <- peaksi
+        if (verbose) {
+            message("File: ", all.files[i],
+                    " number of regions:", nrow(peaksi), "\n")
+        }
+    }
+    return(peaks_all)
+}
+
+
+
+
+
+
+
+

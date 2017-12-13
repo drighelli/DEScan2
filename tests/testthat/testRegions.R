@@ -28,3 +28,30 @@ context("Region Alignment")
 test_that("finalRegions", {
     ## need some new output of findPeaks
 })
+
+test_that("finalRegions is consistent",
+{
+    peak.path = system.file("extdata/Peaks/chr19", package = "DEScan2")
+    .loadPeaks(peakdirname=peak.path)
+    peakSamplesGRangesList=peaksGRL;
+    zThreshold=20; minCarriers=4;
+    saveFlag=FALSE; verbose=FALSE
+
+    zedPeaksSamplesGRList <- GenomicRanges::GRangesList(
+        lapply(peakSamplesGRangesList, function(sample)
+        {
+            return(sample[which(sample$`z-score` >= zThreshold),])
+        }))
+
+    zedPeaksChrsGRList <- fromSamplesToChrsGRangesList(zedPeaksSamplesGRList)
+    chrSampleGRList = zedPeaksChrsGRList[[1]]
+    findOverlapsOverSamples(chrSampleGRList)
+    # #### to parallelize over chrs
+    # overlappedPeaksGRList <- GenomicRanges::GRangesList(
+    #     lapply(zedPeaksChrsGRList, function(chrSampleGRList) {
+    #         return(findOverlapsOverSamples(chrSampleGRList))
+    #     }))
+
+
+})
+

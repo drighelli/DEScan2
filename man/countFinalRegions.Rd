@@ -6,7 +6,7 @@
 \usage{
 countFinalRegions(regionsGRanges, readsFilePath = NULL, fileType = c("bam",
   "bed"), minCarriers = 2, genomeName = NULL, onlyStdChrs = FALSE,
-  saveFlag = FALSE, savePath = "finalRegions")
+  ignStrand = TRUE, saveFlag = FALSE, savePath = "finalRegions")
 }
 \arguments{
 \item{regionsGRanges}{a GRanges objects representing the peaks to compute
@@ -23,6 +23,8 @@ the coverage.}
 \item{genomeName}{code name of the genome of reads files (optional).}
 
 \item{onlyStdChrs}{a flag indicating if to keep only the standard chromosomes}
+
+\item{ignStrand}{}
 
 \item{saveFlag}{a flag indicating if to save the results.}
 

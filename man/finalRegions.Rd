@@ -8,8 +8,8 @@ finalRegions(peakSamplesGRangesList, zThreshold = 20, minCarriers = 2,
   saveFlag = TRUE, outputName = "overlappedPeaks", verbose = FALSE)
 }
 \arguments{
-\item{peakSamplesGRangesList}{GRangesList where each element is a sample
-of called peaks. A z-score mcols values is needed for each GRanges.
+\item{peakSamplesGRangesList}{named GRangesList where each element is a
+sample of called peaks. A z-score mcols values is needed for each GRanges.
 (tipically returned by findPeaks function).}
 
 \item{zThreshold}{a threshold for the z score.}
@@ -22,8 +22,8 @@ regions.}
 \item{outputName}{the directory name to store the bed file.}
 }
 \value{
-a GRanges of overlapping peaks selected with z-score,
-n-peaks, k-carriers as mcols.
+a GRanges of selected overlapping peaks with z-score,
+n-peaks, k-carriers as mcols object.
 }
 \description{
 Align peaks to form common regions then filter regions for

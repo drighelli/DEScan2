@@ -74,7 +74,8 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
         file <- files[[fileIdx]]
         bedGRanges <- constructBedRanges(filename=file, filetype=filetype,
                                             genomeName=genomeName,
-                                            onlyStdChrs=onlyStdChrs)
+                                            onlyStdChrs=onlyStdChrs,
+                                            verbose=verbose)
 
         bedGrangesChrsList <- cutGRangesPerChromosome(bedGRanges)
         if(!is.null(chr))

@@ -449,6 +449,7 @@ generateDFofSamplesPerChromosomes <- function(samplesChrGRList)
     sampChromsTab <- plyr::ldply(samplesChrGRList, function(sgrl)
     {
         paste(names(sgrl), collapse=";")
+
     })
     colnames(sampChromsTab) <- c("samples", "chromosomes")
     return(sampChromsTab)
