@@ -169,6 +169,7 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
 #' @param minCount A small constant (usually no larger than one) to be added to
 #' the counts prior to the log transformation to avoid problems with log(0).
 #' @param binSize the size of the bin.
+#' @param verbose verbose output.
 #'
 #' @return z a matrix of z scores for each window (column) and bin (row).
 #' where the rownames represent the starting base of each bin.
@@ -233,12 +234,12 @@ c_get_disjoint_max_win <- function(z0, sigwin=10, nmax=9999999,
 #'                without intersections
 #'
 #' @param z0 Matrix containing z scores with bins as rows and windows size as
-#'            columns
-#' @param sigwin Integer indicating how many bins per fragment
-#' @param nmax Integer indicating the maximum number of windows to return
-#' @param zthresh Integer indicating the minimum z-score considered significant
-#' @param two_sided not used argument
-#' @param verbose verbose flag
+#'            columns.
+#' @param sigwin Integer indicating how many bins per fragment.
+#' @param nmax Integer indicating the maximum number of windows to return.
+#' @param zthresh Integer indicating the minimum z-score considered significant.
+#' @param two_sided not used argument.
+#' @param verbose verbose flag.
 #' @return a matrix of integer containing founded peaks
 #' @keywords internal
 get_disjoint_max_win <- function(z0, sigwin=20, nmax=Inf,
@@ -295,21 +296,20 @@ get_disjoint_max_win <- function(z0, sigwin=20, nmax=Inf,
 #' @description computes the lambdas on a chromosome for the
 #' winVector windows and other two windows (min/maxCompWinWidth) to compare with
 #'
-#' @param chrGRanges the GRanges representing the reads of the chromosome
-#' @param winVector the of width of the windows used to compute the coverage
+#' @param chrGRanges the GRanges representing the reads of the chromosome.
+#' @param winVector the of width of the windows used to compute the coverage.
 #' @param minChrRleWComp and Rle object within coverage of window of width
-#'                        minCompWinWidth
+#'                        minCompWinWidth.
 #' @param minCompWinWidth the width of the window used for the coverage of
-#'                      minChrRleWComp in bases
+#'                      minChrRleWComp in bases.
 #' @param maxChrRleWComp and Rle object within coverage of window of width
-#'                      minCompWinWidth
+#'                      minCompWinWidth.
 #' @param maxCompWinWidth the width of the window used for the coverage of
-#'                        maxChrRleWComp in bases
-#' @param binSize the size of the bin in bases
-#' @param verbose verbose flag
+#'                        maxChrRleWComp in bases.
+#' @param binSize the size of the bin in bases.
+#' @param verbose verbose flag.
 #' @return an RleList where each element is a window of winVector, within an Rle
-#'         representing the lambda computed for that window
-#' @export
+#'         representing the lambda computed for that window.
 #'
 #' @importFrom IRanges RleList
 #' @importFrom S4Vectors Rle

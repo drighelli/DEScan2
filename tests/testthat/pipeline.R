@@ -26,4 +26,7 @@ test_that("finalRegions", {
                                                 onlyStdChrs=TRUE,
                                                 ignStrandSO=TRUE)
     saveRDS(object=finalRegions, file="finalRegions_12_13_17.rds")
+    filtered <- NOISeq::filtered.data(dataset=finalRegions, factor=c(rep(1, 8)),
+                                    norm=FALSE, method=3, cpm=1500)
+    rownames(filtered)
 })

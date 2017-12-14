@@ -3,7 +3,6 @@
 export(RleListToRleMatrix)
 export(binnedCoverage)
 export(computeCoverageMovingWindowOnChr)
-export(computeLambdaOnChr)
 export(countFinalRegions)
 export(cutGRangesPerChromosome)
 export(divideEachSampleByChromosomes)

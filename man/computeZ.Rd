@@ -22,6 +22,8 @@ Rle representing the coverage for the moving window in the list position.}
 the counts prior to the log transformation to avoid problems with log(0).}
 
 \item{binSize}{the size of the bin.}
+
+\item{verbose}{verbose output.}
 }
 \value{
 z a matrix of z scores for each window (column) and bin (row).

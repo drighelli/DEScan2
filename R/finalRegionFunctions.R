@@ -11,7 +11,7 @@
 #'                    regions.
 #' @param saveFlag a flag for saving results in a bed file.
 #' @param outputName the directory name to store the bed file.
-#'
+#' @param verbose verbose output.
 #' @return a GRanges of selected overlapping peaks with z-score,
 #' n-peaks, k-carriers as mcols object.
 #' @export

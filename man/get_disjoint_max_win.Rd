@@ -9,17 +9,17 @@ get_disjoint_max_win(z0, sigwin = 20, nmax = Inf, zthresh = -Inf,
 }
 \arguments{
 \item{z0}{Matrix containing z scores with bins as rows and windows size as
-columns}
+columns.}
 
-\item{sigwin}{Integer indicating how many bins per fragment}
+\item{sigwin}{Integer indicating how many bins per fragment.}
 
-\item{nmax}{Integer indicating the maximum number of windows to return}
+\item{nmax}{Integer indicating the maximum number of windows to return.}
 
-\item{zthresh}{Integer indicating the minimum z-score considered significant}
+\item{zthresh}{Integer indicating the minimum z-score considered significant.}
 
-\item{two_sided}{not used argument}
+\item{two_sided}{not used argument.}
 
-\item{verbose}{verbose flag}
+\item{verbose}{verbose flag.}
 }
 \value{
 a matrix of integer containing founded peaks

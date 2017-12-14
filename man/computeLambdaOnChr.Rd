@@ -9,29 +9,29 @@ computeLambdaOnChr(chrGRanges, winVector = c(1:20), minChrRleWComp,
   verbose = TRUE)
 }
 \arguments{
-\item{chrGRanges}{the GRanges representing the reads of the chromosome}
+\item{chrGRanges}{the GRanges representing the reads of the chromosome.}
 
-\item{winVector}{the of width of the windows used to compute the coverage}
+\item{winVector}{the of width of the windows used to compute the coverage.}
 
 \item{minChrRleWComp}{and Rle object within coverage of window of width
-minCompWinWidth}
+minCompWinWidth.}
 
 \item{minCompWinWidth}{the width of the window used for the coverage of
-minChrRleWComp in bases}
+minChrRleWComp in bases.}
 
 \item{maxChrRleWComp}{and Rle object within coverage of window of width
-minCompWinWidth}
+minCompWinWidth.}
 
 \item{maxCompWinWidth}{the width of the window used for the coverage of
-maxChrRleWComp in bases}
+maxChrRleWComp in bases.}
 
-\item{verbose}{verbose flag}
+\item{verbose}{verbose flag.}
 
-\item{binSize}{the size of the bin in bases}
+\item{binSize}{the size of the bin in bases.}
 }
 \value{
 an RleList where each element is a window of winVector, within an Rle
-        representing the lambda computed for that window
+        representing the lambda computed for that window.
 }
 \description{
 computes the lambdas on a chromosome for the

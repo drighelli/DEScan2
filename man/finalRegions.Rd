@@ -20,6 +20,8 @@ regions.}
 \item{saveFlag}{a flag for saving results in a bed file.}
 
 \item{outputName}{the directory name to store the bed file.}
+
+\item{verbose}{verbose output.}
 }
 \value{
 a GRanges of selected overlapping peaks with z-score,
