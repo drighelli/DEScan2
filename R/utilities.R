@@ -172,7 +172,10 @@ saveGRangesAsBed <- function(GRanges, filepath, filename, force=FALSE,
 {
     stopifnot(is(GRanges, "GRanges"))
     ## add some parameters
-    dir.create(path=filepath, showWarnings=FALSE, recursive=TRUE)
+    if(!exists(filepath))
+    {
+        dir.create(path=filepath, showWarnings=FALSE, recursive=TRUE)
+    }
     filePathName <- file.path(filepath, paste0(filename, ".bed"))
 
     if(file.exists(filePathName)) {

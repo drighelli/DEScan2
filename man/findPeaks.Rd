@@ -7,7 +7,7 @@
 findPeaks(files, filetype = c("bam", "bed"), genomeName = NULL,
   binSize = 50, minWin = 50, maxWin = 1000, zthresh = 5,
   minCount = 0.1, minCompWinWidth = 100, maxCompWinWidth = 200,
-  outputName = "Peaks", save = TRUE, verbose = FALSE,
+  outputFolder = "Peaks", save = TRUE, force = TRUE, verbose = FALSE,
   fragmentLength = 200, onlyStdChrs = TRUE, chr = NULL)
 }
 \arguments{
@@ -36,11 +36,13 @@ the counts prior to the log transformation to avoid problems with log(0).}
 
 \item{maxCompWinWidth}{maximum bases width of a comparing window for Z-score.}
 
-\item{outputName}{A string, Name of the folder to save the Peaks (optional),
+\item{outputFolder}{A string, Name of the folder to save the Peaks (optional),
 if the directory doesn't exist, it will be created. (Default is "Peaks")}
 
 \item{save}{Boolean, if TRUE files will be saved in a "./Peaks/chr*"
 directory created (if not already present) in the current working directory.}
+
+\item{force}{a boolean flag indicating if to force output overwriting.}
 
 \item{verbose}{if to show additional messages}
 

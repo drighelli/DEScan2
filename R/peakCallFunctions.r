@@ -17,10 +17,11 @@
 #' will be kept.
 #' @param minCount A small constant (usually no larger than one) to be added to
 #' the counts prior to the log transformation to avoid problems with log(0).
-#' @param outputName A string, Name of the folder to save the Peaks (optional),
+#' @param outputFolder A string, Name of the folder to save the Peaks (optional),
 #' if the directory doesn't exist, it will be created. (Default is "Peaks")
 #' @param save Boolean, if TRUE files will be saved in a "./Peaks/chr*"
 #' directory created (if not already present) in the current working directory.
+#' @param force a boolean flag indicating if to force output overwriting.
 #' @param genomeName the code of the genome to use as reference for the input
 #' files. (cfr. constructBedRanges function parameters)
 #' @param onlyStdChrs a flag to work only with standard chromosomes.
@@ -51,7 +52,7 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
                         zthresh=5, minCount=0.1,
                         minCompWinWidth=100,
                         maxCompWinWidth=200,
-                        outputName="Peaks", save=TRUE,
+                        outputFolder="Peaks", save=TRUE, force=TRUE,
                         verbose=FALSE,
                         fragmentLength=200,
                         onlyStdChrs=TRUE,
@@ -146,8 +147,9 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
             # zGRangesToSave <- unlist(chrZRangesList)
             filename <- paste0(basename(file), "_zt", zthresh, "_mnw", minWin,
                             "_mxw", maxWin, "_bin", binSize)
-            saveGRangesAsBed(GRanges=ZRanges, filepath=outputName,
-                            filename=filename, verbose=verbose)
+            saveGRangesAsBed(GRanges=ZRanges, filepath=outputFolder,
+                            filename=filename, verbose=verbose,
+                            force=force)
         }
         fileGRangesList <- c(fileGRangesList, ZRanges)
     }

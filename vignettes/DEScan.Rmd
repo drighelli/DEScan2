@@ -1,12 +1,12 @@
 ---
-title: "DEScan"
+title: "DEScan2"
 author: "Dario Righelli - John Koberstein - Bruce Gomes"
 output: 
   BiocStyle::pdf_document
 vignette: >
   %\VignetteIndexEntry{DEScan2}
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}  
+  %\VignetteEncoding{UTF-8} 
 ---
 
 ``` {r, setup, echo=FALSE, cache=FALSE}
@@ -16,7 +16,7 @@ options(scipen = 1, digits = 4)
 ```
 
 #Overview
-This document describes how to use DEScan to detect regions of differential enrichment in epigenomic sequencing data. DEScan is an R/Bioconductor based tool, developed for Bioconductor v3.6 and R v 3.4.2.
+This document describes how to use DEScan2 to detect regions of differential enrichment in epigenomic sequencing data. DEScan2 is an R/Bioconductor based tool, developed for Bioconductor v3.6 and R v3.4.2.
 
 #A typical differential enrichment analysis workflow
 
@@ -36,7 +36,6 @@ install_github(repo = "drighelli/DEScan2")
 ```{r, message=FALSE}
 library("DEScan2")
 library("RUVSeq")
-# library(EDASeq)
 ```
 
 ##Example data
@@ -44,13 +43,14 @@ library("RUVSeq")
 This analysis will make use of mouse Sono-seq data from mouse chromosome 19. This data was obtained from hippocampus of mice following learning through contextual fear conditioning. The experiment has 4 fear conditioned (FC) and 4 homecage control (HC) replicates. The data was aligned to the mouse genome (mm9) using bowtie2, allowing for multi-mapping reads. Duplicates were removed if present in isolation from duplicated reads relative to genomic location. Aligned data in this example is provided as bed files, but DEScan accepts bam format alignments. 
 
 ```{r eval=TRUE}
-bam.files <- list.files(system.file("extdata/Bam/chr19", package = "DEScan2"),
-                        full.names = T)
+bam.files <- list.files(system.file("extdata/Bam/chr19", package = "DEScan2"), full.names = TRUE)
 ```
 
 
 ##Calling peaks for each sample
-First, peak calling for the samples will be done using the *findPeaks* function. Bed files are used as input in this case, but bam files work as well. Should bed files be used they need to be split up by chromosome in order to be loaded into R. We will perform this step on a single sample in the interest of time; however, note that a vector of file names can be supplied. The output of this function will be saved as an “.RData" object in a "Peaks" directory with subdirectories for each chromosome. findPeaks implements an adaptive window size scan to find peaks, and requires 2 parameters to define the size of the overlapping windows to be tested for enrichment. Enrichment for each window is calculated relative to 5kb, 10 kb (local) or the whole chromosome, and the maximum among the three is reported.
+First, peak calling for the samples will be done using the *findPeaks* function. Bam files are used as input in this case, but bed files work as well (in any case we reccomend to specify a genome code as reference for the data). 
+We will perform this step on a single sample in the interest of time; however, note that a vector of file names can be supplied. 
+If the **save** flag is set to TRUE the function will produce a sorted bed file for each input file in the folder **outputFolder** ("Peaks" directory is the default). *findPeaks* implements an adaptive window size scan to find peaks, and requires 2 parameters to define the size of the overlapping windows to be tested for enrichment. Enrichment for each window is calculated relative to 5kb, 10 kb (local) or the whole chromosome, and the maximum among the three is reported.
 
 Parameter description:  
 
@@ -74,9 +74,12 @@ Parameter description:
 : Cuttoff value for z-scores. Only windows with greater z-scores will be kept.
 **minCount** 
 : A small constant (usually no larger than one) to be added to the counts prior to the log transformation to avoid problems with log(0).
-**outputName** A string, Name of the folder to save the Peaks (optional), if the directory doesn't exist, it will be created. default is "Peaks"
+**outputFolder** 
+:A string, Name of the folder to save the Peaks (optional), if the directory doesn't exist, it will be created. default is "Peaks".
 **save**
 : Flag indicating if tha output has to be saved
+**force**
+: a boolean flag indicating if to force output overwriting.
 **genomeName**
 : the code of the genome to use as reference for the input files. (cfr. constructBedRanges function parameters)
 **onlyStdChrs**
