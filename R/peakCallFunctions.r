@@ -50,8 +50,8 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
                         genomeName=NULL,
                         binSize=50, minWin=50, maxWin=1000,
                         zthresh=5, minCount=0.1,
-                        minCompWinWidth=100,
-                        maxCompWinWidth=200,
+                        minCompWinWidth=5000,
+                        maxCompWinWidth=10000,
                         outputFolder="Peaks", save=TRUE, force=TRUE,
                         verbose=FALSE,
                         fragmentLength=200,
@@ -65,6 +65,10 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
     if(!save) warning("Save is false, not saving results!\n")
     if(length(files) == 0)
         stop("You have to provide one or more input files!\nExiting.")
+    stopifnot((minWin %% binSize) == 0)
+    stopifnot((maxWin %% binSize) == 0)
+    stopifnot((minCompWinWidth %% binSize) == 0)
+    stopifnot((maxCompWinWidth %% binSize) == 0)
     filetype <- match.arg(filetype)
 
     fileGRangesList <- NULL

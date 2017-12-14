@@ -58,14 +58,12 @@ Parameter description:
 : Character vector containing paths of files to be analyzed.
 **filetype** 
 : Character, either "bam" or "bed" indicating format of input file.
-**fragmentLength**
-: Integer indicating the average DNA fragment length bp.
-**minWin**
-: Integer indicating the minimum window size in units of 50 bp, i.e., min_win=2 resulting in a 100 bp window.
 **binSize** 
 : Integer size in base pairs of the minimum window for scanning, 50 is the default.
+**minWin**
+: Integer indicating the minimum window size in base pairs. (A multiple of binSize)
 **maxWin** 
-: Integer indicating the maximum allowed window size in units of 50 bp.
+: Integer indicating the maximum allowed window size in units of 50 bp. (A multiple of binSize)
 **minCompWinWidth** 
 : minimum bases width of a comparing window for Z-score
 **maxCompWinWidth** 
