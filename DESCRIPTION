@@ -19,6 +19,8 @@ Description: integrated peak and differential caller, specifically designed for
 License: CC0
 LazyData: TRUE
 biocViews: PeakDetection, Epigenetics, Software
+Depends: 
+    R (>= 3.4)
 Imports:
     BiocGenerics,
     ChIPpeakAnno,
