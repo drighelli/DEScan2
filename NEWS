@@ -1,1 +1,5 @@
-some news
+DEScan2 v.2.0.0
+- findPeaks function works with GRanges objects and produces a GRangesList
+- finalRegions function takes in input a GRangesList and returns a GRanges
+- countFinalRegions function takes in input a GRanges with a z-score mcols and
+    returns a SummarizedExperiment object with a matrix of counts as assay

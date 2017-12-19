@@ -39,10 +39,10 @@ library("RUVSeq")
 
 ##Example data
 
-This analysis will make use of mouse Sono-seq data from mouse chromosome 19. This data was obtained from hippocampus of mice following learning through contextual fear conditioning. The experiment has 4 fear conditioned (FC) and 4 homecage control (HC) replicates. The data was aligned to the mouse genome (mm9) using bowtie2, allowing for multi-mapping reads. Duplicates were removed if present in isolation from duplicated reads relative to genomic location. Aligned data in this example is provided as bed files, but DEScan accepts bam format alignments. 
+This analysis will make use of mouse Sono-seq data from mouse chromosome 19. This data is a portion of data obtained from hippocampus of mice following learning through contextual fear conditioning. The experiment has 4 fear conditioned (FC) and 4 homecage control (HC) replicates. The data was aligned to the mouse genome (mm9) using bowtie2, allowing for multi-mapping reads. Duplicates were removed if present in isolation from duplicated reads relative to genomic location. Aligned data in this example is provided as bed files, but DEScan accepts bam format alignments. 
 
 ```{r eval=TRUE}
-bam.files <- list.files(system.file("extdata/Bam/chr19", package = "DEScan2"), full.names = TRUE)
+bam.files <- list.files(system.file("extdata/bam", package = "DEScan2"), full.names = TRUE)
 ```
 
 
@@ -84,7 +84,6 @@ Parameter description:
 **chr** if not NULL, a character like "chr#" indicating the chromosomes to use
 
 ```{r findPeaks, cache=TRUE, eval=TRUE}
-bam.files <- list.files(system.file("extdata/bam", package="DEScan2"), full.names=TRUE)
 
 peaksGRL <- findPeaks(files=bam.files[1], filetype="bam",
                               genomeName="mm9",
@@ -115,7 +114,6 @@ Parameter description:
 :  Format of the output (bed or RData), default bed
 
 ```{r finalRegions, cache=TRUE, eval=TRUE, message=FALSE}
-peak.path <- system.file("extdata/Peaks/chr19", package = "DEScan2")
 
 regions <- finalRegions(peakSamplesGRangesList=peaksGRL,
                         zThreshold=20, minCarriers=4, 
@@ -129,26 +127,29 @@ The output of this function is a bed-like file with columns indicating genomic c
 The resulting regions can then be used to generate a count matrix using the *countFinalRegions* function. This function takes the regions to count across (can be any bed like data structure), and the path to bam files which contain the reads to be counted. Bam files for all the alignment files can be found in the “extdata/bam/” folder. The minimum number of carriers can also be specified in order to speed up the process. In this case we will not specify a minimum number of carriers and will filter after counting. This function is a wrapper for *featureCounts*.
 
 ```{r countFinalRegions, cache=TRUE, eval=TRUE, message=FALSE}
-# region.file <- system.file("extdata/Regions", "FinalRegions_allChr.bed", 
-#                            package = "DEScan")
-# bam.files <- system.file("extdata/Bam/chr19", package = "DEScan")
+
 finalRegions <- countFinalRegions(regionsGRanges=regionsGR,
-                                            readsFilePath="testData/bams",
+                                            readsFilePath="extdata/bam",
                                             fileType="bam",
                                             minCarriers=1,
                                             genomeName="mm9",
-                                            onlyStdChrs=TRUE)
+                                            onlyStdChrs=TRUE, 
+                                            saveFlag=FALSE, 
+                                            verbose=TRUE)
+counts <- SummarizedExperiment::assay(finalRegions)
+regions <- SummarizedExperiment::rowRanges(finalRegions)
 ```
 
 The resulting count matrix contains a row for each region and a column for each sample. This structure is analogous to common RNA-seq data and can be normalized and analyzed with similar tools. First, we will rename and reorder the columns for readability and filter for a minimum of 4 carriers in order to only test relevant regions.
 
 ```{r, eval=TRUE}
-count <- count[regions$NumCarriers >= 4, ]
-count <- count[rowSums(count) > 0,]
-colnames(count) <- c("FC1", "FC4", "HC1", "HC4", "FC6", "FC9", "HC6", "HC9")
-count <- count[,order(colnames(count))]
-head(count)
+counts <- counts[regions$`k-carriers` >= 4, ]
+counts <- counts[rowSums(counts) > 0,]
+colnames(counts) <- c("FC1", "FC4", "HC1", "HC4", "FC6", "FC9", "HC6", "HC9")
+counts <- counts[,order(colnames(counts))]
+head(counts)
 ```
+
 
 ##Normalization using RUV
 
@@ -157,7 +158,7 @@ In order to control for “unwanted variation”, e.g., batch, library preparati
 ```{r RUV, cache=TRUE, eval=TRUE}
 library(RColorBrewer)
 colors <- brewer.pal(3, "Set2")
-set <- EDASeq::betweenLaneNormalization(count, which = "upper")
+set <- EDASeq::betweenLaneNormalization(counts, which = "upper")
 groups <- matrix(c(1:8), nrow = 2, byrow = T)
 trt <- factor(c(rep("FC", 4), rep("HC", 4)))
 ```
@@ -191,15 +192,15 @@ Now, we are ready to look for differentially enriched regions, using the negativ
 design <- model.matrix(~0 + trt + s$W)
 colnames(design) <- c(levels(trt), paste0("W", 1:k))
 
-y <- DGEList(counts = count, group = trt)
-y <- estimateDisp(y, design)
+y <- edgeR::DGEList(counts=counts, group=trt)
+y <- edgeR::estimateDisp(y, design)
 
-fit <- glmQLFit(y, design, robust = T)
+fit <- edgeR::glmQLFit(y, design, robust=T)
 
-con <- makeContrasts(FC - HC, levels = design)
+con <- limma::makeContrasts(FC - HC, levels = design)
 
-qlf <- glmQLFTest(fit, contrast = con)
-res <- topTags(qlf, n = Inf, p.value = 0.05)
+qlf <- edgeR::glmQLFTest(fit, contrast = con)
+res <- edgeR::topTags(qlf, n = Inf, p.value = 0.05)
 head(res$table)
 dim(res$table)
 ```
