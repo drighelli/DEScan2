@@ -4,15 +4,15 @@ Title: Differential Enrichment Scan 2
 Version: 2.00.0
 Date: 2017-11-28
 Authors@R: c(
+    person("Dario", "Righelli", role=c("aut", "cre"), 
+                email="dario.righelli@gmail.com"),
     person("John", "Koberstein", role="aut", email="jnkoberstein@gmail.com"),
     person("Lucia", "Peixoto", role="aut", email="lucia.peixoto@wsu.edu"),
     person("Nancy", "Zhang", role="aut", email="nzh@wharton.upenn.edu"),
-    person("Davide", "Risso", role="aut", email="risso.davide@gmail.com>"),
-    person("Dario", "Righelli", role=c("aut", "cre"), 
-            email="dario.righelli@gmail.com")
+    person("Davide", "Risso", role="aut", email="risso.davide@gmail.com>")
     )
-Author: John Koberstein [aut], Lucia Peixoto [aut], Nancy Zhang [aut],
-     Davide Risso [aut], Dario Righelli [aut, cre]
+Author: Dario Righelli [aut, cre], John Koberstein [aut], Lucia Peixoto [aut], 
+    Nancy Zhang [aut], Davide Risso [aut]
 Maintainer: Dario Righelli <dario.righelli@gmail.com>
 Description: integrated peak and differential caller, specifically designed for
     broad epigenomic signals.

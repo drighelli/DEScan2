@@ -25,3 +25,11 @@ given a genome code (i.e. "mm9","mm10","hg19","hg38") retrieve the SeqInfo of
 that genome and assigns it to the input GRanges. Finally filters out those
 Infos not necessary to the GRanges.
 }
+\examples{
+gr <- GRanges(
+        seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
+        ranges=IRanges(1:10, end=10),
+        strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
+        seqlengths=c(chr1=11, chr2=12, chr3=13))
+mm9gr <- setGRGenomeInfo(GRanges=gr, genomeName="mm9", verbose=TRUE)
+}

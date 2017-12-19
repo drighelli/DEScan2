@@ -5,21 +5,22 @@
 \title{finalRegions}
 \usage{
 finalRegions(peakSamplesGRangesList, zThreshold = 20, minCarriers = 2,
-  saveFlag = TRUE, outputName = "overlappedPeaks", verbose = FALSE)
+  saveFlag = TRUE, outputFolder = "overlappedPeaks", verbose = FALSE)
 }
 \arguments{
 \item{peakSamplesGRangesList}{named GRangesList where each element is a
 sample of called peaks. A z-score mcols values is needed for each GRanges.
 (tipically returned by findPeaks function).}
 
-\item{zThreshold}{a threshold for the z score.}
+\item{zThreshold}{a minimum threshold for the z score.
+All peaks lesser than this value will be ignored.}
 
 \item{minCarriers}{a threshold of minimum samples (carriers) for overlapped
 regions.}
 
 \item{saveFlag}{a flag for saving results in a bed file.}
 
-\item{outputName}{the directory name to store the bed file.}
+\item{outputFolder}{the directory name to store the bed file.}
 
 \item{verbose}{verbose output.}
 }
@@ -31,4 +32,12 @@ n-peaks, k-carriers as mcols object.
 Align peaks to form common regions then filter regions for
 presence in multiple replicates taking in input a GRangesList where each
 element is a sample of called peaks.
+}
+\examples{
+bam.files <- list.files(system.file("extdata/peaks", package="DEScan2"),
+                        pattern="bed", full.names=TRUE)
+peaksGRL <- GRanges::GRangesList(
+                    lapply(bam.files, DEScan2::constructBedRanges))
+regionsGR <- finalRegions(peakSamplesGRangesList=peaksGRL, zThreshold=1,
+                        minCarriers=3, saveFlag=FALSE, verbose=TRUE)
 }

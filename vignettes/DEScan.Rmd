@@ -1,11 +1,10 @@
 ---
 title: "DEScan2"
 author: "Dario Righelli - John Koberstein - Bruce Gomes"
+date: "`r Sys.Date()`"
 output: 
-  BiocStyle::pdf_document
+  BiocStyle::html_document
 vignette: >
-  %\VignetteIndexEntry{DEScan2}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8} 
 ---
 
@@ -85,25 +84,34 @@ Parameter description:
 **chr** if not NULL, a character like "chr#" indicating the chromosomes to use
 
 ```{r findPeaks, cache=TRUE, eval=TRUE}
-peaks <- findPeaks(files=bam.files, chr="chr19", filetype="bam", fragmentLength=200,
-                   binSize=50, minWin=50, maxWin=1000, genomeName="mm9",
-                   minCompWinWidth=5000, maxCompWinWidth=10000,
-                   zthresh=5, minCount=0.1, verbose=FALSE, save=FALSE)
-peaks
+bam.files <- list.files(system.file("extdata/bam", package="DEScan2"), full.names=TRUE)
+
+peaksGRL <- findPeaks(files=bam.files[1], filetype="bam",
+                              genomeName="mm9",
+                              binSize=50, minWin=50, maxWin=1000,
+                              zthresh=5, minCount=0.1, sigwin=10,
+                              minCompWinWidth=5000, maxCompWinWidth=10000,
+                              save=TRUE,
+                              outputFolder="testData/Peaks/new_peaks_head",
+                              force=TRUE,
+                              onlyStdChrs=TRUE,
+                              chr=NULL,
+                              verbose=TRUE)
+head(peaks)
 ```
 
 ##Aligning peaks across replicates to produce regions
-After *findPeaks* has been run on each chromosome and each sample, the *finalRegions* function can be used to align overlapping peaks found in multiple samples. Peak files for all the alignment files can be found in the “extdata/Peaks” folder. *finalRegions* will produce one file containing the location of the aligned peaks for all chromosomes.
+After *findPeaks* has been run on each sample, the *finalRegions* function can be used to align overlapping peaks found in multiple samples. Peak files for all the alignment files can be found in the “extdata/Peaks” folder. *finalRegions* will produce one file containing the location of the aligned peaks.
 
 Parameter description:
 
 **zthresh**
 :  Z-score for considering a peak for alignment, it needs to be equal or higher to the ztresh used in findPeaks, default 20.
 
-**min_carriers**
+**minCarriers**
 :  Minimum number of biological replicates required to overlap after aligning peaks for reporting, default 2
 
-**save_file**
+**saveFlag**
 :  Format of the output (bed or RData), default bed
 
 ```{r finalRegions, cache=TRUE, eval=TRUE, message=FALSE}
@@ -118,7 +126,7 @@ head(regions)
 The output of this function is a bed-like file with columns indicating genomic coordinates as well as additional columns: AvgZ, average z-score of the peaks combined to form a common region, and NumCarriers, the number of samples a region was present in.
 
 ##Counting reads in the final regions
-The resulting regions can then be used to generate a count matrix using the *countFinalRegions* function. This function takes the regions to count across (can be any bed like data structure), and the path to bam files which contain the reads to be counted. Bam files for all the alignment files can be found in the “extdata/Bam/chr19” folder. The minimum number of carriers can also be specified in order to speed up the process. In this case we will not specify a minimum number of carriers and will filter after counting. This function is a wrapper for *featureCounts*.
+The resulting regions can then be used to generate a count matrix using the *countFinalRegions* function. This function takes the regions to count across (can be any bed like data structure), and the path to bam files which contain the reads to be counted. Bam files for all the alignment files can be found in the “extdata/bam/” folder. The minimum number of carriers can also be specified in order to speed up the process. In this case we will not specify a minimum number of carriers and will filter after counting. This function is a wrapper for *featureCounts*.
 
 ```{r countFinalRegions, cache=TRUE, eval=TRUE, message=FALSE}
 # region.file <- system.file("extdata/Regions", "FinalRegions_allChr.bed", 
@@ -149,7 +157,7 @@ In order to control for “unwanted variation”, e.g., batch, library preparati
 ```{r RUV, cache=TRUE, eval=TRUE}
 library(RColorBrewer)
 colors <- brewer.pal(3, "Set2")
-set <- betweenLaneNormalization(count, which = "upper")
+set <- EDASeq::betweenLaneNormalization(count, which = "upper")
 groups <- matrix(c(1:8), nrow = 2, byrow = T)
 trt <- factor(c(rep("FC", 4), rep("HC", 4)))
 ```
@@ -157,9 +165,9 @@ trt <- factor(c(rep("FC", 4), rep("HC", 4)))
 The boxplots of relative log expression (RLE = log-ratio of read count to median read count across sample) and plots of principal components (PC) reveal a clear need for between-sample normalization.
 
 ```{r rawPlot, fig.width=3.5, fig.height=3.5, fig.show='hold'}
-plotRLE(set, outline = FALSE, ylim = c(-4, 4), 
+EDASeq::plotRLE(set, outline = FALSE, ylim = c(-4, 4), 
         col = colors[trt], main = "No Normalization RLE")
-plotPCA(set, col = colors[trt], main = "No Normalization PCA", 
+EDASeq::plotPCA(set, col = colors[trt], main = "No Normalization PCA", 
         labels = FALSE, pch = 19)
 ```
 
@@ -169,9 +177,9 @@ The parameter **k** dictates the number of factors of unwanted to variation to r
 k <- 4
 s <- RUVSeq::RUVs(set, cIdx = rownames(set), scIdx = groups, k = k)
 
-plotRLE(s$normalizedCounts, outline = FALSE, ylim = c(-4, 4), 
+EDASeq::plotRLE(s$normalizedCounts, outline = FALSE, ylim = c(-4, 4), 
         col = colors[trt], main = "Normalized RLE")
-plotPCA(s$normalizedCounts, col = colors[trt], main = "Normalized PCA",
+EDASeq::plotPCA(s$normalizedCounts, col = colors[trt], main = "Normalized PCA",
         labels = FALSE, pch = 19)
 ```
 

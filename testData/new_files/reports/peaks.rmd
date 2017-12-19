@@ -1,0 +1,204 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, cache=FALSE)
+devtools::load_all()
+```
+
+Binned Coverage Running Mean
+
+```{r echo=FALSE}
+
+# file="inst/extdata/Bed/P43615_Sample_FC1_Input_fwd_chr19_Smartfilter.bed.zip"
+file="/home/dario/Scrivania/Dropbox/Lavori/WCM/risso_peixoto/coding/DEScan2/inst/extdata/Bed/P43615_Sample_FC1_Input_fwd_chr19_Smartfilter.bed.zip"
+
+chr="chr19"; filetype="bed"; fragmentLength=200;
+binSize=50; minWin=50; maxWin=1000; genomeName="mm9";
+minCompWinWidth=5000; maxCompWinWidth=10000;
+zthresh=5; minCount=0.1; verbose=TRUE; save=FALSE
+onlyStdChrs=TRUE
+
+winVector <- c((minWin/binSize):(maxWin/binSize))
+
+bedGRanges <- constructBedRanges(filename=file, filetype=filetype,
+                                         genomeName=genomeName,
+                                         onlyStdChrs=onlyStdChrs)
+
+bedGrangesChrsList <- cutGRangesPerChromosome(bedGRanges)
+if(!is.null(chr)) bedGrangesChrsList <- keepRelevantChrs(bedGrangesChrsList, chr)
+chrGRanges = bedGrangesChrsList[[1]]
+
+
+runWinRleList <- computeCoverageMovingWindowOnChr(
+                                           chrBedGRanges=chrGRanges,
+                                           minWinWidth=minWin,
+                                           maxWinWidth=maxWin,
+                                           binWidth=binSize
+                                           )
+minCompRunWinRleList <- computeCoverageMovingWindowOnChr(
+                                        chrBedGRanges=chrGRanges,
+                                        minWinWidth=minCompWinWidth,
+                                        maxWinWidth=minCompWinWidth,
+                                        binWidth=binSize
+                                        )
+maxCompRunWinRleList <- computeCoverageMovingWindowOnChr(
+                                        chrBedGRanges=chrGRanges,
+                                        minWinWidth=maxCompWinWidth,
+                                        maxWinWidth=maxCompWinWidth,
+                                        binWidth=binSize
+                                        )
+## test the lambdas with the old lambdas
+lambdaChrRleList <- computeLambdaOnChr(
+                           chrGRanges=chrGRanges,
+                           winVector=winVector,
+                           minChrRleWComp=minCompRunWinRleList[[1]],
+                           minCompWinWidth=minCompWinWidth,
+                           maxChrRleWComp=maxCompRunWinRleList[[1]],
+                           maxCompWinWidth=maxCompWinWidth
+                           )
+Z <- computeZ(lambdaChrRleList=lambdaChrRleList,
+              runWinRleList=runWinRleList,
+              chrLength=chrGRanges@seqinfo@seqlengths,
+              minCount=minCount, binSize=binSize
+              )
+```
+
+Z 5 S 4
+```{R}
+zthreshold=5
+sigwin=4 ## 200/50
+newS <- c_get_disjoint_max_win(z0=Z,
+                              sigwin=sigwin,
+                              zthresh=zthreshold,
+                              verbose=verbose
+                              )
+chrZRanges <- createGranges(chrSeqInfo=chrGRanges@seqinfo,
+                          starts=as.numeric(rownames(Z)[newS[,1]]),
+                          widths=newS[,2]*binSize,
+                          mcolname="z-score",
+                          mcolvalues=newS[,3]
+                          )
+ZRangesBCM1 <- sort(chrZRanges)
+saveGRangesAsBed(GRanges=ZRangesBCM1, filepath="~/Scrivania", filename="ZRangesZ5S4", force=TRUE)
+```
+
+Z 5 S 20
+```{R}
+zthreshold=5
+sigwin=20 ## 200/50
+newS <- c_get_disjoint_max_win(z0=Z,
+                              sigwin=sigwin,
+                              zthresh=zthreshold,
+                              verbose=verbose
+                              )
+chrZRanges <- createGranges(chrSeqInfo=chrGRanges@seqinfo,
+                          starts=as.numeric(rownames(Z)[newS[,1]]),
+                          widths=newS[,2]*binSize,
+                          mcolname="z-score",
+                          mcolvalues=newS[,3]
+                          )
+ZRangesBCM2 <- sort(chrZRanges)
+saveGRangesAsBed(GRanges=ZRangesBCM2, filepath="~/Scrivania", filename="ZRangesZ5S20", force=TRUE)
+```
+
+Z 10 S 4
+```{R}
+zthreshold=10
+sigwin=4 ## 200/50
+newS <- c_get_disjoint_max_win(z0=Z,
+                              sigwin=sigwin,
+                              zthresh=zthreshold,
+                              verbose=verbose
+                              )
+chrZRanges <- createGranges(chrSeqInfo=chrGRanges@seqinfo,
+                          starts=as.numeric(rownames(Z)[newS[,1]]),
+                          widths=newS[,2]*binSize,
+                          mcolname="z-score",
+                          mcolvalues=newS[,3]
+                          )
+ZRangesBCM3 <- sort(chrZRanges)
+saveGRangesAsBed(GRanges=ZRangesBCM3, filepath="~/Scrivania", filename="ZRangesZ10S4", force=TRUE)
+```
+
+Z 10 S 20
+```{R}
+zthreshold=10
+sigwin=20 ## 200/50
+newS <- c_get_disjoint_max_win(z0=Z,
+                              sigwin=sigwin,
+                              zthresh=zthreshold,
+                              verbose=verbose
+                              )
+chrZRanges <- createGranges(chrSeqInfo=chrGRanges@seqinfo,
+                          starts=as.numeric(rownames(Z)[newS[,1]]),
+                          widths=newS[,2]*binSize,
+                          mcolname="z-score",
+                          mcolvalues=newS[,3]
+                          )
+ZRangesBCM4 <- sort(chrZRanges)
+saveGRangesAsBed(GRanges=ZRangesBCM4, filepath="~/Scrivania", filename="ZRangesZ10S20", force=TRUE)
+```
+
+Z 10 S 5
+```{R}
+zthreshold=10
+sigwin=5 ## 200/50
+newS <- c_get_disjoint_max_win(z0=Z,
+                              sigwin=sigwin,
+                              zthresh=zthreshold,
+                              verbose=verbose
+                              )
+chrZRanges <- createGranges(chrSeqInfo=chrGRanges@seqinfo,
+                          starts=as.numeric(rownames(Z)[newS[,1]]),
+                          widths=newS[,2]*binSize,
+                          mcolname="z-score",
+                          mcolvalues=newS[,3]
+                          )
+ZRangesBCM4 <- sort(chrZRanges)
+saveGRangesAsBed(GRanges=ZRangesBCM4, filepath="~/Scrivania", filename="ZRangesZ10S5", force=TRUE)
+```
+
+
+
+Z 10 S 10
+```{R}
+zthreshold=10
+sigwin=10 ## 200/50
+newS <- c_get_disjoint_max_win(z0=Z,
+                              sigwin=sigwin,
+                              zthresh=zthreshold,
+                              verbose=verbose
+                              )
+chrZRanges <- createGranges(chrSeqInfo=chrGRanges@seqinfo,
+                          starts=as.numeric(rownames(Z)[newS[,1]]),
+                          widths=newS[,2]*binSize,
+                          mcolname="z-score",
+                          mcolvalues=newS[,3]
+                          )
+ZRangesBCM4 <- sort(chrZRanges)
+saveGRangesAsBed(GRanges=ZRangesBCM4, filepath="~/Scrivania", filename="ZRangesZ10S10", force=TRUE)
+```
+
+
+
+Z 10 S 15
+```{R}
+zthreshold=10
+sigwin=15 ## 200/50
+newS <- c_get_disjoint_max_win(z0=Z,
+                              sigwin=sigwin,
+                              zthresh=zthreshold,
+                              verbose=verbose
+                              )
+chrZRanges <- createGranges(chrSeqInfo=chrGRanges@seqinfo,
+                          starts=as.numeric(rownames(Z)[newS[,1]]),
+                          widths=newS[,2]*binSize,
+                          mcolname="z-score",
+                          mcolvalues=newS[,3]
+                          )
+ZRangesBCM4 <- sort(chrZRanges)
+saveGRangesAsBed(GRanges=ZRangesBCM4, filepath="~/Scrivania", filename="ZRangesZ10S15", force=TRUE)
+```

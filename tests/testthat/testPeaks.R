@@ -1,83 +1,62 @@
 # library("DEScan")
 context("Peak Finding")
-#
-# test_that("findPeaks is consistent with both bed and bam inputs", {
-#   test_bam <- system.file("extdata", "test.bam", package = "DEScan")
-#
-#   bam_peaks <- findPeaks(test_bam, chr = 1, fraglen = 200, rlen = 100, min_win = 1,
-#                      max_win = 100, blocksize = 10000, zthresh = 5,
-#                      min_count = 0.1, grid = NA, filetype = "bam", save = F)
-#
-#   expect_equal_to_reference(bam_peaks, file = "bam_peaks.rds")
-#
-#   test_bed <- system.file("extdata", "test.bed", package = "DEScan")
-#
-#   bed_peaks <- findPeaks(test_bed, chr = 1, fraglen = 200, rlen = 100, min_win = 1,
-#                      max_win = 100, blocksize = 10000, zthresh = 5,
-#                      min_count = 0.1, grid = NA, filetype = "bed", save = F)
-#
-#   expect_equal_to_reference(bed_peaks, file = "bed_peaks.rds")
-#
-#   expect_equal(bam_peaks, bed_peaks)
-# })
 
+test_that("Test if new findPeaks works with bam and bed files", {
 
-test_that("Test if the new findPeaks is consistent with the older one", {
-    bam.path <- system.file("extdata/Bam/chr19", package = "DEScan")
-    bam.files <- list.files(bam.path, full.names = TRUE)
-    testBam <- bam.files[1]
-    # print(testBam)
+    bamfile <- "testData/bams/head/H_P43615_Sample_FC4_Input_fwd_chr19_Smartfilter.bam"
 
-    # bamPeaksOld <- find_Peaks_Old(files=testBam, chr = 19, fraglen = 200,
-    #                             rlen = 100, min_win = 1, max_win = 100,
-    #                             blocksize = 10000, zthresh = 5,
-    #                             min_count = 0.1,
-    #                             filetype = "bam", save = FALSE)
-    #
-    # bamPeaksNew <- findPeaks(files=testBam,
-    #                          genomeName="mm9",
-    #                          fragmentLength = 200,
-    #                          minWin = 1, maxWin = 100,
-    #                          zthresh = 5, minCount = 0.1,
-    #                          filetype = "bam", save = FALSE)
-    #
-    # expect_equal(bamPeaksOld, bamPeaksNew)
-})
-
-test_that("Test if new findPeaks works", {
-    # file="/home/dario/SRR3595211_sorted.bam"
-    # bam.path <- system.file("extdata/Bam/chr19", package = "DEScan")
-    # bam.files <- list.files(bam.path, full.names = TRUE, pattern="bam")
-    # bam.files<- bam.files[-grep(pattern="bai", x=bam.files)]
-    # file <- bam.files[1]
-    #
-    # binSize=50; minWin=1; maxWin=20;
-    # zthresh=5; minCount=0.1;
-    # minCompWinWidth=5000;
-    # maxCompWinWidth=10000;
-    # outputName="Peaks"; save=TRUE; verbose=FALSE;
-    # fragmentLength=200;
-    # onlyStdChrs=TRUE
-    # chr=NULL
-    # filetype="bam"
-    #
-    # peaks12 <- DEScan::findPeaks(files=bam.files[c(1:2)],
-    #                     filetype=filetype,
-    #                     binSize=binSize,
-    #                     minWin=minWin, maxWin=maxWin,
-    #                     zthresh=zthresh, minCount=minCount,
-    #                     minCompWinWidth=minCompWinWidth,
-    #                     maxCompWinWidth=maxCompWinWidth,
-    #                     outputName="Peaks", save=FALSE, verbose=FALSE,
-    #                     fragmentLength=fragmentLength)
-    # saveRDS(peaks12, "peaks12.rds")
+    binSize=50
+    minWin=50
+    maxWin=1000
+    zthresh=10
+    minCount=0.1
+    minCompWinWidth=5000
+    maxCompWinWidth=10000
+    outputName="Peaks"
+    savef=FALSE
+    verb=FALSE
+    onlyStdChrs=TRUE
+    chr=NULL
+    filetype="bam"
+    sigwin=10
+    osc=TRUE
+    genName="mm9"
+    if( length(bamfile) != 0 )
+    {
+        bampeaksGRL <- findPeaks(files=bamfile, filetype=filetype, binSize=binSize,
+                            minWin=minWin, maxWin=maxWin,
+                            zthresh=zthresh, minCount=minCount,
+                            minCompWinWidth=minCompWinWidth,
+                            maxCompWinWidth=maxCompWinWidth,
+                            save=savef, verbose=verb,genomeName=genName,
+                            sigwin=sigwin, onlyStdChrs=osc)
+        bampeaksRef <- readRDS("testData/peaks/H_P43615_Sample_FC1_Input_fwd_chr19_SmartfilterGRL.RDS")
+        expect_identical(bampeaksGRL, bampeaksRef)
+    }
+    else
+    {
+        warning("bam file does not exist!")
+    }
+    bedfile <- "testData/bed/head/P43615_Sample_FC1_Input_fwd_chr19_Smartfilter.bam.bed.bed.zip"
+    if( file.exists(bedfile) ) {
+        bedpeaksGRL <- findPeaks(files=bedfile, filetype="bed", binSize=binSize,
+                                 minWin=minWin, maxWin=maxWin,
+                                 zthresh=zthresh, minCount=minCount,
+                                 minCompWinWidth=minCompWinWidth,
+                                 maxCompWinWidth=maxCompWinWidth,
+                                 save=savef, verbose=verb,genomeName=genName,
+                                 sigwin=sigwin, onlyStdChrs=osc)
+        expect_identical(bedpeaksGRL, bampeaksGRL)
+    } else {
+        warning("bed file does not exist!")
+    }
 
 })
 
 test_that("Test disjoint function R & C", {
     zzz <- readRDS("testData/z/z_matrix.rds")
-    sigw=4
-    zthr=5
+    sigw=10
+    zthr=10
     nmax=Inf
     verb=TRUE
     cTime <- system.time({
@@ -89,6 +68,5 @@ test_that("Test disjoint function R & C", {
                                       nmax=nmax, verbose=verb)
     })
     message("cTime (mins): ", cTime/60, " rTime (mins): ", rTime/60)
-
     expect_identical(smatC, smatR)
 })

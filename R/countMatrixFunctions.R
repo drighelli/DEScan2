@@ -17,12 +17,27 @@
 #' @param saveFlag a flag indicating if to save the results.
 #' @param savePath the path where to store the results.
 #' @param verbose verbose output.
+#'
 #' @return A Matrix containing read counts with regions as rows and samples as
 #' columns.
 #' @export
 #' @importFrom GenomicAlignments summarizeOverlaps
-#' @importFrom SummarizedExperiment assay
-# @examples TBW
+#' @importFrom SummarizedExperiment assay SummarizedExperiment
+#' @importFrom BiocGenerics start end
+#' @examples
+#' filename <- system.file("extdata/regions/regions_zt20_minK4GR.RDS",
+#'                         package="DEScan2")
+#' regionsGR <- readRDS(file=)
+#' finalRegions <- countFinalRegions(regionsGRanges=regionsGR,
+#'                                 readsFilePath="inst/extdata/bam",
+#'                                 fileType="bam",
+#'                                 minCarriers=1,
+#'                                 genomeName="mm9",
+#'                                 onlyStdChrs=TRUE,
+#'                                 ignStrandSO=TRUE, saveFlag=TRUE,
+#'                                 savePath="testData/regions/prova/",
+#'                                 verbose=TRUE)
+#' head(countFinalRegions)
 countFinalRegions <- function(regionsGRanges, readsFilePath=NULL,
                                 fileType=c("bam", "bed"),
                                 minCarriers=2,
@@ -32,7 +47,7 @@ countFinalRegions <- function(regionsGRanges, readsFilePath=NULL,
                                 modeSO="Union",
                                 saveFlag=FALSE,
                                 savePath="finalRegions",
-                                verbose=FALSE)
+                                verbose=TRUE)
 {
     match.arg(fileType)
     stopifnot(is(regionsGRanges, "GRanges"))
@@ -41,35 +56,60 @@ countFinalRegions <- function(regionsGRanges, readsFilePath=NULL,
     idxK <- which(regionsGRanges$`k-carriers` >= minCarriers)
     regionsGRanges <- regionsGRanges[idxK,]
 
-    readsFiles <- list.files(readsFilePath, full.names=TRUE, pattern=fileType)
-    idxBai <- grep("bai", readsFiles)
-    if(length(idxBai) > 0) readsFiles <- readsFiles[-idxBai]
-    if(verbose) message("Final regions on ", length(readsFiles), "\n")
-    summRegMat <- sapply(readsFiles, function(file)
+    regionsGRanges <- setGRGenomeInfo(GRanges=regionsGRanges,
+                                      genomeName=genomeName)
+
+    if(fileType == "bam")
+    {
+        readsFiles <- list.files(path=readsFilePath, full.names=TRUE,
+                                pattern=".bam$")
+    }
+    else
+    {
+        readsFiles <- list.files(path=readsFilePath, full.names=TRUE,
+                                 pattern=".bed$")
+    }
+    if(length(readsFiles) == 0 ) stop("No reads files found!")
+    if(verbose) message("Final regions on ", length(readsFiles), " files.")
+
+    fileReadsList <- lapply(readsFiles, function(file)
     {
         fileReads <- constructBedRanges(filename=as.character(file),
                                         filetype=fileType,
                                         genomeName=genomeName,
                                         onlyStdChrs=onlyStdChrs)
-        regionsGRanges <- setGRGenomeInfo(GRanges=regionsGRanges,
-                                            genomeName=genomeName)
+        return(fileReads)
+    })
+    names(fileReadsList) <- readsFiles
+
+    summRegMat <- sapply(fileReadsList, function(fileReads)
+    {
         summReg <- GenomicAlignments::summarizeOverlaps(
-                                                    features=regionsGRanges,
-                                                    reads=fileReads,
-                                                    ignore.strand=ignStrandSO,
-                                                    mode=modeSO)
+            features=regionsGRanges,
+            reads=fileReads,
+            ignore.strand=ignStrandSO,
+            mode=modeSO)
         return(SummarizedExperiment::assay(summReg))
     })
 
     regionsRN <- paste0(regionsGRanges@seqnames, ":",
-                        start(regionsGRanges), "-",
-                        end(regionsGRanges))
+                        BiocGenerics::start(regionsGRanges), "-",
+                        BiocGenerics::end(regionsGRanges))
 
     rownames(summRegMat) <- regionsRN
     if(saveFlag)
     {
-        ## TBW
+        datename <- paste0(strsplit(gsub(pattern=":", replacement=" ",
+                                         date()), " ")[[1]], collapse="_")
+        filename <- paste0("regions_", datename, "_minK", minCarriers,
+                           "_mso", modeSO, ".tsv")
+        write.table(x=summRegMat, file=paste0(savePath, filename), quote=FALSE,
+                    sep="\t")
+        if(verbose) message("file ", filename, " saved on disk!")
     }
-
-    return(summRegMat)
+    rownames(summRegMat) <- names(regionsGRanges)
+    summExp <- SummarizedExperiment::SummarizedExperiment(assays=summRegMat,
+                                                rowRanges=regionsGRanges,
+                                                colData=data.frame(readsFiles))
+    return(summExp)
 }

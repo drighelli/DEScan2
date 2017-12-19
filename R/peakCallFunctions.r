@@ -28,6 +28,8 @@
 #' (cfr. constructBedRanges function parameters).
 #' @param chr if not NULL, a character like "chr#" indicating the chromosomes
 #' to use.
+#' @param sigwin an integer value used to compute the length of the signal
+#' of a peak (default value is 10).
 #' @param verbose if to show additional messages
 #'
 #' @return A GRangesList where each element is a sample.
@@ -37,14 +39,17 @@
 #'
 #' @importFrom  GenomicRanges GRangesList
 #' @examples
-#' bed.files <- list.files(system.file("extdata/Bed", package = "DEScan2"),
-#'                        full.names = T)
-#' peaks <- findPeaks(files=bed.files[1], chr="chr19", filetype="bed",
-#'                         fragmentLength=200,
-#'                         binSize=50, minWin=50, maxWin=1000,
+#' bam.files <- list.files(system.file("extdata/bam", package = "DEScan2"),
+#'                         full.names = TRUE)
+#' peaks <- findPeaks(files=bam.files[1], filetype="bam",
 #'                         genomeName="mm9",
+#'                         binSize=50, minWin=50, maxWin=1000,
+#'                         zthresh=5, minCount=0.1, sigwin=10,
 #'                         minCompWinWidth=5000, maxCompWinWidth=10000,
-#'                         zthresh=5, minCount=0.1, verbose=FALSE, save=FALSE)
+#'                         save=FALSE,
+#'                         onlyStdChrs=TRUE,
+#'                         chr=NULL,
+#'                         verbose=FALSE)
 #' head(peaks)
 findPeaks <- function(files, filetype=c("bam", "bed"),
                         genomeName=NULL,
@@ -54,10 +59,9 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
                         maxCompWinWidth=10000,
                         outputFolder="Peaks", save=TRUE, force=TRUE,
                         verbose=FALSE,
-                        fragmentLength=200,
+                        sigwin=10,
                         onlyStdChrs=TRUE,
-                        chr=NULL
-                        )
+                        chr=NULL)
 {
 
     if(!is.null(chr) && length(grep(pattern="chr", chr))!=length(chr))
@@ -96,22 +100,19 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
                                                 minWinWidth=minWin,
                                                 maxWinWidth=maxWin,
                                                 binWidth=binSize,
-                                                verbose=verbose
-                                                )
+                                                verbose=verbose)
             minCompRunWinRleList <- computeCoverageMovingWindowOnChr(
                                                 chrBedGRanges=chrGRanges,
                                                 minWinWidth=minCompWinWidth,
                                                 maxWinWidth=minCompWinWidth,
                                                 binWidth=binSize,
-                                                verbose=verbose
-                                                )
+                                                verbose=verbose)
             maxCompRunWinRleList <- computeCoverageMovingWindowOnChr(
                                                 chrBedGRanges=chrGRanges,
                                                 minWinWidth=maxCompWinWidth,
                                                 maxWinWidth=maxCompWinWidth,
                                                 binWidth=binSize,
-                                                verbose=verbose
-                                                )
+                                                verbose=verbose)
             ## test the lambdas with the old lambdas
             lambdaChrRleList <- computeLambdaOnChr(
                                     chrGRanges=chrGRanges,
@@ -120,37 +121,33 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
                                     minCompWinWidth=minCompWinWidth,
                                     maxChrRleWComp=maxCompRunWinRleList[[1]],
                                     maxCompWinWidth=maxCompWinWidth,
-                                    verbose=verbose
-                                    )
+                                    verbose=verbose)
             Z <- computeZ(lambdaChrRleList=lambdaChrRleList,
                             runWinRleList=runWinRleList,
                             chrLength=chrGRanges@seqinfo@seqlengths,
                             minCount=minCount, binSize=binSize,
-                            verbose=verbose
-                            )
+                            verbose=verbose)
             newS <- c_get_disjoint_max_win(z0=Z,
-                                    sigwin=fragmentLength/binSize,
+                                    sigwin=sigwin,
                                     zthresh=zthresh,
-                                    verbose=verbose
-                                    )
+                                    verbose=verbose)
             chrZRanges <- createGranges(chrSeqInfo=chrGRanges@seqinfo,
                                     starts=as.numeric(rownames(Z)[newS[,1]]),
                                     widths=newS[,2]*binSize,
                                     mcolname="z-score",
-                                    mcolvalues=newS[,3]
-                                    )
+                                    mcolvalues=newS[,3])
 
             return(chrZRanges) ## one for each chromosome
             })
         )
         # names(chrZRangesList) <- names(bedGrangesChrsList)
         ZRanges <- unlist(chrZRangesList)
-        ZRanges <- sort(ZRanges)
+        # ZRanges <- sort(ZRanges)
         if(save)
         {
             # zGRangesToSave <- unlist(chrZRangesList)
             filename <- paste0(basename(file), "_zt", zthresh, "_mnw", minWin,
-                            "_mxw", maxWin, "_bin", binSize)
+                            "_mxw", maxWin, "_sw", sigwin, "_bin", binSize)
             saveGRangesAsBed(GRanges=ZRanges, filepath=outputFolder,
                             filename=filename, verbose=verbose,
                             force=force)
@@ -421,8 +418,7 @@ computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=50,
     runWinRleList <- IRanges::RleList(
                         lapply(wins, function(win) {
                             if(verbose) {
-                                message("Running window ", (win*binWidth),
-                                        " of ", (maxWinWidth*binWidth))
+                                message("Running window ", (win*binWidth))
                             }
                             floor(evenRunMean(x=chrCovRle, k=win,
                                                 endrule="constant"))

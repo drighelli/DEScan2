@@ -6,19 +6,28 @@
 #' @param peakSamplesGRangesList named GRangesList where each element is a
 #' sample of called peaks. A z-score mcols values is needed for each GRanges.
 #' (tipically returned by findPeaks function).
-#' @param zThreshold a threshold for the z score.
+#' @param zThreshold a minimum threshold for the z score.
+#' All peaks lesser than this value will be ignored.
 #' @param minCarriers a threshold of minimum samples (carriers) for overlapped
 #'                    regions.
 #' @param saveFlag a flag for saving results in a bed file.
-#' @param outputName the directory name to store the bed file.
+#' @param outputFolder the directory name to store the bed file.
 #' @param verbose verbose output.
+#'
 #' @return a GRanges of selected overlapping peaks with z-score,
 #' n-peaks, k-carriers as mcols object.
 #' @export
 #' @importFrom GenomicRanges GRangesList
-# @examples TBW
+#' @examples
+#' bam.files <- list.files(system.file("extdata/peaks", package="DEScan2"),
+#'                         pattern="bed", full.names=TRUE)
+#' peaksGRL <- GRanges::GRangesList(
+#'                     lapply(bam.files, DEScan2::constructBedRanges))
+#' regionsGR <- finalRegions(peakSamplesGRangesList=peaksGRL, zThreshold=1,
+#'                         minCarriers=3, saveFlag=FALSE, verbose=TRUE)
 finalRegions <- function(peakSamplesGRangesList, zThreshold=20, minCarriers=2,
-                                    saveFlag=TRUE, outputName="overlappedPeaks",
+                                    saveFlag=TRUE,
+                                    outputFolder="overlappedPeaks",
                                     verbose=FALSE)
 {
     stopifnot(is(peakSamplesGRangesList, "GRangesList"))
@@ -43,9 +52,11 @@ finalRegions <- function(peakSamplesGRangesList, zThreshold=20, minCarriers=2,
     overlMinKPeaksGR <- overlappedPeaksGR[idxK,]
 
     if(saveFlag) {
-        ##################### check
-        filename <- paste0(file, "_zt", zThreshold, "_minK", minCarriers)
-        saveGRangesAsBed(GRanges=overlMinKPeaksGR, filepath=outputName,
+        datename <- paste0(strsplit(gsub(pattern=":", replacement=" ",
+                                         date()), " ")[[1]], collapse="_")
+        filename <- paste0("regions_", datename, "_zt", zThreshold,
+                           "_minK", minCarriers)
+        saveGRangesAsTsv(GRanges=overlMinKPeaksGR, filepath=outputFolder,
                         filename=filename, verbose=verbose)
     }
     if(verbose) message("done\n")

@@ -7,7 +7,7 @@
 countFinalRegions(regionsGRanges, readsFilePath = NULL, fileType = c("bam",
   "bed"), minCarriers = 2, genomeName = NULL, onlyStdChrs = FALSE,
   ignStrandSO = TRUE, modeSO = "Union", saveFlag = FALSE,
-  savePath = "finalRegions", verbose = FALSE)
+  savePath = "finalRegions", verbose = TRUE)
 }
 \arguments{
 \item{regionsGRanges}{a GRanges objects representing the peaks to compute
@@ -43,4 +43,19 @@ columns.
 }
 \description{
 count reads falling within the final regions.
+}
+\examples{
+filename <- system.file("extdata/regions/regions_zt20_minK4GR.RDS",
+                        package="DEScan2")
+regionsGR <- readRDS(file=)
+finalRegions <- countFinalRegions(regionsGRanges=regionsGR,
+                                readsFilePath="inst/extdata/bam",
+                                fileType="bam",
+                                minCarriers=1,
+                                genomeName="mm9",
+                                onlyStdChrs=TRUE,
+                                ignStrandSO=TRUE, saveFlag=TRUE,
+                                savePath="testData/regions/prova/",
+                                verbose=TRUE)
+head(countFinalRegions)
 }

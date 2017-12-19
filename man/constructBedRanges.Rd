@@ -5,7 +5,7 @@
 \title{constructBedRanges}
 \usage{
 constructBedRanges(filename, filetype = c("bam", "bed"), genomeName = NULL,
-  onlyStdChrs = FALSE, verbose = FALSE)
+  onlyStdChrs = FALSE, arePeaks = FALSE, verbose = FALSE)
 }
 \arguments{
 \item{filename}{the complete file path of a bam?bed file}
@@ -26,4 +26,9 @@ a GRanges object
 Constructs a GRanges object from a bam/bed file in a consistent
                way
 }
-\keyword{internal}
+\examples{
+files <- list.files(system.file("extdata/bam/"), pattern="bam$)
+bgr <- constructBedRanges(files[1], filetype="bam", genomeName="mm9,
+                            onlyStdChrs=TRUE)
+bgr
+}

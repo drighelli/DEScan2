@@ -4,10 +4,12 @@
 \alias{readBedFile}
 \title{readBedFile}
 \usage{
-readBedFile(filename)
+readBedFile(filename, arePeaks = FALSE)
 }
 \arguments{
-\item{filename}{}
+\item{filename}{the bed filename.}
+
+\item{arePeaks}{a flag indicating if the the bed file represents peaks.}
 }
 \value{
 GRanges object

@@ -11,7 +11,7 @@
 readBamAsBed <- function(file)
 {
     ga <- GenomicAlignments::readGAlignments(file, index=file)
-    gr <- GenomicRanges::granges(x = ga)
+    gr <- GenomicRanges::granges(x=ga)
     GenomeInfoDb::seqlevelsStyle(gr) <- "UCSC"
     return(gr)
 }
@@ -21,7 +21,8 @@ readBamAsBed <- function(file)
 #' @description read a bed file into a GenomicRanges like format.
 #'              forcing UCSC format for chromosomes names.
 #'
-#' @param filename
+#' @param filename the bed filename.
+#' @param arePeaks a flag indicating if the the bed file represents peaks.
 #'
 #' @return GRanges object
 #' @keywords internal
@@ -30,7 +31,7 @@ readBamAsBed <- function(file)
 #' @importFrom GenomicRanges GRanges
 #' @importFrom rtracklayer import.bed
 #' @importFrom GenomeInfoDb seqlevelsStyle
-readBedFile <- function(filename)
+readBedFile <- function(filename, arePeaks=FALSE)
 {
     if (tools::file_ext(filename) == "zip") {
         tmp <- utils::unzip(filename, list=T)$Name
@@ -39,10 +40,12 @@ readBedFile <- function(filename)
         file <- filename
     }
 
-    bed <- rtracklayer::import.bed(con = file)
-    bed <- GenomicRanges::GRanges(seqnames=bed@seqnames,
-                                    ranges=bed@ranges,
-                                    strand=bed@strand)
+    bed <- rtracklayer::import.bed(con=file)
+    if(!arePeaks) {
+        bed <- GenomicRanges::GRanges(seqnames=bed@seqnames,
+                                        ranges=bed@ranges,
+                                        strand=bed@strand)
+    }
     GenomeInfoDb::seqlevelsStyle(bed) <- "UCSC"
     return(bed)
 }
@@ -59,14 +62,20 @@ readBedFile <- function(filename)
 #' @return a GRanges object with the seqinfo of the genome code
 #' @export
 #'
-# @examples TBW
+#' @examples
+#' gr <- GRanges(
+#'         seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
+#'         ranges=IRanges(1:10, end=10),
+#'         strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
+#'         seqlengths=c(chr1=11, chr2=12, chr3=13))
+#' mm9gr <- setGRGenomeInfo(GRanges=gr, genomeName="mm9", verbose=TRUE)
 setGRGenomeInfo <- function(GRanges, genomeName=NULL, verbose=FALSE)
 {
     stopifnot(is(GRanges, "GRanges"))
     stopifnot(!is.null(genomeName))
     if(length(genomeName)>1) stop("Please provide just one genome code!\n")
 
-    uniqueSeqnames <- droplevels(unique(GRanges@seqnames))
+    uniqueSeqnames <- droplevels(unique(GRanges@seqnames@values))
 
     if(verbose) message("Get seqlengths from genome ", genomeName)
 
@@ -98,14 +107,20 @@ setGRGenomeInfo <- function(GRanges, genomeName=NULL, verbose=FALSE)
 #'                   genomeName Seqinfo (strongly suggested!)
 #' @param onlyStdChrs flag to keep only standard chromosome
 #' @return a GRanges object
-#' @keywords internal
+#' @export
 #' @importFrom GenomeInfoDb keepStandardChromosomes seqinfo Seqinfo
 #' @importFrom glue collapse
 #' @importFrom GenomicRanges sort
+#' @examples
+#' files <- list.files(system.file("extdata/bam/"), pattern="bam$)
+#' bgr <- constructBedRanges(files[1], filetype="bam", genomeName="mm9,
+#'                             onlyStdChrs=TRUE)
+#' bgr
 constructBedRanges <- function(filename,
                                 filetype=c("bam", "bed"),
                                 genomeName=NULL,
                                 onlyStdChrs=FALSE,
+                                arePeaks=FALSE,
                                 verbose=FALSE)
 {
     filetype <- match.arg(filetype)
@@ -114,7 +129,7 @@ constructBedRanges <- function(filename,
     if(filetype == "bam") {
         bedGRanges <- readBamAsBed(file=filename)
     } else {
-        bedGRanges <- readBedFile(filename=filename)
+        bedGRanges <- readBedFile(filename=filename, arePeaks=arePeaks)
     }
     if(onlyStdChrs)
     {
@@ -151,34 +166,85 @@ constructBedRanges <- function(filename,
     return(bedGRanges)
 }
 
+#' readFilesAsGRangesList
+#' @description Takes in input the path of bam/bed files to process and stores
+#' them in a GRangesList object, named with filePath/filenames.
+#' (for lazy people)
+#' @param filePath the path of input files
+#' @param fileType the type of the files (bam/bed)
+#' @param genomeName the genome code to associate to the files. (reccommended)
+#' (i.e. "mm9", "hg17")
+#' @param onlyStdChrs a flag to keep only standard chromosomes
+#' @param verbose verbose output flag
+#'
+#' @return a GRangesList object
+#' @importFrom GenomicRanges GRangesList
+#' @export
+#'
+#' @examples
+#' files.path <- system.file("extdata/bam", package="DEScan2")
+#' grl <- readFilesAsGRangesList(filePath=files.path, fileType="bam",
+#'                                 genomeName="mm9", onlyStdChrs=TRUE,
+#'                                 verbose=TRUE)
+#' class(grl)
+#' names(grl)
+#' grl
+readFilesAsGRangesList <- function(filePath, fileType=c("bam", "bed"),
+                                   genomeName=NULL, onlyStdChrs=TRUE,
+                                   verbose=TRUE)
+{
+    fileType <- match.arg(fileType)
+    stopifnot(is.character(filePath))
 
+    files <- list.files(filePath, pattern=fileType, full.names=TRUE)
+    files <- files[-grep(pattern="bai", x=files)]
+    grl <- GenomicRanges::GRangesList(
+                            lapply(files, constructBedRanges,
+                                   filetype=fileType,
+                                   genomeName=genomeName,
+                                   onlyStdChrs=onlyStdChrs,
+                                   verbose=verbose)
+                             )
+    names(grl) <- basename(files)
+    return(grl)
+}
 
 #' saveGRangesAsBed
-#' @description save a GRanges object as bed file and RData file
+#' @description save a GRanges object as bed file
 #'
 #' @param GRanges the GRanges object
 #' @param filepath the path to store the files
 #' @param filename the name to give to the files
 #' @param force force overwriting
-#'
 #' @importFrom rtracklayer export.bed
-#' @importFrom GenomeInfoDb sortSeqlevels
+#' @importFrom GenomeInfoDb sortSeqlevels seqnames
 #' @importFrom S4Vectors mcols
+#' @importFrom BiocGenerics start end
 #'
 #' @return none
 #' @keywords internal
+# @export
+#' @examples
+#' gr <- GRanges(
+#'         seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
+#'         ranges=IRanges(1:10, end=10),
+#'         strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
+#'         seqlengths=c(chr1=11, chr2=12, chr3=13))
+#'
+#' saveGRangesAsBed(GRanges=gr, filepath="./", filename="gr", verbose=TRUE)
 saveGRangesAsBed <- function(GRanges, filepath, filename, force=FALSE,
-                            verbose=FALSE)
+                            verbose=FALSE)#, extraCols=NULL)
 {
     stopifnot(is(GRanges, "GRanges"))
-    ## add some parameters
+
     if(!exists(filepath))
     {
         dir.create(path=filepath, showWarnings=FALSE, recursive=TRUE)
     }
     filePathName <- file.path(filepath, paste0(filename, ".bed"))
 
-    if(file.exists(filePathName)) {
+    if(file.exists(filePathName))
+    {
         if(!force)
         {
             stop(filePathName, " already exists!\nNot overwriting!")
@@ -192,12 +258,77 @@ saveGRangesAsBed <- function(GRanges, filepath, filename, force=FALSE,
 
     GRanges <- GenomeInfoDb::sortSeqlevels(GRanges)
     GRanges <- sort(GRanges)
-
+    if(length(unique(names(GRanges))) < length(GRanges))
+    {
+        nn <- paste0(GenomeInfoDb::seqnames(GRanges), ":",
+                        BiocGenerics::start(GRanges), "-",
+                        BiocGenerics::end(GRanges))
+        names(GRanges) <- nn
+    }
     if(length(which(colnames(S4Vectors::mcols(GRanges)) %in% "z-score")) > 0)
         if(length(which(colnames(S4Vectors::mcols(GRanges)) %in% "score")) == 0)
         S4Vectors::mcols(GRanges)$score <- S4Vectors::mcols(GRanges)$`z-score`
 
-    rtracklayer::export.bed(object=GRanges, con=filePathName)
+    # if(!is.null(extraCols))
+    # {
+    #     idx <- which(extraCols %in% colnames(S4Vectors::mcols(GRanges)))
+    #     if(length(idx) != 0)
+    #     {
+    #         extraCols <- extraCols[idx]
+    #         rtracklayer::export.bed(object=GRanges, con=filePathName,
+    #                                 extraCols=extraCols)
+    #     }
+    #     else
+    #     {
+    #         rtracklayer::export.bed(object=GRanges, con=filePathName)
+    #     }
+    #
+    # }
+    # else
+    # {
+        rtracklayer::export.bed(object=GRanges, con=filePathName)
+    # }
+
+
+    if(verbose) message("file ", filePathName, " written on disk!")
+}
+
+
+#' saveGRangesAsTsv
+#' @description save a GRanges object as tsv file
+#'
+#' @param GRanges the GRanges object
+#' @param filepath the path to store the files
+#' @param filename the name to give to the files
+#' @param force force overwriting
+#'
+#' @return none
+#' @keywords internal
+saveGRangesAsTsv <- function(GRanges, filepath, filename, force=FALSE,
+                             verbose=FALSE)
+{
+    stopifnot(is(GRanges, "GRanges"))
+
+    if(!exists(filepath))
+    {
+        dir.create(path=filepath, showWarnings=FALSE, recursive=TRUE)
+    }
+    filePathName <- file.path(filepath, paste0(filename, ".tsv"))
+    if(file.exists(filePathName))
+    {
+        if(!force)
+        {
+            stop(filePathName, " already exists!\nNot overwriting!")
+        }
+        else
+        {
+            message("overwriting", filePathName)
+        }
+    }
+
+    grdf <- as.data.frame(GRanges, row.names=names(grdf))
+    write.table(x=grdf, file=filePathName, quote=FALSE,
+                sep="\t", row.names=TRUE, col.names=NA)
     if(verbose) message("file ", filePathName, " written on disk!")
 }
 
@@ -316,7 +447,6 @@ createGranges <- function(chrSeqInfo, starts, widths,
 #'         strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
 #'         seqlengths=c(chr1=11, chr2=12, chr3=13))
 #' (grchrlist <- cutGRangesPerChromosome(gr))
-#'
 cutGRangesPerChromosome <- function(GRanges)
 {
     stopifnot(is(GRanges, "GRanges"))
