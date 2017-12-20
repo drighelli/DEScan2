@@ -107,7 +107,7 @@ If the **saveFlag** is set to TRUE, the function will produce a tab separated va
 
 Parameter description:
 **peakSamplesGRangesList**
-: 
+: named GRangesList where each element is a sample of called peaks. A z-score mcols values is needed for each GRanges. (tipically returned by findPeaks function).
 **zThreshold**
 :  Z-score for considering a peak for alignment, it needs to be equal or higher to the ztresh used in findPeaks, default 20.
 
@@ -121,7 +121,7 @@ Parameter description:
 : the directory name to store the output file.
 
 ```{r finalRegions, cache=TRUE, eval=TRUE, message=FALSE}
-peaks.file <- system.file("extdata/peaks/RData/peaksGRL_zt5_mnw50_mxw1000_bin50.rds", package="DEScan2")
+peaks.file <- system.file("extdata/peaks/RData/peaksGRL_zt10_mnw50_mxw1000_bin50.rds", package="DEScan2")
 peaksGRL <- readRDS(peaks.file)
 regionsGR <- finalRegions(peakSamplesGRangesList=peaksGRL, zThreshold=20, minCarriers=4, saveFlag=FALSE, outputFolder=NULL, verbose=FALSE)
 head(regionsGR)
