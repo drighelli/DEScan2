@@ -63,6 +63,7 @@ readBedFile <- function(filename, arePeaks=FALSE)
 #' @export
 #'
 #' @examples
+#' library("GenomicRanges")
 #' gr <- GRanges(
 #'         seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
 #'         ranges=IRanges(1:10, end=10),
@@ -118,7 +119,8 @@ setGRGenomeInfo <- function(GRanges, genomeName=NULL, verbose=FALSE)
 #' @importFrom glue collapse
 #' @importFrom GenomicRanges sort
 #' @examples
-#' files <- list.files(system.file("extdata/bam/"), pattern="bam$")
+#' files <- list.files(system.file("extdata/bam/", package="DEScan2"),
+#'                     pattern="bam$")
 #' bgr <- constructBedRanges(files[1], filetype="bam", genomeName="mm9",
 #'                             onlyStdChrs=TRUE)
 #' bgr
@@ -241,6 +243,7 @@ readFilesAsGRangesList <- function(filePath, fileType=c("bam", "bed","bed.zip"),
 #' @keywords internal
 # @export
 #' @examples
+#' library("GenomicRanges")
 #' gr <- GRanges(
 #'         seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
 #'         ranges=IRanges(1:10, end=10),

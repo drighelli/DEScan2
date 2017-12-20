@@ -21,7 +21,7 @@
 #' @examples
 #' bam.files <- list.files(system.file("extdata/peaks", package="DEScan2"),
 #'                         pattern="bed", full.names=TRUE)
-#' peaksGRL <- GRanges::GRangesList(
+#' peaksGRL <- GenomicRanges::GRangesList(
 #'                     lapply(bam.files, DEScan2::constructBedRanges))
 #' regionsGR <- finalRegions(peakSamplesGRangesList=peaksGRL, zThreshold=1,
 #'                         minCarriers=3, saveFlag=FALSE, verbose=TRUE)
@@ -151,8 +151,7 @@ initMergedPeaksNames <- function(mergedGRanges)
 findOverlapsOverSamples <- function(samplePeaksGRangelist,
                                     extendRegions=200,
                                     minOverlap=0L,
-                                    maxGap=-1L
-                                    )
+                                    maxGap=-1L)
 {
     stopifnot(is(samplePeaksGRangelist, "GRangesList"))
 
