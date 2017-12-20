@@ -31,13 +31,13 @@ This document describes how to use DEScan2 to detect regions of differential enr
 
 DESCan2 is currently hosted on GitHub, so installation will make use of the devtools package.
 
-```{r}
+```{r, eval=FALSE}
 library("devtools")
 ```
 
 Use the install_github function to install DEScan2. The repo location need to be supplied.
 
-```{r, cache=TRUE, message=FALSE}
+```{r, cache=TRUE, message=FALSE, eval=FALSE}
 install_github(repo="drighelli/DEScan2", force=TRUE)
 ```
 
@@ -96,7 +96,7 @@ We strongly recommend (particularly with bed files) to specify a genome code, bu
 : a flag to work only with standard chromosomes (cfr. constructBedRanges function parameters)
 **chr** if not NULL, a character like "chr#" indicating the chromosomes to use
 
-```{r findPeaks, cache=TRUE, eval=TRUE}
+```{r findPeaks, cache=TRUE, eval=FALSE}
 peaksGRL <- findPeaks(files=bam.files[1], filetype="bam", genomeName="mm9", binSize=50, minWin=50, maxWin=1000, zthresh=10, minCount=0.1, sigwin=10, minCompWinWidth=5000, maxCompWinWidth=10000, save=FALSE, outputFolder="peaks", force=TRUE, onlyStdChrs=TRUE, chr=NULL, verbose=FALSE)
 head(peaksGRL)
 ```
