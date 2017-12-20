@@ -36,7 +36,7 @@ element is a sample of called peaks.
 \examples{
 bam.files <- list.files(system.file("extdata/peaks", package="DEScan2"),
                         pattern="bed", full.names=TRUE)
-peaksGRL <- GRanges::GRangesList(
+peaksGRL <- GenomicRanges::GRangesList(
                     lapply(bam.files, DEScan2::constructBedRanges))
 regionsGR <- finalRegions(peakSamplesGRangesList=peaksGRL, zThreshold=1,
                         minCarriers=3, saveFlag=FALSE, verbose=TRUE)

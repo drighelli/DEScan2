@@ -31,7 +31,8 @@ Constructs a GRanges object from a bam/bed/bed.zip file in a
 consistent way.
 }
 \examples{
-files <- list.files(system.file("extdata/bam/"), pattern="bam$")
+files <- list.files(system.file("extdata/bam/", package="DEScan2"),
+                    pattern="bam$", full.names=TRUE)
 bgr <- constructBedRanges(files[1], filetype="bam", genomeName="mm9",
                             onlyStdChrs=TRUE)
 bgr

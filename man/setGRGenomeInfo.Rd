@@ -26,6 +26,7 @@ that genome and assigns it to the input GRanges. Finally filters out those
 Infos not necessary to the GRanges.
 }
 \examples{
+library("GenomicRanges")
 gr <- GRanges(
         seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
         ranges=IRanges(1:10, end=10),

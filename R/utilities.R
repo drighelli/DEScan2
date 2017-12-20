@@ -120,7 +120,7 @@ setGRGenomeInfo <- function(GRanges, genomeName=NULL, verbose=FALSE)
 #' @importFrom GenomicRanges sort
 #' @examples
 #' files <- list.files(system.file("extdata/bam/", package="DEScan2"),
-#'                     pattern="bam$")
+#'                     pattern="bam$", full.names=TRUE)
 #' bgr <- constructBedRanges(files[1], filetype="bam", genomeName="mm9",
 #'                             onlyStdChrs=TRUE)
 #' bgr
