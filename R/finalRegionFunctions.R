@@ -59,7 +59,6 @@ finalRegions <- function(peakSamplesGRangesList, zThreshold=20, minCarriers=2,
         saveGRangesAsTsv(GRanges=overlMinKPeaksGR, filepath=outputFolder,
                         filename=filename, verbose=verbose)
     }
-    if(verbose) message("done\n")
     return(overlMinKPeaksGR)
 }
 
@@ -250,7 +249,6 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
     }
     # endingTime <- Sys.time()
     # print((endingTime - startTime))
-    message("...done!")
     # save(foundedPeaks, file="testData/new_files/foundedPeaks.RData")
     return(foundedPeaks)
 }
@@ -288,9 +286,9 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
         p = load(files[i])
         if(length(p) > 1 )
         {
-            peaksi <- eval(expr=parse(text=paste("peaksi <- ", p[1])))
+            peaksi <- eval(expr=parse(text=paste0("peaksi <- ", p[1])))
         } else {
-            peaksi <- eval(parse(text=paste("peaksi <- ", p)))
+            peaksi <- eval(parse(text=paste0("peaksi <- ", p)))
         }
         if (ncol(peaksi) == 3) {
             chr <- strsplit(peakdirname, split = "/")[[1]][2]
@@ -298,7 +296,7 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
         }
         peaks_all[[files[[i]]]] <- peaksi
         if (verbose) {
-            message("File: ", all.files[i],
+            message("File: ", files[i],
                     " number of regions:", nrow(peaksi), "\n")
         }
     }

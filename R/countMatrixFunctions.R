@@ -24,6 +24,7 @@
 #' @importFrom GenomicAlignments summarizeOverlaps
 #' @importFrom SummarizedExperiment assay SummarizedExperiment
 #' @importFrom BiocGenerics start end
+#' @importFrom utils write.table
 #' @examples
 #' filename <- system.file("extdata/regions/regions_zt20_minK4GR.RDS",
 #'                         package="DEScan2")
@@ -57,7 +58,7 @@ countFinalRegions <- function(regionsGRanges, readsFilePath=NULL,
     regionsGRanges <- regionsGRanges[idxK,]
 
     regionsGRanges <- setGRGenomeInfo(GRanges=regionsGRanges,
-                                      genomeName=genomeName)
+                                    genomeName=genomeName)
 
     if(fileType == "bam")
     {
@@ -67,7 +68,7 @@ countFinalRegions <- function(regionsGRanges, readsFilePath=NULL,
     else
     {
         readsFiles <- list.files(path=readsFilePath, full.names=TRUE,
-                                 pattern=".bed$")
+                                pattern=".bed$")
     }
     if(length(readsFiles) == 0 ) stop("No reads files found!")
     if(verbose) message("Final regions on ", length(readsFiles), " files.")
@@ -85,10 +86,10 @@ countFinalRegions <- function(regionsGRanges, readsFilePath=NULL,
     summRegMat <- sapply(fileReadsList, function(fileReads)
     {
         summReg <- GenomicAlignments::summarizeOverlaps(
-            features=regionsGRanges,
-            reads=fileReads,
-            ignore.strand=ignStrandSO,
-            mode=modeSO)
+                                    features=regionsGRanges,
+                                    reads=fileReads,
+                                    ignore.strand=ignStrandSO,
+                                    mode=modeSO)
         return(SummarizedExperiment::assay(summReg))
     })
 
@@ -103,8 +104,8 @@ countFinalRegions <- function(regionsGRanges, readsFilePath=NULL,
                                          date()), " ")[[1]], collapse="_")
         filename <- paste0("regions_", datename, "_minK", minCarriers,
                            "_mso", modeSO, ".tsv")
-        write.table(x=summRegMat, file=paste0(savePath, filename), quote=FALSE,
-                    sep="\t")
+        utils::write.table(x=summRegMat, file=paste0(savePath, filename),
+                           quote=FALSE, sep="\t")
         if(verbose) message("file ", filename, " saved on disk!")
     }
     rownames(summRegMat) <- names(regionsGRanges)

@@ -7,14 +7,14 @@
 cutGRangesPerChromosome(GRanges)
 }
 \arguments{
-\item{GRanges}{a GRanges object}
+\item{GRanges}{a GRanges object.}
 }
 \value{
-a named list of GRanges, one for each chromosome
+a named list of GRanges, one for each chromosome.
 }
 \description{
 takes in input a GRanges object, producing a LIST of
-GRanges, one for each chromosome
+GRanges, one for each chromosome.
 }
 \examples{
 library("GenomicRanges")

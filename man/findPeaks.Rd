@@ -54,8 +54,6 @@ of a peak (default value is 10).}
 
 \item{chr}{if not NULL, a character like "chr#" indicating the chromosomes
 to use.}
-
-\item{fragmentLength}{Integer indicating the average DNA fragment length bp.}
 }
 \value{
 A GRangesList where each element is a sample.

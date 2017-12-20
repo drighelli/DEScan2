@@ -78,8 +78,13 @@ setGRGenomeInfo <- function(GRanges, genomeName=NULL, verbose=FALSE)
     uniqueSeqnames <- droplevels(unique(GRanges@seqnames@values))
 
     if(verbose) message("Get seqlengths from genome ", genomeName)
+    tryCatch({genomeInfo <- GenomeInfoDb::Seqinfo(genome=genomeName)},
+        error=function(e)
+        {
+            stop("Unable to retrieve the genome ", genomeName, " returned: ", e)
+        }
+    )
 
-    genomeInfo <- GenomeInfoDb::Seqinfo(genome=genomeName)
     seqNamesIdx <- which(genomeInfo@seqnames %in% uniqueSeqnames)
     if(length(seqNamesIdx) != 0)
     {
@@ -97,27 +102,28 @@ setGRGenomeInfo <- function(GRanges, genomeName=NULL, verbose=FALSE)
 }
 
 #' constructBedRanges
-#' @description Constructs a GRanges object from a bam/bed file in a consistent
-#'                way
-#' @param filename the complete file path of a bam?bed file
-#' @param filetype the file type bam/bed
-#' @param genomeName the name of the genome used to map the reads (i.e. "mm9")
-#'
-#'                   N.B. if NOT NULL the GRanges Seqinfo will be forced to
-#'                   genomeName Seqinfo (strongly suggested!)
-#' @param onlyStdChrs flag to keep only standard chromosome
-#' @return a GRanges object
+#' @description Constructs a GRanges object from a bam/bed/bed.zip file in a
+#' consistent way.
+#' @param filename the complete file path of a bam?bed file.
+#' @param filetype the file type bam/bed/bed.zip.
+#' @param genomeName the name of the genome used to map the reads (i.e. "mm9").
+#' N.B. if NOT NULL the GRanges Seqinfo will be forced to genomeName Seqinfo
+#' (needs Internet access, but strongly suggested!)
+#' @param onlyStdChrs flag to keep only standard chromosome.
+#' @param arePeaks flag indicating if the file contains peaks.
+#' @param verbose flag to obtain verbose output.
+#' @return a GRanges object.
 #' @export
 #' @importFrom GenomeInfoDb keepStandardChromosomes seqinfo Seqinfo
 #' @importFrom glue collapse
 #' @importFrom GenomicRanges sort
 #' @examples
-#' files <- list.files(system.file("extdata/bam/"), pattern="bam$)
-#' bgr <- constructBedRanges(files[1], filetype="bam", genomeName="mm9,
+#' files <- list.files(system.file("extdata/bam/"), pattern="bam$")
+#' bgr <- constructBedRanges(files[1], filetype="bam", genomeName="mm9",
 #'                             onlyStdChrs=TRUE)
 #' bgr
 constructBedRanges <- function(filename,
-                                filetype=c("bam", "bed"),
+                                filetype=c("bam", "bed", "bed.zip"),
                                 genomeName=NULL,
                                 onlyStdChrs=FALSE,
                                 arePeaks=FALSE,
@@ -151,8 +157,12 @@ constructBedRanges <- function(filename,
     if( (sum(is.na(GenomeInfoDb::seqinfo(bedGRanges)@seqlengths)) > 0) ||
         (length(GenomeInfoDb::seqinfo(bedGRanges)@seqnames) == 0 ))
     {
-        stop("No seqlengths present in file ", filename,
-                "\nPlease provide the correct genomeName to setup the GRanges!")
+        if(!arePeaks)
+        {
+            stop("No seqlengths present in file ", filename,
+                 "\nDEScan2 needs seqlenghts to work properly.",
+                 "\nPlease provide a genomeName to setup the GRanges!")
+        }
     }
     else if(length(uniqueSeqnames) <
                 length(GenomeInfoDb::seqinfo(bedGRanges)@seqnames))
@@ -170,12 +180,13 @@ constructBedRanges <- function(filename,
 #' @description Takes in input the path of bam/bed files to process and stores
 #' them in a GRangesList object, named with filePath/filenames.
 #' (for lazy people)
-#' @param filePath the path of input files
-#' @param fileType the type of the files (bam/bed)
+#' @param filePath the path of input files.
+#' @param fileType the type of the files (bam/bed/bed.zip).
 #' @param genomeName the genome code to associate to the files. (reccommended)
 #' (i.e. "mm9", "hg17")
-#' @param onlyStdChrs a flag to keep only standard chromosomes
-#' @param verbose verbose output flag
+#' @param onlyStdChrs a flag to keep only standard chromosomes.
+#' @param arePeaks a flag indicating if the files contain peaks.
+#' @param verbose verbose output flag.
 #'
 #' @return a GRangesList object
 #' @importFrom GenomicRanges GRangesList
@@ -189,20 +200,25 @@ constructBedRanges <- function(filename,
 #' class(grl)
 #' names(grl)
 #' grl
-readFilesAsGRangesList <- function(filePath, fileType=c("bam", "bed"),
+readFilesAsGRangesList <- function(filePath, fileType=c("bam", "bed","bed.zip"),
                                    genomeName=NULL, onlyStdChrs=TRUE,
+                                   arePeaks=TRUE,
                                    verbose=TRUE)
 {
     fileType <- match.arg(fileType)
     stopifnot(is.character(filePath))
 
     files <- list.files(filePath, pattern=fileType, full.names=TRUE)
-    files <- files[-grep(pattern="bai", x=files)]
+    if(fileType == "bam") {
+        idx <- grep(pattern="bai", x=files)
+        if(length(idx) != 0 ) files <- files[-idx]
+    }
     grl <- GenomicRanges::GRangesList(
                             lapply(files, constructBedRanges,
                                    filetype=fileType,
                                    genomeName=genomeName,
                                    onlyStdChrs=onlyStdChrs,
+                                   arePeaks=arePeaks,
                                    verbose=verbose)
                              )
     names(grl) <- basename(files)
@@ -210,12 +226,12 @@ readFilesAsGRangesList <- function(filePath, fileType=c("bam", "bed"),
 }
 
 #' saveGRangesAsBed
-#' @description save a GRanges object as bed file
+#' @description save a GRanges object as bed file.
 #'
-#' @param GRanges the GRanges object
-#' @param filepath the path to store the files
-#' @param filename the name to give to the files
-#' @param force force overwriting
+#' @param GRanges the GRanges object.
+#' @param filepath the path to store the files.
+#' @param filename the name to give to the files.
+#' @param force force overwriting.
 #' @importFrom rtracklayer export.bed
 #' @importFrom GenomeInfoDb sortSeqlevels seqnames
 #' @importFrom S4Vectors mcols
@@ -295,12 +311,13 @@ saveGRangesAsBed <- function(GRanges, filepath, filename, force=FALSE,
 
 
 #' saveGRangesAsTsv
-#' @description save a GRanges object as tsv file
+#' @description save a GRanges object as tsv file.
 #'
-#' @param GRanges the GRanges object
-#' @param filepath the path to store the files
-#' @param filename the name to give to the files
-#' @param force force overwriting
+#' @param GRanges the GRanges object.
+#' @param filepath the path to store the files.
+#' @param filename the name to give to the files.
+#' @param force force overwriting.
+#' @importFrom utils write.table
 #'
 #' @return none
 #' @keywords internal
@@ -327,19 +344,20 @@ saveGRangesAsTsv <- function(GRanges, filepath, filename, force=FALSE,
     }
 
     grdf <- as.data.frame(GRanges, row.names=names(grdf))
-    write.table(x=grdf, file=filePathName, quote=FALSE,
+    utils::write.table(x=grdf, file=filePathName, quote=FALSE,
                 sep="\t", row.names=TRUE, col.names=NA)
     if(verbose) message("file ", filePathName, " written on disk!")
 }
 
 
 #' RleListToRleMatrix
-#' @description a wrapper to create a RleMatrix from a RleList object
+#' @description a wrapper to create a RleMatrix from a RleList object.
 #'
-#' @param RleList an RleList object with all elements of the same length
-#' @param dimnames the names for dimensions of RleMatrix (see DelayedArray pkg)
+#' @param RleList an RleList object with all elements of the same length.
+#' @param dimnames the names for dimensions of RleMatrix (see DelayedArray pkg).
 #'
-#' @return a RleMatrix from DelayedArray package
+#' @return a RleMatrix from DelayedArray package.
+#'
 #' @importFrom  DelayedArray RleArray
 #' @export
 #' @examples
@@ -373,15 +391,15 @@ RleListToRleMatrix <- function(RleList, dimnames=NULL)
 
 
 #' createGranges
-#' @description a simplified wrapper function to create a GRanges object
+#' @description a simplified wrapper function to create a GRanges object.
 #'
-#' @param chrSeqInfo a seqinfo object
-#' @param starts the start ranges
-#' @param widths the width of each range
-#' @param mcolname the name for the mcol attribute
-#' @param mcolvalues the values for the mcol attribute
+#' @param chrSeqInfo a seqinfo object.
+#' @param starts the start ranges.
+#' @param widths the width of each range.
+#' @param mcolname the name for the mcol attribute.
+#' @param mcolvalues the values for the mcol attribute.
 #'
-#' @return a GRanges object
+#' @return a GRanges object.
 #'
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges
@@ -429,11 +447,11 @@ createGranges <- function(chrSeqInfo, starts, widths,
 
 #' cutGRangesPerChromosome
 #' @description  takes in input a GRanges object, producing a LIST of
-#' GRanges, one for each chromosome
+#' GRanges, one for each chromosome.
 #'
-#' @param GRanges a GRanges object
+#' @param GRanges a GRanges object.
 #'
-#' @return a named list of GRanges, one for each chromosome
+#' @return a named list of GRanges, one for each chromosome.
 #'
 #' @importFrom GenomeInfoDb seqnames
 #' @importFrom GenomicRanges GRangesList
@@ -473,12 +491,12 @@ cutGRangesPerChromosome <- function(GRanges)
 
 #' keepRelevantChrs
 #' @description  subselect a list of GRanges created with
-#' cutGRangesPerChromosome returning only the relevant chromosomes GRanges
+#' cutGRangesPerChromosome returning only the relevant chromosomes GRanges.
 #' @param chrGRangesList where each element is a chromosome,
-#'                    tipically created with cutGRangesPerChromosome
-#' @param chr a character vector of chromosomes names of the form "chr#"
+#' tipically created with cutGRangesPerChromosome.
+#' @param chr a character vector of chromosomes names of the form "chr#".
 #'
-#' @return the input chrGRangesList with only the relevat chromosomes
+#' @return the input chrGRangesList with only the relevat chromosomes.
 #'
 #' @export
 #' @examples
@@ -508,13 +526,13 @@ keepRelevantChrs <- function(chrGRangesList, chr=NULL)
 
 #' fromSamplesToChrsGRangesList
 #' @description converts a GRangesList orgnized per samples to a GRangesList
-#'              organized per Chromosomes where each element
-#'              is a GRangesList of samples
+#' organized per Chromosomes where each element is a GRangesList of samples.
+#'
 #' @param samplesGRangesList a GRangesList of samples.
-#'                           Tipically generaed by findPeaks function
+#' Tipically generaed by findPeaks function.
 #'
 #' @return A GRangesList of chromosomes where each element is a GRanges list
-#'         of samples
+#' of samples.
 #' @export
 #' @importFrom GenomicRanges GRangesList
 #'
@@ -559,12 +577,12 @@ fromSamplesToChrsGRangesList <- function(samplesGRangesList)
 
 #' divideEachSampleByChromosomes
 #' @description taken in input a grangeslist of samples, generate a list of
-#'                samples where each element has a GRangesList each element of
-#'                the GRangesList represents a single chromosome
-#' @param samplesGRangesList a GRangesList of samples
+#' samples where each element has a GRangesList each element of the GRangesList
+#' represents a single chromosome.
+#' @param samplesGRangesList a GRangesList of samples.
 #'
 #' @return list of samples where each element is a list of chromosomes and each
-#'          of these elements is a granges
+#' of these elements is a GRanges.
 #' @export
 #'
 #' @examples
@@ -598,12 +616,12 @@ divideEachSampleByChromosomes <- function(samplesGRangesList)
 
 #' generateDFofSamplesPerChromosomes
 #' @description generates a dataframe where each row is a sample (1st col) and
-#'              a string with its chromosomes separated by ";" (2nd col)
-#'              (useful to fromSamplesToChromosomesGRangesList function)
-#' @param samplesChrGRList a GRangesList of samples each divided by chromosome
+#' a string with its chromosomes separated by ";" (2nd col)
+#' (useful to fromSamplesToChromosomesGRangesList function).
+#' @param samplesChrGRList a GRangesList of samples each divided by chromosome.
 #'
 #' @return a dataframe  where each row is a sample (1st col) and
-#'         a string with its chromosomes separated by ";" (2nd col)
+#' a string with its chromosomes separated by ";" (2nd col).
 #'
 #' @importFrom plyr ldply
 #' @keywords internal

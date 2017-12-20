@@ -8,27 +8,30 @@ constructBedRanges(filename, filetype = c("bam", "bed"), genomeName = NULL,
   onlyStdChrs = FALSE, arePeaks = FALSE, verbose = FALSE)
 }
 \arguments{
-\item{filename}{the complete file path of a bam?bed file}
+\item{filename}{the complete file path of a bam?bed file.}
 
-\item{filetype}{the file type bam/bed}
+\item{filetype}{the file type bam/bed.}
 
-\item{genomeName}{the name of the genome used to map the reads (i.e. "mm9")
+\item{genomeName}{the name of the genome used to map the reads (i.e. "mm9").
+N.B. if NOT NULL the GRanges Seqinfo will be forced to genomeName Seqinfo
+(needs Internet access, but strongly suggested!)}
 
-                  N.B. if NOT NULL the GRanges Seqinfo will be forced to
-                  genomeName Seqinfo (strongly suggested!)}
+\item{onlyStdChrs}{flag to keep only standard chromosome.}
 
-\item{onlyStdChrs}{flag to keep only standard chromosome}
+\item{arePeaks}{flag indicating if the file contains peaks.}
+
+\item{verbose}{flag to obtain verbose output.}
 }
 \value{
-a GRanges object
+a GRanges object.
 }
 \description{
 Constructs a GRanges object from a bam/bed file in a consistent
-               way
+way.
 }
 \examples{
-files <- list.files(system.file("extdata/bam/"), pattern="bam$)
-bgr <- constructBedRanges(files[1], filetype="bam", genomeName="mm9,
+files <- list.files(system.file("extdata/bam/"), pattern="bam$")
+bgr <- constructBedRanges(files[1], filetype="bam", genomeName="mm9",
                             onlyStdChrs=TRUE)
 bgr
 }

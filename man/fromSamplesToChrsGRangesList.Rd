@@ -8,16 +8,15 @@ fromSamplesToChrsGRangesList(samplesGRangesList)
 }
 \arguments{
 \item{samplesGRangesList}{a GRangesList of samples.
-Tipically generaed by findPeaks function}
+Tipically generaed by findPeaks function.}
 }
 \value{
 A GRangesList of chromosomes where each element is a GRanges list
-        of samples
+of samples.
 }
 \description{
 converts a GRangesList orgnized per samples to a GRangesList
-             organized per Chromosomes where each element
-             is a GRangesList of samples
+organized per Chromosomes where each element is a GRangesList of samples.
 }
 \examples{
 library("GenomicRanges")

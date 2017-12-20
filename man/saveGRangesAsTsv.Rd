@@ -8,18 +8,18 @@ saveGRangesAsTsv(GRanges, filepath, filename, force = FALSE,
   verbose = FALSE)
 }
 \arguments{
-\item{GRanges}{the GRanges object}
+\item{GRanges}{the GRanges object.}
 
-\item{filepath}{the path to store the files}
+\item{filepath}{the path to store the files.}
 
-\item{filename}{the name to give to the files}
+\item{filename}{the name to give to the files.}
 
-\item{force}{force overwriting}
+\item{force}{force overwriting.}
 }
 \value{
 none
 }
 \description{
-save a GRanges object as tsv file
+save a GRanges object as tsv file.
 }
 \keyword{internal}

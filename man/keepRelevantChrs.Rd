@@ -8,16 +8,16 @@ keepRelevantChrs(chrGRangesList, chr = NULL)
 }
 \arguments{
 \item{chrGRangesList}{where each element is a chromosome,
-tipically created with cutGRangesPerChromosome}
+tipically created with cutGRangesPerChromosome.}
 
-\item{chr}{a character vector of chromosomes names of the form "chr#"}
+\item{chr}{a character vector of chromosomes names of the form "chr#".}
 }
 \value{
-the input chrGRangesList with only the relevat chromosomes
+the input chrGRangesList with only the relevat chromosomes.
 }
 \description{
 subselect a list of GRanges created with
-cutGRangesPerChromosome returning only the relevant chromosomes GRanges
+cutGRangesPerChromosome returning only the relevant chromosomes GRanges.
 }
 \examples{
 library("GenomicRanges")

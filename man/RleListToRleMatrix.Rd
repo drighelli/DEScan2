@@ -7,15 +7,15 @@
 RleListToRleMatrix(RleList, dimnames = NULL)
 }
 \arguments{
-\item{RleList}{an RleList object with all elements of the same length}
+\item{RleList}{an RleList object with all elements of the same length.}
 
-\item{dimnames}{the names for dimensions of RleMatrix (see DelayedArray pkg)}
+\item{dimnames}{the names for dimensions of RleMatrix (see DelayedArray pkg).}
 }
 \value{
-a RleMatrix from DelayedArray package
+a RleMatrix from DelayedArray package.
 }
 \description{
-a wrapper to create a RleMatrix from a RleList object
+a wrapper to create a RleMatrix from a RleList object.
 }
 \examples{
 library("DelayedArray")

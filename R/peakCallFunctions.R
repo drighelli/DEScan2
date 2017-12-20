@@ -6,7 +6,6 @@
 #' @param files Character vector containing paths of files to be analyzed.
 #' @param filetype Character, either "bam" or "bed" indicating format of input
 #' file.
-#' @param fragmentLength Integer indicating the average DNA fragment length bp.
 #' @param minWin Integer indicating the minimum window size in bases notation.
 #' @param maxWin Integer indicating the maximum window size in bases notation.
 #' @param binSize Integer size in bases of the minimum window for scanning,

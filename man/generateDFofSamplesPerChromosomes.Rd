@@ -7,15 +7,15 @@
 generateDFofSamplesPerChromosomes(samplesChrGRList)
 }
 \arguments{
-\item{samplesChrGRList}{a GRangesList of samples each divided by chromosome}
+\item{samplesChrGRList}{a GRangesList of samples each divided by chromosome.}
 }
 \value{
 a dataframe  where each row is a sample (1st col) and
-        a string with its chromosomes separated by ";" (2nd col)
+a string with its chromosomes separated by ";" (2nd col).
 }
 \description{
 generates a dataframe where each row is a sample (1st col) and
-             a string with its chromosomes separated by ";" (2nd col)
-             (useful to fromSamplesToChromosomesGRangesList function)
+a string with its chromosomes separated by ";" (2nd col)
+(useful to fromSamplesToChromosomesGRangesList function).
 }
 \keyword{internal}

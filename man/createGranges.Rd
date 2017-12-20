@@ -8,20 +8,20 @@ createGranges(chrSeqInfo, starts, widths, mcolname = NULL,
   mcolvalues = NULL)
 }
 \arguments{
-\item{chrSeqInfo}{a seqinfo object}
+\item{chrSeqInfo}{a seqinfo object.}
 
-\item{starts}{the start ranges}
+\item{starts}{the start ranges.}
 
-\item{widths}{the width of each range}
+\item{widths}{the width of each range.}
 
-\item{mcolname}{the name for the mcol attribute}
+\item{mcolname}{the name for the mcol attribute.}
 
-\item{mcolvalues}{the values for the mcol attribute}
+\item{mcolvalues}{the values for the mcol attribute.}
 }
 \value{
-a GRanges object
+a GRanges object.
 }
 \description{
-a simplified wrapper function to create a GRanges object
+a simplified wrapper function to create a GRanges object.
 }
 \keyword{internal}

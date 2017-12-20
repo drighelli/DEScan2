@@ -7,16 +7,16 @@
 divideEachSampleByChromosomes(samplesGRangesList)
 }
 \arguments{
-\item{samplesGRangesList}{a GRangesList of samples}
+\item{samplesGRangesList}{a GRangesList of samples.}
 }
 \value{
 list of samples where each element is a list of chromosomes and each
-         of these elements is a granges
+of these elements is a GRanges.
 }
 \description{
 taken in input a grangeslist of samples, generate a list of
-               samples where each element has a GRangesList each element of
-               the GRangesList represents a single chromosome
+samples where each element has a GRangesList each element of the GRangesList
+represents a single chromosome.
 }
 \examples{
 library("GenomicRanges")
