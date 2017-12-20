@@ -185,10 +185,12 @@ computeZ <- function(lambdaChrRleList, runWinRleList, chrLength,
     # lambdaChrRleMm <- matrix(unlist(lambdaChrRleList),
     #                          ncol=20, byrow=TRUE)
 
-    lambdaChrRleMm <- matrix(unlist(lambdaChrRleList), ncol=20, byrow=FALSE)
+    lambdaChrRleMm <- matrix(unlist(lambdaChrRleList),
+                             ncol=length(lambdaChrRleList), byrow=FALSE)
 
     # runWinRleMm <- matrix(unlist(runWinRleList), ncol=20, byrow=TRUE)
-    runWinRleMm <- matrix(unlist(runWinRleList), ncol=20, byrow=FALSE)
+    runWinRleMm <- matrix(unlist(runWinRleList),
+                          ncol=length(runWinRleList), byrow=FALSE)
 
     if(verbose) message("Computing Z-Score")
     z <- sqrt(2) * sign(runWinRleMm - lambdaChrRleMm) *
