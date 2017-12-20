@@ -18,7 +18,7 @@ All peaks lesser than this value will be ignored.}
 \item{minCarriers}{a threshold of minimum samples (carriers) for overlapped
 regions.}
 
-\item{saveFlag}{a flag for saving results in a bed file.}
+\item{saveFlag}{a flag for saving results in a tsv file.}
 
 \item{outputFolder}{the directory name to store the bed file.}
 

@@ -5,7 +5,7 @@
 \title{findPeaks}
 \usage{
 findPeaks(files, filetype = c("bam", "bed"), genomeName = NULL,
-  binSize = 50, minWin = 50, maxWin = 1000, zthresh = 5,
+  binSize = 50, minWin = 50, maxWin = 1000, zthresh = 10,
   minCount = 0.1, minCompWinWidth = 5000, maxCompWinWidth = 10000,
   outputFolder = "Peaks", save = TRUE, force = TRUE, verbose = FALSE,
   sigwin = 10, onlyStdChrs = TRUE, chr = NULL)
@@ -27,7 +27,7 @@ files. (cfr. constructBedRanges function parameters)}
 \item{maxWin}{Integer indicating the maximum window size in bases notation.}
 
 \item{zthresh}{Cuttoff value for z-scores. Only windows with greater z-scores
-will be kept.}
+will be kept, default is 10.}
 
 \item{minCount}{A small constant (usually no larger than one) to be added to
 the counts prior to the log transformation to avoid problems with log(0).}

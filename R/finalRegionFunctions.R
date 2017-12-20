@@ -10,7 +10,7 @@
 #' All peaks lesser than this value will be ignored.
 #' @param minCarriers a threshold of minimum samples (carriers) for overlapped
 #'                    regions.
-#' @param saveFlag a flag for saving results in a bed file.
+#' @param saveFlag a flag for saving results in a tsv file.
 #' @param outputFolder the directory name to store the bed file.
 #' @param verbose verbose output.
 #'

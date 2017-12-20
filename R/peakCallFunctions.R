@@ -13,7 +13,7 @@
 #' @param minCompWinWidth minimum bases width of a comparing window for Z-score.
 #' @param maxCompWinWidth maximum bases width of a comparing window for Z-score.
 #' @param zthresh Cuttoff value for z-scores. Only windows with greater z-scores
-#' will be kept.
+#' will be kept, default is 10.
 #' @param minCount A small constant (usually no larger than one) to be added to
 #' the counts prior to the log transformation to avoid problems with log(0).
 #' @param outputFolder A string, Name of the folder to save the Peaks (optional),
@@ -53,7 +53,7 @@
 findPeaks <- function(files, filetype=c("bam", "bed"),
                         genomeName=NULL,
                         binSize=50, minWin=50, maxWin=1000,
-                        zthresh=5, minCount=0.1,
+                        zthresh=10, minCount=0.1,
                         minCompWinWidth=5000,
                         maxCompWinWidth=10000,
                         outputFolder="Peaks", save=TRUE, force=TRUE,

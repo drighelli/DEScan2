@@ -23,7 +23,7 @@ options(scipen = 1, digits = 4)
 ```
 
 #Overview
-This document describes how to use DEScan2 to detect regions of differential enrichment in epigenomic sequencing data. DEScan2 is an R/Bioconductor based tool, developed for Bioconductor v3.6 and R v3.4.2.
+This document describes how to use DEScan2 to detect regions of differential enrichment in epigenomic sequencing data. DEScan2 is an R/Bioconductor based tool, developed for Bioconductor v3.6 and R v3.4.3.
 
 #A typical differential enrichment analysis workflow
 
@@ -35,11 +35,12 @@ DESCan2 is currently hosted on GitHub, so installation will make use of the devt
 library("devtools")
 ```
 
-Use the install_github function to install DEScan. The repo location and a personal access token (PAT) need to be supplied.
+Use the install_github function to install DEScan2. The repo location need to be supplied.
 
 ```{r, cache=TRUE, message=FALSE}
-install_github(repo = "drighelli/DEScan2")
+install_github(repo="drighelli/DEScan2", force=TRUE)
 ```
+
 ```{r, message=FALSE}
 library("DEScan2")
 library("RUVSeq")
@@ -48,18 +49,17 @@ library("edgeR")
 
 ##Example data
 
-This analysis will make use of mouse Sono-seq data from mouse chromosome 19. This data is a portion of data obtained from hippocampus of mice following learning through contextual fear conditioning. The experiment has 4 fear conditioned (FC) and 4 homecage control (HC) replicates. The data was aligned to the mouse genome (mm9) using bowtie2, allowing for multi-mapping reads. Duplicates were removed if present in isolation from duplicated reads relative to genomic location. Aligned data in this example is provided as bed files, but DEScan accepts bam format alignments. 
+This analysis will make use of mouse Sono-seq data from mouse chromosome 19. This data is a small portion of data obtained from hippocampus of mice following learning through contextual fear conditioning. The experiment has 4 fear conditioned (FC) and 4 homecage control (HC) replicates. The data was aligned to the mouse genome (mm9) using bowtie2, allowing for multi-mapping reads. Duplicates were removed if present in isolation from duplicated reads relative to genomic location. Aligned data in this example is provided as bed files, but DEScan accepts bam format alignments. 
 
 ```{r eval=TRUE}
-bam.files <- list.files(system.file("extdata/bam", package="DEScan2"), 
-                        pattern="bam$", full.names = TRUE)
+bam.files <- list.files(system.file("extdata/bam", package="DEScan2"), pattern="bam$", full.names = TRUE)
 ```
 
 
 ##Calling peaks for each sample
 First, peak calling for the samples will be done using the *findPeaks* function. Bam files are used as input in this case, but bed files work as well (in any case we reccomend to specify a genome code as reference for the data). 
 We will perform this step on a single sample in the interest of time; however, note that a vector of file names can be supplied. 
-If the **save** flag is set to TRUE the function will produce a sorted bed file for each input file in the folder **outputFolder** ("Peaks" directory is the default). *findPeaks* implements an adaptive window size scan to find peaks, and requires 2 parameters to define the size of the overlapping windows to be tested for enrichment. Enrichment for each window is calculated relative to 5kb, 10 kb (local) or the whole chromosome, and the maximum among the three is reported.
+If the **save** flag is set to TRUE the function will produce a sorted bed file for each input file in the folder **outputFolder** ("peaks" directory is the default). *findPeaks* implements an adaptive window size scan to find peaks, and requires 2 parameters to define the size of the overlapping windows to be tested for enrichment. Enrichment for each window is calculated relative to **minCompWinWidth** 5kb, **maxCompWinWidth** 10kb (local) or the whole chromosome, and the maximum among the three is reported.
 
 Parameter description:  
 
@@ -70,68 +70,60 @@ Parameter description:
 **binSize** 
 : Integer size in base pairs of the minimum window for scanning, 50 is the default.
 **minWin**
-: Integer indicating the minimum window size in base pairs. (A multiple of binSize)
+: Integer indicating the minimum window size in base pairs, 50 is the default. (A multiple of binSize)
 **maxWin** 
-: Integer indicating the maximum allowed window size in units of 50 bp. (A multiple of binSize)
+: Integer indicating the maximum allowed window size in units of 50 bp, 1000 is the default. (A multiple of binSize)
 **minCompWinWidth** 
-: minimum bases width of a comparing window for Z-score
+: minimum bases width of a comparing background window for Z-score (default is 5000).
 **maxCompWinWidth** 
-: maximum bases width of a comparing window for Z-score
+: maximum bases width of a comparing background window for Z-score (default is 10000).
 **zthresh** 
-: Cuttoff value for z-scores. Only windows with greater z-scores will be kept.
+: Cuttoff value for z-scores, default is 10. Only windows with greater z-scores will be kept.
 **minCount** 
 : A small constant (usually no larger than one) to be added to the counts prior to the log transformation to avoid problems with log(0).
+**sigwin** 
+: an integer value used to compute the length of the signal of a peak (default value is 10).
 **save**
 : Flag indicating if tha output has to be saved
 **outputFolder** 
-:A string, Name of the folder to save the Peaks (optional), if the directory doesn't exist, it will be created. default is "Peaks".
+: A string, Name of the folder to save the Peaks (optional), if the directory doesn't exist, it will be created. default is "Peaks".
 **force**
-: a boolean flag indicating if to force output overwriting.
+: A boolean flag indicating if to force output overwriting.
 **genomeName**
-: the code of the genome to use as reference for the input files.
-We strongly recommend (particularly with bed files) to specify a genome code, 
-but, if there is no internet connection or problems contacting the server, 
-this argument can be not used.
+: The code of the genome to use as reference for the input files.
+We strongly recommend (particularly with bed files) to specify a genome code, but, if there is no internet connection or problems contacting the server, this argument can be not used.
 **onlyStdChrs**
 : a flag to work only with standard chromosomes (cfr. constructBedRanges function parameters)
 **chr** if not NULL, a character like "chr#" indicating the chromosomes to use
 
 ```{r findPeaks, cache=TRUE, eval=TRUE}
-peaksGRL <- findPeaks(files=bam.files[1], filetype="bam",
-                            genomeName="mm9",
-                            binSize=50, minWin=50, maxWin=1000,
-                            zthresh=5, minCount=0.1, sigwin=10,
-                            minCompWinWidth=5000, maxCompWinWidth=10000,
-                            save=FALSE,
-                            outputFolder="peaks",
-                            force=TRUE,
-                            onlyStdChrs=TRUE,
-                            chr=NULL,
-                            verbose=TRUE)
+peaksGRL <- findPeaks(files=bam.files[1], filetype="bam", genomeName="mm9", binSize=50, minWin=50, maxWin=1000, zthresh=10, minCount=0.1, sigwin=10, minCompWinWidth=5000, maxCompWinWidth=10000, save=FALSE, outputFolder="peaks", force=TRUE, onlyStdChrs=TRUE, chr=NULL, verbose=FALSE)
 head(peaksGRL)
 ```
 
 ##Aligning peaks across replicates to produce regions
-After *findPeaks* has been run on each sample, the *finalRegions* function can be used to align overlapping peaks found in multiple samples. Peak files for all the alignment files can be found in the “extdata/Peaks” folder. *finalRegions* will produce one file containing the location of the aligned peaks.
+After *findPeaks* has been run on each sample, the *finalRegions* function can be used to align overlapping peaks found in multiple samples. Peak files for all the alignment files can be found in the “extdata/peaks” folder. *finalRegions* will produce a GRanges object containing the locations of the aligned peaks.
+If the **saveFlag** is set to TRUE, the function will produce a tab separated value file in the **outputFolder**.
 
 Parameter description:
-
-**zthresh**
+**peakSamplesGRangesList**
+: 
+**zThreshold**
 :  Z-score for considering a peak for alignment, it needs to be equal or higher to the ztresh used in findPeaks, default 20.
 
 **minCarriers**
 :  Minimum number of biological replicates required to overlap after aligning peaks for reporting, default 2
 
 **saveFlag**
-:  Format of the output (bed or RData), default bed
+:  A boolean indicating if to save the results in a tab delimited file
+
+**outputFolder**
+: the directory name to store the output file.
 
 ```{r finalRegions, cache=TRUE, eval=TRUE, message=FALSE}
-peaks.file <- system.file("extdata/peaks/RData/peaksGRL_zt5_mnw50_mxw1000_bin50.rds", 
-                        package="DEScan2")
+peaks.file <- system.file("extdata/peaks/RData/peaksGRL_zt5_mnw50_mxw1000_bin50.rds", package="DEScan2")
 peaksGRL <- readRDS(peaks.file)
-regionsGR <- finalRegions(peakSamplesGRangesList=peaksGRL,
-                        zThreshold=20, minCarriers=4, 
-                        saveFlag=FALSE, verbose=TRUE)
+regionsGR <- finalRegions(peakSamplesGRangesList=peaksGRL, zThreshold=20, minCarriers=4, saveFlag=FALSE, outputFolder=NULL, verbose=FALSE)
 head(regionsGR)
 ```
 
@@ -142,14 +134,8 @@ The resulting regions can then be used to generate a count matrix using the *cou
 
 ```{r countFinalRegions, cache=TRUE, eval=TRUE, message=FALSE}
 bam.path <- system.file("extdata/bam", package="DEScan2")
-finalRegions <- countFinalRegions(regionsGRanges=regionsGR,
-                                            readsFilePath=bam.path,
-                                            fileType="bam",
-                                            minCarriers=1,
-                                            genomeName="mm9",
-                                            onlyStdChrs=TRUE, 
-                                            saveFlag=FALSE, 
-                                            verbose=TRUE)
+finalRegions <- countFinalRegions(regionsGRanges=regionsGR, readsFilePath=bam.path, fileType="bam", minCarriers=1, genomeName="mm9", onlyStdChrs=TRUE, saveFlag=FALSE, verbose=FALSE)
+
 counts <- SummarizedExperiment::assay(finalRegions)
 regions <- SummarizedExperiment::rowRanges(finalRegions)
 ```
