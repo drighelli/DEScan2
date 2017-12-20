@@ -10,13 +10,12 @@ Authors@R: c(
     person("Lucia", "Peixoto", role="aut", email="lucia.peixoto@wsu.edu"),
     person("Nancy", "Zhang", role="aut", email="nzh@wharton.upenn.edu"),
     person("Davide", "Risso", role="aut", email="risso.davide@gmail.com>")
+    person("Bruce", "Gomes", role="aut", email="bruce.gomes@wsu.edu")
     )
-Author: Dario Righelli [aut, cre], John Koberstein [aut], Lucia Peixoto [aut], 
-    Nancy Zhang [aut], Davide Risso [aut]
 Maintainer: Dario Righelli <dario.righelli@gmail.com>
 Description: integrated peak and differential caller, specifically designed for
     broad epigenomic signals.
-License: CC0
+License: Artistic-2.0
 LazyData: TRUE
 biocViews: PeakDetection, Epigenetics, Software
 Depends: 
@@ -40,5 +39,5 @@ Imports:
     utils
 LinkingTo: Rcpp, RcppArmadillo
 RoxygenNote: 6.0.1
-Suggests: BiocStyle, knitr, rmarkdown, testthat, edgeR, RUVSeq
+Suggests: BiocStyle, knitr, rmarkdown, testthat, edgeR, EDASeq, RUVSeq, RColorBrewer
 VignetteBuilder: knitr

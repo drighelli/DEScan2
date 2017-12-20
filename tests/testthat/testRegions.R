@@ -3,7 +3,7 @@ context("Region Alignment")
 test_that("finalRegions is consistent", {
     peaks.path <- system.file("extdata/peaks/RData", package = "DEScan2")
     peaks.file <- list.files(peaks.path, full.names=TRUE, pattern="rds$")
-
+    peaksGRL <- readRDS(peaks.file[1])
     finalRegions <- finalRegions(peakSamplesGRangesList=peaksGRL,
                             zThreshold=20, minCarriers=4,
                             saveFlag=FALSE, verbose=TRUE)

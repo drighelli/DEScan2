@@ -7,7 +7,7 @@ test_that("Test if new findPeaks works with bam and bed files", {
 
     binSize=50
     minWin=50
-    maxWin=1000
+    maxWin=100
     zthresh=10
     minCount=0.1
     minCompWinWidth=5000
@@ -21,9 +21,9 @@ test_that("Test if new findPeaks works with bam and bed files", {
     sigwin=10
     osc=TRUE
     genName="mm9"
-    if( length(bamfile) != 0 )
+    if( length(bam.files) != 0 )
     {
-        bampeaksGRL <- findPeaks(files=bamfile, filetype=filetype,
+        bampeaksGRL <- findPeaks(files=bam.files[1], filetype=filetype,
                             binSize=binSize,
                             minWin=minWin, maxWin=maxWin,
                             zthresh=zthresh, minCount=minCount,
@@ -31,6 +31,7 @@ test_that("Test if new findPeaks works with bam and bed files", {
                             maxCompWinWidth=maxCompWinWidth,
                             save=savef, verbose=verb,genomeName=genName,
                             sigwin=sigwin, onlyStdChrs=osc)
+        names(bampeaksGRL) <- "FC1"
         grl.path <- system.file("extdata/tests/peaks/FC1_GRL.rds",
                                 package="DEScan2")
         bampeaksRef <- readRDS(grl.path)
@@ -44,7 +45,7 @@ test_that("Test if new findPeaks works with bam and bed files", {
     bedpath <- system.file("extdata/tests/inputdata/bed", package="DEScan2")
     bedfile <- list.files(bedpath, full.names=TRUE, pattern=".bed.zip$")
     if( file.exists(bedfile) ) {
-        bedpeaksGRL <- findPeaks(files=bedfile, filetype="bed.zip",
+        bedpeaksGRL <- findPeaks(files=bedfile, filetype="bed",
                                  binSize=binSize,
                                  minWin=minWin, maxWin=maxWin,
                                  zthresh=zthresh, minCount=minCount,
@@ -52,6 +53,7 @@ test_that("Test if new findPeaks works with bam and bed files", {
                                  maxCompWinWidth=maxCompWinWidth,
                                  save=savef, verbose=verb,genomeName=genName,
                                  sigwin=sigwin, onlyStdChrs=osc)
+        names(bedpeaksGRL) <- "FC1"
         expect_identical(bedpeaksGRL, bampeaksGRL)
     } else {
         warning("bed file does not exist!")
@@ -63,9 +65,11 @@ test_that("Test disjoint function R & C", {
     zpath <- system.file("extdata/tests/z/", package="DEScan2")
     zfile <- list.files(zpath, full.names=TRUE)
     zzz <- readRDS(zfile)
+    idx <- 62000:65000
+    zzz <- zzz[idx,]
     sigw=10
     zthr=10
-    nmax=Inf
+    nmax=1e5
     verb=TRUE
     cTime <- system.time({
         smatC <- c_get_disjoint_max_win(z0=zzz, sigwin=sigw, zthresh=zthr,
@@ -75,6 +79,7 @@ test_that("Test disjoint function R & C", {
         smatR <- get_disjoint_max_win(z0=zzz, sigwin=sigw, zthresh=zthr,
                                       nmax=nmax, verbose=verb)
     })
-    message("cTime (mins): ", cTime/60, " rTime (mins): ", rTime/60)
+    message("cTime (secs): ", round(cTime[1], 3),
+            " rTime (secs): ", round(rTime[1], 3))
     expect_identical(smatC, smatR)
 })
