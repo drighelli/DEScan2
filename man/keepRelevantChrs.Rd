@@ -27,5 +27,5 @@ gr1 <- GRanges(
             strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
             seqlengths=c(chr1=11, chr2=12, chr3=13))
 grlc <- cutGRangesPerChromosome(gr1)
-(grlChr <- keepRelevantChrs(grl, c("chr1", "chr3")))
+(grlChr <- keepRelevantChrs(grlc, c("chr1", "chr3")))
 }

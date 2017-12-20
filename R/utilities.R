@@ -34,7 +34,7 @@ readBamAsBed <- function(file)
 readBedFile <- function(filename, arePeaks=FALSE)
 {
     if (tools::file_ext(filename) == "zip") {
-        tmp <- utils::unzip(filename, list=T)$Name
+        tmp <- utils::unzip(filename, list=TRUE)$Name
         file <- base::unz(filename, tmp)
     } else {
         file <- filename
@@ -242,15 +242,15 @@ readFilesAsGRangesList <- function(filePath, fileType=c("bam", "bed","bed.zip"),
 #' @return none
 #' @keywords internal
 # @export
-#' @examples
-#' library("GenomicRanges")
-#' gr <- GRanges(
-#'         seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
-#'         ranges=IRanges(1:10, end=10),
-#'         strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
-#'         seqlengths=c(chr1=11, chr2=12, chr3=13))
-#'
-#' saveGRangesAsBed(GRanges=gr, filepath="./", filename="gr", verbose=TRUE)
+# @examples
+# library("GenomicRanges")
+# gr <- GRanges(
+#         seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
+#         ranges=IRanges(1:10, end=10),
+#         strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
+#         seqlengths=c(chr1=11, chr2=12, chr3=13))
+#
+# saveGRangesAsBed(GRanges=gr, filepath="./", filename="gr", verbose=TRUE)
 saveGRangesAsBed <- function(GRanges, filepath, filename, force=FALSE,
                             verbose=FALSE)#, extraCols=NULL)
 {
@@ -510,7 +510,7 @@ cutGRangesPerChromosome <- function(GRanges)
 #'             strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
 #'             seqlengths=c(chr1=11, chr2=12, chr3=13))
 #' grlc <- cutGRangesPerChromosome(gr1)
-#' (grlChr <- keepRelevantChrs(grl, c("chr1", "chr3")))
+#' (grlChr <- keepRelevantChrs(grlc, c("chr1", "chr3")))
 keepRelevantChrs <- function(chrGRangesList, chr=NULL)
 {
     if(!is.null(chr) && length(grep(pattern="chr", chr))!=length(chr))

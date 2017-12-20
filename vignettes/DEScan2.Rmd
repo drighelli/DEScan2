@@ -165,7 +165,7 @@ In order to control for “unwanted variation”, e.g., batch, library preparati
 library(RColorBrewer)
 colors <- brewer.pal(3, "Set2")
 set <- EDASeq::betweenLaneNormalization(counts, which = "upper")
-groups <- matrix(c(1:8), nrow = 2, byrow = T)
+groups <- matrix(c(1:8), nrow = 2, byrow = TRUE)
 trt <- factor(c(rep("FC", 4), rep("HC", 4)))
 ```
 
