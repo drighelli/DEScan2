@@ -1,15 +1,15 @@
 Package: DEScan2
 Type: Package
 Title: Differential Enrichment Scan 2
-Version: 2.00.0
-Date: 2017-11-28
+Version: 0.99.0
+Date: 2017-12-20
 Authors@R: c(
     person("Dario", "Righelli", role=c("aut", "cre"), 
-                email="dario.righelli@gmail.com"),
+            email="dario.righelli@gmail.com"),
     person("John", "Koberstein", role="aut", email="jnkoberstein@gmail.com"),
     person("Lucia", "Peixoto", role="aut", email="lucia.peixoto@wsu.edu"),
     person("Nancy", "Zhang", role="aut", email="nzh@wharton.upenn.edu"),
-    person("Davide", "Risso", role="aut", email="risso.davide@gmail.com>")
+    person("Davide", "Risso", role="aut", email="risso.davide@gmail.com>"),
     person("Bruce", "Gomes", role="aut", email="bruce.gomes@wsu.edu")
     )
 Maintainer: Dario Righelli <dario.righelli@gmail.com>
@@ -39,5 +39,13 @@ Imports:
     utils
 LinkingTo: Rcpp, RcppArmadillo
 RoxygenNote: 6.0.1
-Suggests: BiocStyle, knitr, rmarkdown, testthat, edgeR, EDASeq, RUVSeq, RColorBrewer
+Suggests: 
+    BiocStyle, 
+    knitr, 
+    rmarkdown, 
+    testthat, 
+    edgeR, 
+    EDASeq, 
+    RUVSeq, 
+    RColorBrewer
 VignetteBuilder: knitr

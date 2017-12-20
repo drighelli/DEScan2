@@ -3,7 +3,7 @@ context("Peak Finding")
 
 test_that("Test if new findPeaks works with bam and bed files", {
     bam.path <- system.file("extdata/tests/inputdata/bam", package="DEScan2")
-    bam.files <- list.files(bam.path, full.names=TRUE, pattern=".bam$")
+    bam.file <- list.files(bam.path, full.names=TRUE, pattern=".bam$")
 
     binSize=50
     minWin=50
@@ -21,9 +21,9 @@ test_that("Test if new findPeaks works with bam and bed files", {
     sigwin=10
     osc=TRUE
     genName="mm9"
-    if( length(bam.files) != 0 )
+    if( length(bam.file) != 0 )
     {
-        bampeaksGRL <- findPeaks(files=bam.files[1], filetype=filetype,
+        bampeaksGRL <- findPeaks(files=bam.file, filetype=filetype,
                             binSize=binSize,
                             minWin=minWin, maxWin=maxWin,
                             zthresh=zthresh, minCount=minCount,
@@ -32,6 +32,7 @@ test_that("Test if new findPeaks works with bam and bed files", {
                             save=savef, verbose=verb,genomeName=genName,
                             sigwin=sigwin, onlyStdChrs=osc)
         names(bampeaksGRL) <- "FC1"
+
         grl.path <- system.file("extdata/tests/peaks/FC1_GRL.rds",
                                 package="DEScan2")
         bampeaksRef <- readRDS(grl.path)

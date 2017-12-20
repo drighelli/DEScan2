@@ -47,7 +47,7 @@ count reads falling within the final regions.
 \examples{
 filename <- system.file("extdata/regions/regions_zt20_minK4GR.RDS",
                         package="DEScan2")
-regionsGR <- readRDS(file=)
+regionsGR <- readRDS(file=filename)
 finalRegions <- countFinalRegions(regionsGRanges=regionsGR,
                                 readsFilePath="inst/extdata/bam",
                                 fileType="bam",

@@ -27,3 +27,9 @@ a GRanges of peaks overlapped and unique between samples.
 given in input a GRangeList where each element is a sample
 computes the coverage extending a both direction window of prefixed length.
 }
+\examples{
+(peaks.file <- system.file("extdata/peaks/RData/peaksGRL_all_files.rds",
+                            package="DEScan2"))
+peaksGRLFiles <- readRDS(peaks.file)
+(overlPeaks <- findOverlapsOverSamples(peaksGRLFiles))
+}

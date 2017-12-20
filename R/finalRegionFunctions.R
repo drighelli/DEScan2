@@ -147,7 +147,11 @@ initMergedPeaksNames <- function(mergedGRanges)
 #' @importFrom data.table rbindlist
 #' @importFrom GenomicRanges GRangesList
 #'
-# @examples TBW
+#' @examples
+#' (peaks.file <- system.file("extdata/peaks/RData/peaksGRL_all_files.rds",
+#'                             package="DEScan2"))
+#' peaksGRLFiles <- readRDS(peaks.file)
+#' (overlPeaks <- findOverlapsOverSamples(peaksGRLFiles))
 findOverlapsOverSamples <- function(samplePeaksGRangelist,
                                     extendRegions=200,
                                     minOverlap=0L,
