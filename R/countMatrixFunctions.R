@@ -29,14 +29,14 @@
 #' filename <- system.file("extdata/regions/regions_zt20_minK4GR.RDS",
 #'                         package="DEScan2")
 #' regionsGR <- readRDS(file=filename)
+#' reads.path <- system.file("extdata/bam", package="DEScan2")
 #' finalRegions <- countFinalRegions(regionsGRanges=regionsGR,
-#'                                 readsFilePath="inst/extdata/bam",
+#'                                 readsFilePath=reads.path,
 #'                                 fileType="bam",
 #'                                 minCarriers=1,
 #'                                 genomeName="mm9",
 #'                                 onlyStdChrs=TRUE,
-#'                                 ignStrandSO=TRUE, saveFlag=TRUE,
-#'                                 savePath="testData/regions/prova/",
+#'                                 ignStrandSO=TRUE, saveFlag=FALSE,
 #'                                 verbose=TRUE)
 #' head(countFinalRegions)
 countFinalRegions <- function(regionsGRanges, readsFilePath=NULL,
