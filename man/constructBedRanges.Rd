@@ -4,13 +4,14 @@
 \alias{constructBedRanges}
 \title{constructBedRanges}
 \usage{
-constructBedRanges(filename, filetype = c("bam", "bed"), genomeName = NULL,
-  onlyStdChrs = FALSE, arePeaks = FALSE, verbose = FALSE)
+constructBedRanges(filename, filetype = c("bam", "bed", "bed.zip"),
+  genomeName = NULL, onlyStdChrs = FALSE, arePeaks = FALSE,
+  verbose = FALSE)
 }
 \arguments{
 \item{filename}{the complete file path of a bam?bed file.}
 
-\item{filetype}{the file type bam/bed.}
+\item{filetype}{the file type bam/bed/bed.zip.}
 
 \item{genomeName}{the name of the genome used to map the reads (i.e. "mm9").
 N.B. if NOT NULL the GRanges Seqinfo will be forced to genomeName Seqinfo
@@ -26,8 +27,8 @@ N.B. if NOT NULL the GRanges Seqinfo will be forced to genomeName Seqinfo
 a GRanges object.
 }
 \description{
-Constructs a GRanges object from a bam/bed file in a consistent
-way.
+Constructs a GRanges object from a bam/bed/bed.zip file in a
+consistent way.
 }
 \examples{
 files <- list.files(system.file("extdata/bam/"), pattern="bam$")

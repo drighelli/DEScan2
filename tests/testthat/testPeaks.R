@@ -2,8 +2,8 @@
 context("Peak Finding")
 
 test_that("Test if new findPeaks works with bam and bed files", {
-
-    bamfile <- "testData/bams/head/H_P43615_Sample_FC4_Input_fwd_chr19_Smartfilter.bam"
+    bam.path <- system.file("extdata/tests/inputdata/bam", package="DEScan2")
+    bam.files <- list.files(bam.path, full.names=TRUE, pattern=".bam$")
 
     binSize=50
     minWin=50
@@ -23,23 +23,29 @@ test_that("Test if new findPeaks works with bam and bed files", {
     genName="mm9"
     if( length(bamfile) != 0 )
     {
-        bampeaksGRL <- findPeaks(files=bamfile, filetype=filetype, binSize=binSize,
+        bampeaksGRL <- findPeaks(files=bamfile, filetype=filetype,
+                            binSize=binSize,
                             minWin=minWin, maxWin=maxWin,
                             zthresh=zthresh, minCount=minCount,
                             minCompWinWidth=minCompWinWidth,
                             maxCompWinWidth=maxCompWinWidth,
                             save=savef, verbose=verb,genomeName=genName,
                             sigwin=sigwin, onlyStdChrs=osc)
-        bampeaksRef <- readRDS("testData/peaks/H_P43615_Sample_FC1_Input_fwd_chr19_SmartfilterGRL.RDS")
+        grl.path <- system.file("extdata/tests/peaks/FC1_GRL.rds",
+                                package="DEScan2")
+        bampeaksRef <- readRDS(grl.path)
         expect_identical(bampeaksGRL, bampeaksRef)
     }
     else
     {
         warning("bam file does not exist!")
     }
-    bedfile <- "testData/bed/head/P43615_Sample_FC1_Input_fwd_chr19_Smartfilter.bam.bed.bed.zip"
+
+    bedpath <- system.file("extdata/tests/inputdata/bed", package="DEScan2")
+    bedfile <- list.files(bedpath, full.names=TRUE, pattern=".bed.zip$")
     if( file.exists(bedfile) ) {
-        bedpeaksGRL <- findPeaks(files=bedfile, filetype="bed", binSize=binSize,
+        bedpeaksGRL <- findPeaks(files=bedfile, filetype="bed.zip",
+                                 binSize=binSize,
                                  minWin=minWin, maxWin=maxWin,
                                  zthresh=zthresh, minCount=minCount,
                                  minCompWinWidth=minCompWinWidth,
@@ -54,7 +60,9 @@ test_that("Test if new findPeaks works with bam and bed files", {
 })
 
 test_that("Test disjoint function R & C", {
-    zzz <- readRDS("testData/z/z_matrix.rds")
+    zpath <- system.file("extdata/tests/z/", package="DEScan2")
+    zfile <- list.files(zpath, full.names=TRUE)
+    zzz <- readRDS(zfile)
     sigw=10
     zthr=10
     nmax=Inf

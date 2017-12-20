@@ -45,3 +45,4 @@ src/*\.o
 testData
 ^config\.status
 ^config\.log
+tests/testthat/pipeline\.R
