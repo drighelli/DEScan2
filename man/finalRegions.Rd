@@ -34,10 +34,11 @@ presence in multiple replicates taking in input a GRangesList where each
 element is a sample of called peaks.
 }
 \examples{
-bam.files <- list.files(system.file("extdata/peaks", package="DEScan2"),
-                        pattern="bed", full.names=TRUE)
-peaksGRL <- GenomicRanges::GRangesList(
-                    lapply(bam.files, DEScan2::constructBedRanges))
-regionsGR <- finalRegions(peakSamplesGRangesList=peaksGRL, zThreshold=1,
+peak.path <- system.file("extdata/peaks/RData/peaksGRL_all_files.rds",
+                            package="DEScan2")
+grl <- readRDS(peak.path)
+grl
+
+regionsGR <- finalRegions(peakSamplesGRangesList=grl, zThreshold=1,
                         minCarriers=3, saveFlag=FALSE, verbose=TRUE)
 }

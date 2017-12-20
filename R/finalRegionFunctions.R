@@ -19,11 +19,12 @@
 #' @export
 #' @importFrom GenomicRanges GRangesList
 #' @examples
-#' bam.files <- list.files(system.file("extdata/peaks", package="DEScan2"),
-#'                         pattern="bed", full.names=TRUE)
-#' peaksGRL <- GenomicRanges::GRangesList(
-#'                     lapply(bam.files, DEScan2::constructBedRanges))
-#' regionsGR <- finalRegions(peakSamplesGRangesList=peaksGRL, zThreshold=1,
+#' peak.path <- system.file("extdata/peaks/RData/peaksGRL_all_files.rds",
+#'                             package="DEScan2")
+#' grl <- readRDS(peak.path)
+#' grl
+#'
+#' regionsGR <- finalRegions(peakSamplesGRangesList=grl, zThreshold=1,
 #'                         minCarriers=3, saveFlag=FALSE, verbose=TRUE)
 finalRegions <- function(peakSamplesGRangesList, zThreshold=20, minCarriers=2,
                                     saveFlag=TRUE,
