@@ -48,5 +48,6 @@ Suggests:
     limma,
     EDASeq, 
     RUVSeq, 
-    RColorBrewer
+    RColorBrewer,
+    statmod
 VignetteBuilder: knitr
