@@ -36,7 +36,7 @@ the counts prior to the log transformation to avoid problems with log(0).}
 
 \item{maxCompWinWidth}{maximum bases width of a comparing window for Z-score.}
 
-\item{outputFolder}{A string, Name of the folder to save the Peaks (optional),
+\item{outputFolder}{A string, Name of the folder to save the Peaks (optional)
 if the directory doesn't exist, it will be created. (Default is "Peaks")}
 
 \item{save}{Boolean, if TRUE files will be saved in a "./Peaks/chr*"

@@ -26,29 +26,20 @@
 #' @importFrom BiocGenerics start end
 #' @importFrom utils write.table
 #' @examples
-#' filename <- system.file("extdata/regions/regions_zt20_minK4GR.RDS",
-#'                         package="DEScan2")
+#' filename <- system.file("extdata/regions/regions.rds", package="DEScan2")
 #' regionsGR <- readRDS(file=filename)
 #' reads.path <- system.file("extdata/bam", package="DEScan2")
-#' finalRegions <- countFinalRegions(regionsGRanges=regionsGR,
-#'                                 readsFilePath=reads.path,
-#'                                 fileType="bam",
-#'                                 minCarriers=1,
-#'                                 genomeName="mm9",
-#'                                 onlyStdChrs=TRUE,
-#'                                 ignStrandSO=TRUE, saveFlag=FALSE,
-#'                                 verbose=TRUE)
-#' head(countFinalRegions)
+#' finalRegionsSE <- countFinalRegions(regionsGRanges=regionsGR,
+#'     readsFilePath=reads.path, fileType="bam", minCarriers=1,
+#'     genomeName="mm9", onlyStdChrs=TRUE, ignStrandSO=TRUE, saveFlag=FALSE,
+#'     verbose=TRUE)
+#' library("SummarizedExperiment")
+#' assay(finalRegionsSE) ## matrix of counts
+#' rowRanges(finalRegionsSE) ## the GRanges of the input regions
 countFinalRegions <- function(regionsGRanges, readsFilePath=NULL,
-                                fileType=c("bam", "bed"),
-                                minCarriers=2,
-                                genomeName=NULL,
-                                onlyStdChrs=FALSE,
-                                ignStrandSO=TRUE,
-                                modeSO="Union",
-                                saveFlag=FALSE,
-                                savePath="finalRegions",
-                                verbose=TRUE)
+            fileType=c("bam", "bed"), minCarriers=2, genomeName=NULL,
+            onlyStdChrs=FALSE, ignStrandSO=TRUE, modeSO="Union", saveFlag=FALSE,
+            savePath="finalRegions", verbose=TRUE)
 {
     match.arg(fileType)
     stopifnot(is(regionsGRanges, "GRanges"))
@@ -92,6 +83,14 @@ countFinalRegions <- function(regionsGRanges, readsFilePath=NULL,
                                     mode=modeSO)
         return(SummarizedExperiment::assay(summReg))
     })
+    if(!is.matrix(summRegMat)) {
+        if(length(summRegMat) == length(fileReadsList))
+        {
+            ## only one peak found
+            summRegMat <- as.matrix(summRegMat)
+            summRegMat <- t(summRegMat)
+        }
+    }
 
     regionsRN <- paste0(regionsGRanges@seqnames, ":",
                         BiocGenerics::start(regionsGRanges), "-",

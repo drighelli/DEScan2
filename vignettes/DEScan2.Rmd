@@ -121,9 +121,9 @@ Parameter description:
 : the directory name to store the output file.
 
 ```{r finalRegions, cache=TRUE, eval=TRUE, message=FALSE}
-peaks.file <- system.file("extdata/peaks/RData/peaksGRL_zt10_mnw50_mxw1000_bin50.rds", package="DEScan2")
+peaks.file <- system.file("extdata/peaks/RData/peaksGRL_all_files.rds", package="DEScan2")
 peaksGRL <- readRDS(peaks.file)
-regionsGR <- finalRegions(peakSamplesGRangesList=peaksGRL, zThreshold=20, minCarriers=4, saveFlag=FALSE, outputFolder=NULL, verbose=FALSE)
+regionsGR <- finalRegions(peakSamplesGRangesList=peaksGRL, zThreshold=10, minCarriers=4, saveFlag=FALSE, outputFolder=NULL, verbose=FALSE)
 head(regionsGR)
 ```
 

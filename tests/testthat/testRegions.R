@@ -8,6 +8,6 @@ test_that("finalRegions is consistent", {
                             zThreshold=20, minCarriers=4,
                             saveFlag=FALSE, verbose=TRUE)
     regionspath <- system.file("extdata/regions", package = "DEScan2")
-    regionsfile <- list.files(regionspath, full.names=TRUE, pattern="RDS$")
+    regionsfile <- list.files(regionspath, full.names=TRUE, pattern="rds$")
     expect_equal_to_reference(finalRegions, file=regionsfile)
 })
