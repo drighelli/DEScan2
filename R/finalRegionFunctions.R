@@ -54,9 +54,9 @@ finalRegions <- function(peakSamplesGRangesList, zThreshold=20, minCarriers=2,
 
     if(saveFlag) {
         datename <- paste0(strsplit(gsub(pattern=":", replacement=" ",
-                                         date()), " ")[[1]], collapse="_")
+                                            date()), " ")[[1]], collapse="_")
         filename <- paste0("regions_", datename, "_zt", zThreshold,
-                           "_minK", minCarriers)
+                            "_minK", minCarriers)
         saveGRangesAsTsv(GRanges=overlMinKPeaksGR, filepath=outputFolder,
                         filename=filename, verbose=verbose)
     }
@@ -214,8 +214,8 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
         if(length(mmpeaks) == 0)
         {
             message("No merged peaks found at sample ", i,
-                 " and chromosome ", as.character(grj@seqnames@values),
-                 "\nNB: skipping this sample!")
+                " and chromosome ", as.character(grj@seqnames@values),
+                "\nNB: skipping this sample!")
             foundedPeaks <- gri
             next
         }

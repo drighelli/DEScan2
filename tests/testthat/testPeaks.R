@@ -66,8 +66,7 @@ test_that("Test disjoint function R & C", {
     zpath <- system.file("extdata/tests/z/", package="DEScan2")
     zfile <- list.files(zpath, full.names=TRUE)
     zzz <- readRDS(zfile)
-    idx <- 62000:65000
-    zzz <- zzz[idx,]
+
     sigw=10
     zthr=10
     nmax=1e5

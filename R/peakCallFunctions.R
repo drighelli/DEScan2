@@ -16,7 +16,7 @@
 #' will be kept, default is 10.
 #' @param minCount A small constant (usually no larger than one) to be added to
 #' the counts prior to the log transformation to avoid problems with log(0).
-#' @param outputFolder A string, Name of the folder to save the Peaks (optional),
+#' @param outputFolder A string, Name of the folder to save the Peaks (optional)
 #' if the directory doesn't exist, it will be created. (Default is "Peaks")
 #' @param save Boolean, if TRUE files will be saved in a "./Peaks/chr*"
 #' directory created (if not already present) in the current working directory.
@@ -375,7 +375,6 @@ computeLambdaOnChr <- function(chrGRanges,
 #' @param binWidth the dimension of the bin in base number
 #'
 #' @return RleList where each element is a window within the Rle of its coverage
-#' @export
 #'
 #' @importFrom GenomicRanges tileGenome coverage
 #' @importFrom IRanges RleList
