@@ -13,7 +13,8 @@ Authors@R: c(
     person("Bruce", "Gomes", role="aut", email="bruce.gomes@wsu.edu")
     )
 Maintainer: Dario Righelli <dario.righelli@gmail.com>
-Description: integrated peak and differential caller, specifically designed for
+Description: 
+    Integrated peak and differential caller, specifically designed for
     broad epigenomic signals.
 License: Artistic-2.0
 LazyData: TRUE
