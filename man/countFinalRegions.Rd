@@ -45,17 +45,14 @@ columns.
 count reads falling within the final regions.
 }
 \examples{
-filename <- system.file("extdata/regions/regions_zt20_minK4GR.RDS",
-                        package="DEScan2")
+filename <- system.file("extdata/regions/regions.rds", package="DEScan2")
 regionsGR <- readRDS(file=filename)
 reads.path <- system.file("extdata/bam", package="DEScan2")
-finalRegions <- countFinalRegions(regionsGRanges=regionsGR,
-                                readsFilePath=reads.path,
-                                fileType="bam",
-                                minCarriers=1,
-                                genomeName="mm9",
-                                onlyStdChrs=TRUE,
-                                ignStrandSO=TRUE, saveFlag=FALSE,
-                                verbose=TRUE)
-head(countFinalRegions)
+finalRegionsSE <- countFinalRegions(regionsGRanges=regionsGR,
+    readsFilePath=reads.path, fileType="bam", minCarriers=1,
+    genomeName="mm9", onlyStdChrs=TRUE, ignStrandSO=TRUE, saveFlag=FALSE,
+    verbose=TRUE)
+library("SummarizedExperiment")
+assay(finalRegionsSE) ## matrix of counts
+rowRanges(finalRegionsSE) ## the GRanges of the input regions
 }

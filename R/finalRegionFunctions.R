@@ -137,6 +137,8 @@ initMergedPeaksNames <- function(mergedGRanges)
 #' (see ChipPeakAnno::findOverlapsOfPeaks)
 #' @param maxGap the maximum gap admissible between the peaks.
 #' (see ChipPeakAnno::findOverlapsOfPeaks)
+#' @param zThresh a threshold for the z-score
+#' @param verbose verbose output
 #'
 #' @return a GRanges of peaks overlapped and unique between samples.
 #' @export

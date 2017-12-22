@@ -68,6 +68,7 @@ maxCompWinWidth (10kb) as background.
 \examples{
 bam.files <- list.files(system.file("extdata/bam", package = "DEScan2"),
                         full.names = TRUE)
+
 peaks <- findPeaks(files=bam.files[1], filetype="bam",
                         genomeName="mm9",
                         binSize=50, minWin=50, maxWin=1000,

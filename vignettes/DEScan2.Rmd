@@ -23,23 +23,11 @@ options(scipen = 1, digits = 4)
 ```
 
 #Overview
-This document describes how to use DEScan2 to detect regions of differential enrichment in epigenomic sequencing data. DEScan2 is an R/Bioconductor based tool, developed for Bioconductor v3.6 and R v3.4.3.
+This document describes how to use DEScan2 to detect regions of differential
+enrichment in epigenomic sequencing data. DEScan2 is an R/Bioconductor based 
+tool, developed for Bioconductor v3.6 and R v3.4.3.
 
 #A typical differential enrichment analysis workflow
-
-##Installation
-
-DESCan2 is currently hosted on GitHub, so installation will make use of the devtools package.
-
-```{r, eval=FALSE}
-library("devtools")
-```
-
-Use the install_github function to install DEScan2. The repo location need to be supplied.
-
-```{r, cache=TRUE, message=FALSE, eval=FALSE}
-install_github(repo="drighelli/DEScan2", force=TRUE)
-```
 
 ```{r, message=FALSE}
 library("DEScan2")
@@ -49,70 +37,128 @@ library("edgeR")
 
 ##Example data
 
-This analysis will make use of mouse Sono-seq data from mouse chromosome 19. This data is a small portion of data obtained from hippocampus of mice following learning through contextual fear conditioning. The experiment has 4 fear conditioned (FC) and 4 homecage control (HC) replicates. The data was aligned to the mouse genome (mm9) using bowtie2, allowing for multi-mapping reads. Duplicates were removed if present in isolation from duplicated reads relative to genomic location. Aligned data in this example is provided as bed files, but DEScan accepts bam format alignments. 
+This analysis will make use of mouse Sono-seq data from mouse chromosome 19. 
+This data is a small portion of data obtained from hippocampus of mice following
+learning through contextual fear conditioning. The experiment has 4 fear
+conditioned (FC) and 4 homecage control (HC) replicates. The data was aligned to
+the mouse genome (mm9) using bowtie2, allowing for multi-mapping reads. 
+Duplicates were removed if present in isolation from duplicated reads relative 
+to genomic location. Aligned data in this example is provided as bed files, but
+DEScan accepts bam format alignments. 
 
 ```{r eval=TRUE}
-bam.files <- list.files(system.file("extdata/bam", package="DEScan2"), pattern="bam$", full.names=TRUE)
+bam.files <- list.files(system.file("extdata/bam", package="DEScan2"),
+                        pattern="bam$", full.names=TRUE)
 ```
 
 
 ##Calling peaks for each sample
-First, peak calling for the samples will be done using the *findPeaks* function. Bam files are used as input in this case, but bed files work as well (in any case we reccomend to specify a genome code as reference for the data). 
-We will perform this step on a single sample in the interest of time; however, note that a vector of file names can be supplied. 
-If the **save** flag is set to TRUE the function will produce a sorted bed file for each input file in the folder **outputFolder** ("peaks" directory is the default). *findPeaks* implements an adaptive window size scan to find peaks, and requires 2 parameters to define the size of the overlapping windows to be tested for enrichment. Enrichment for each window is calculated relative to **minCompWinWidth** 5kb, **maxCompWinWidth** 10kb (local) or the whole chromosome, and the maximum among the three is reported.
+First, peak calling for the samples will be done using the *findPeaks* function.
+Bam files are used as input in this case, but bed files work as well (in any 
+case we reccomend to specify a genome code as reference for the data).
+We will perform this step on a single sample in the interest of time; however, 
+note that a vector of file names can be supplied.
+If the **save** flag is set to TRUE the function will produce a sorted bed file 
+for each input file in the folder **outputFolder** ("peaks" directory is the
+default). *findPeaks* implements an adaptive window size scan to find peaks, and
+requires 2 parameters to define the size of the overlapping windows to be tested
+for enrichment. Enrichment for each window is calculated relative to
+**minCompWinWidth** 5kb, **maxCompWinWidth** 10kb (local) or the whole 
+chromosome, and the maximum among the three is reported.
 
 Parameter description:  
 
 **files** 
 : Character vector containing paths of files to be analyzed.
+
 **filetype** 
 : Character, either "bam" or "bed" indicating format of input file.
+
 **binSize** 
-: Integer size in base pairs of the minimum window for scanning, 50 is the default.
+: Integer size in base pairs of the minimum window for scanning, 50 is the 
+default.
+
 **minWin**
-: Integer indicating the minimum window size in base pairs, 50 is the default. (A multiple of binSize)
+: Integer indicating the minimum window size in base pairs, 50 is the default. 
+(A multiple of binSize)
+
 **maxWin** 
-: Integer indicating the maximum allowed window size in units of 50 bp, 1000 is the default. (A multiple of binSize)
+: Integer indicating the maximum allowed window size in units of 50 bp, 1000 is 
+the default. (A multiple of binSize)
+
 **minCompWinWidth** 
-: minimum bases width of a comparing background window for Z-score (default is 5000).
+: minimum bases width of a comparing background window for Z-score (default is
+5000).
+
 **maxCompWinWidth** 
-: maximum bases width of a comparing background window for Z-score (default is 10000).
+: maximum bases width of a comparing background window for Z-score (default is
+10000).
+
 **zthresh** 
-: Cuttoff value for z-scores, default is 10. Only windows with greater z-scores will be kept.
+: Cuttoff value for z-scores, default is 10. Only windows with greater z-scores
+will be kept.
+
 **minCount** 
-: A small constant (usually no larger than one) to be added to the counts prior to the log transformation to avoid problems with log(0).
+: A small constant (usually no larger than one) to be added to the counts prior 
+to the log transformation to avoid problems with log(0).
+
 **sigwin** 
-: an integer value used to compute the length of the signal of a peak (default value is 10).
+: an integer value used to compute the length of the signal of a peak (default
+value is 10).
+
 **save**
 : Flag indicating if tha output has to be saved
+
 **outputFolder** 
-: A string, Name of the folder to save the Peaks (optional), if the directory doesn't exist, it will be created. default is "Peaks".
+: A string, Name of the folder to save the Peaks (optional), if the directory
+doesn't exist, it will be created. default is "Peaks".
+
 **force**
 : A boolean flag indicating if to force output overwriting.
+
 **genomeName**
 : The code of the genome to use as reference for the input files.
-We strongly recommend (particularly with bed files) to specify a genome code, but, if there is no internet connection or problems contacting the server, this argument can be not used.
+We strongly recommend (particularly with bed files) to specify a genome code, 
+but, if there is no internet connection or problems contacting the server, this
+argument can be not used.
+
 **onlyStdChrs**
-: a flag to work only with standard chromosomes (cfr. constructBedRanges function parameters)
+: a flag to work only with standard chromosomes (cfr. constructBedRanges 
+function parameters)
+
 **chr** if not NULL, a character like "chr#" indicating the chromosomes to use
 
 ```{r findPeaks, cache=TRUE, eval=FALSE}
-peaksGRL <- findPeaks(files=bam.files[1], filetype="bam", genomeName="mm9", binSize=50, minWin=50, maxWin=1000, zthresh=10, minCount=0.1, sigwin=10, minCompWinWidth=5000, maxCompWinWidth=10000, save=FALSE, outputFolder="peaks", force=TRUE, onlyStdChrs=TRUE, chr=NULL, verbose=FALSE)
+peaksGRL <- findPeaks(files=bam.files[1], filetype="bam", genomeName="mm9",
+    binSize=50, minWin=50, maxWin=1000, zthresh=10, minCount=0.1, sigwin=10,
+    minCompWinWidth=5000, maxCompWinWidth=10000, save=FALSE, 
+    outputFolder="peaks", force=TRUE, onlyStdChrs=TRUE, chr=NULL, verbose=FALSE)
 head(peaksGRL)
 ```
 
 ##Aligning peaks across replicates to produce regions
-After *findPeaks* has been run on each sample, the *finalRegions* function can be used to align overlapping peaks found in multiple samples. Peak files for all the alignment files can be found in the “extdata/peaks” folder. *finalRegions* will produce a GRanges object containing the locations of the aligned peaks.
-If the **saveFlag** is set to TRUE, the function will produce a tab separated value file in the **outputFolder**.
+After *findPeaks* has been run on each sample, the *finalRegions* function can 
+be used to align overlapping peaks found in multiple samples. Peak files for all
+the alignment files can be found in the “extdata/peaks” folder. 
+*finalRegions* will produce a GRanges object containing the locations of the
+aligned peaks.
+If the **saveFlag** is set to TRUE, the function will produce a tab separated 
+value file in the **outputFolder**.
 
 Parameter description:
+
 **peakSamplesGRangesList**
-: named GRangesList where each element is a sample of called peaks. A z-score mcols values is needed for each GRanges. (tipically returned by findPeaks function).
+: named GRangesList where each element is a sample of called peaks. A z-score 
+mcols values is needed for each GRanges. (tipically returned by findPeaks
+function).
+
 **zThreshold**
-:  Z-score for considering a peak for alignment, it needs to be equal or higher to the ztresh used in findPeaks, default 20.
+:  Z-score for considering a peak for alignment, it needs to be equal or higher 
+to the ztresh used in findPeaks, default 20.
 
 **minCarriers**
-:  Minimum number of biological replicates required to overlap after aligning peaks for reporting, default 2
+:  Minimum number of biological replicates required to overlap after aligning 
+peaks for reporting.
 
 **saveFlag**
 :  A boolean indicating if to save the results in a tab delimited file
@@ -121,31 +167,54 @@ Parameter description:
 : the directory name to store the output file.
 
 ```{r finalRegions, cache=TRUE, eval=TRUE, message=FALSE}
-peaks.file <- system.file("extdata/peaks/RData/peaksGRL_all_files.rds", package="DEScan2")
+peaks.file <- system.file("extdata/peaks/RData/peaksGRL_all_files.rds",
+                    package="DEScan2")
+
 peaksGRL <- readRDS(peaks.file)
-regionsGR <- finalRegions(peakSamplesGRangesList=peaksGRL, zThreshold=10, minCarriers=4, saveFlag=FALSE, outputFolder=NULL, verbose=FALSE)
+regionsGR <- finalRegions(peakSamplesGRangesList=peaksGRL, zThreshold=10,
+                minCarriers=3, saveFlag=FALSE, outputFolder=NULL, verbose=FALSE)
+
 head(regionsGR)
 ```
 
-The output of this function is a bed-like file with columns indicating genomic coordinates as well as additional columns: AvgZ, average z-score of the peaks combined to form a common region, and NumCarriers, the number of samples a region was present in.
+The output of this function is a bed-like file with columns indicating genomic
+coordinates as well as additional columns: AvgZ, average z-score of the peaks
+combined to form a common region, and NumCarriers, the number of samples a 
+region was present in.
 
 ##Counting reads in the final regions
-The resulting regions can then be used to generate a count matrix using the *countFinalRegions* function. This function takes the regions to count across (can be any bed like data structure), and the path to files which contain the reads to be counted. Bam files for all the alignment files can be found in the “extdata/bam/” folder. The minimum number of carriers can also be specified in order to speed up the process. In this case we will not specify a minimum number of carriers and will filter after counting. This function is a wrapper for *summarizeOverlaps*.
+The resulting regions can then be used to generate a count matrix using the
+*countFinalRegions* function. This function takes the regions to count across 
+(can be any bed like data structure), and the path to files which contain the 
+reads to be counted. Bam files for all the alignment files can be found in the
+“extdata/bam/” folder. The minimum number of carriers can also be specified in
+order to speed up the process. In this case we will not specify a minimum number
+ of carriers and will filter after counting. This function is a wrapper for
+*summarizeOverlaps*.
 
 ```{r countFinalRegions, cache=TRUE, eval=TRUE, message=FALSE}
 bam.path <- system.file("extdata/bam", package="DEScan2")
-finalRegions <- countFinalRegions(regionsGRanges=regionsGR, readsFilePath=bam.path, fileType="bam", minCarriers=1, genomeName="mm9", onlyStdChrs=TRUE, saveFlag=FALSE, verbose=FALSE)
+finalRegions <- countFinalRegions(regionsGRanges=regionsGR, 
+                    readsFilePath=bam.path, fileType="bam", minCarriers=1,
+                    genomeName="mm9", onlyStdChrs=TRUE, saveFlag=FALSE,
+                    verbose=FALSE)
 
 counts <- SummarizedExperiment::assay(finalRegions)
 regions <- SummarizedExperiment::rowRanges(finalRegions)
 ```
 
 
-It returns a *SummarizedExperiment* object. To obtain the matrix of counts it is necessary to use the *assay* function. 
-The resulting count matrix contains a row for each region and a column for each sample. This structure is analogous to common RNA-seq data and can be normalized and analyzed with similar tools. 
-and using the function *rowRanges* the GRanges of the regions will be returned.
-Using the rownames of the count matrix over the names of the regions, the coordinates of the peaks can be accessed. 
-Moreover, the regions GRanges object can be used to filter out rows of the matrix of counts. Indeed, we will rename and reorder the columns for readability and filter for a minimum of 4 carriers in order to only test relevant regions.
+It returns a *SummarizedExperiment* object. To obtain the matrix of counts it is
+necessary to use the *assay* function. 
+The resulting count matrix contains a row for each region and a column for each
+sample. This structure is analogous to common RNA-seq data and can be normalized
+and analyzed with similar tools. 
+Using the function *rowRanges* the GRanges of the regions will be returned.
+Using the rownames of the count matrix over the names of the regions, the
+coordinates of the peaks can be accessed. 
+Moreover, the regions GRanges object can be used to filter out rows of the 
+matrix of counts. Indeed, we will rename and reorder the columns for readability
+and filter for a minimum of 4 carriers in order to only test relevant regions.
 
 
 ```{r, eval=TRUE}
@@ -159,7 +228,12 @@ head(counts)
 
 ##Normalization using RUV
 
-In order to control for “unwanted variation”, e.g., batch, library preparation, and other nuisance effects, the between-sample normalization method RUVs from the RUVSeq package can be utilized. Any normalization method based on total library counts is not appropriate for epigenetic sequencing experiments, as differences in total counts in the count matrix can be due to the treatment of interest.
+In order to control for “unwanted variation”, e.g., batch, library preparation, 
+and other nuisance effects, the between-sample normalization method RUVs from 
+the RUVSeq package can be utilized. Any normalization method based on total 
+library counts is not appropriate for epigenetic sequencing experiments, as
+differences in total counts in the count matrix can be due to the treatment of
+interest.
 
 ```{r RUV, cache=TRUE, eval=TRUE}
 library(RColorBrewer)
@@ -169,7 +243,9 @@ groups <- matrix(c(1:8), nrow=2, byrow=TRUE)
 trt <- factor(c(rep("FC", 4), rep("HC", 4)))
 ```
 
-The boxplots of relative log expression (RLE = log-ratio of read count to median read count across sample) and plots of principal components (PC) reveal a clear need for between-sample normalization.
+The boxplots of relative log expression (RLE = log-ratio of read count to median
+read count across sample) and plots of principal components (PC) reveal a clear
+need for between-sample normalization.
 
 ```{r rawPlot, fig.width=3.5, fig.height=3.5, fig.show='hold'}
 EDASeq::plotRLE(set, outline=FALSE, ylim=c(-4, 4),
@@ -178,7 +254,11 @@ EDASeq::plotPCA(set, col=colors[trt], main="No Normalization PCA",
                 labels=FALSE, pch=19)
 ```
 
-The parameter **k** dictates the number of factors of unwanted to variation to remove, in this case we use 4, but this is up for the user to determine. We can see in the PCA plot that after RUVs normalization the first 2 principal components seperate the two groups indicating that the treatment is the major source of variation.
+The parameter **k** dictates the number of factors of unwanted to variation to
+remove, in this case we use 4, but this is up for the user to determine. We can 
+see in the PCA plot that after RUVs normalization the first 2 principal 
+components seperate the two groups indicating that the treatment is the major
+source of variation.
 
 ```{r ruvPlot, fig.width=3.5, fig.height=3.5, fig.show='hold'}
 k <- 4
@@ -192,8 +272,13 @@ EDASeq::plotPCA(s$normalizedCounts, col=colors[trt], main="Normalized PCA",
 
 ##Testing for differential enrichment of regions
 
-Now, we are ready to look for differentially enriched regions, using the negative binomial quasi-likelihood GLM approach implemented in edgeR (see the edgeR package vignette for details). This is done by considering a design matrix that includes both the covariates of interest (here, the treatment status) and the factors of unwanted variation.
-In the end we get the coordinates of differentially enriched regions by subsetting the regions computed previously.
+Now, we are ready to look for differentially enriched regions, using the 
+negative binomial quasi-likelihood GLM approach implemented in edgeR (see the 
+edgeR package vignette for details). This is done by considering a design matrix
+that includes both the covariates of interest (here, the treatment status) and 
+the factors of unwanted variation.
+In the end we get the coordinates of differentially enriched regions by 
+subsetting the regions computed previously.
 
 ```{r test, cache=TRUE, eval=TRUE}
 design <- model.matrix(~0 + trt + s$W)

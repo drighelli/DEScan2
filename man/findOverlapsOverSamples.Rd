@@ -5,7 +5,7 @@
 \title{findOverlapsOverSamples}
 \usage{
 findOverlapsOverSamples(samplePeaksGRangelist, extendRegions = 200,
-  minOverlap = 0L, maxGap = -1L)
+  minOverlap = 0L, maxGap = -1L, zThresh = 0, verbose = FALSE)
 }
 \arguments{
 \item{samplePeaksGRangelist}{given a granges list of samples finds
@@ -19,6 +19,10 @@ and end.}
 
 \item{maxGap}{the maximum gap admissible between the peaks.
 (see ChipPeakAnno::findOverlapsOfPeaks)}
+
+\item{zThresh}{a threshold for the z-score}
+
+\item{verbose}{verbose output}
 }
 \value{
 a GRanges of peaks overlapped and unique between samples.

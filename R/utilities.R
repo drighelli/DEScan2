@@ -94,8 +94,8 @@ setGRGenomeInfo <- function(GRanges, genomeName=NULL, verbose=FALSE)
     else
     {
         stop("Cannot find the ", glue::collapse(uniqueSeqnames, " "),
-             " in genome ", genomeName,
-             " Maybe a problem of chromosome labels")
+            " in genome ", genomeName,
+            " Maybe a problem of chromosome labels")
     }
     GenomeInfoDb::seqnames(GRanges) <- droplevels(
                                                 GenomeInfoDb::seqnames(GRanges))
@@ -162,8 +162,8 @@ constructBedRanges <- function(filename,
         if(!arePeaks)
         {
             stop("No seqlengths present in file ", filename,
-                 "\nDEScan2 needs seqlenghts to work properly.",
-                 "\nPlease provide a genomeName to setup the GRanges!")
+                "\nDEScan2 needs seqlenghts to work properly.",
+                "\nPlease provide a genomeName to setup the GRanges!")
         }
     }
     else if(length(uniqueSeqnames) <
