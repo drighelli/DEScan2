@@ -203,9 +203,8 @@ constructBedRanges <- function(filename,
 #' names(grl)
 #' grl
 readFilesAsGRangesList <- function(filePath, fileType=c("bam", "bed","bed.zip"),
-                                   genomeName=NULL, onlyStdChrs=TRUE,
-                                   arePeaks=TRUE,
-                                   verbose=TRUE)
+                            genomeName=NULL, onlyStdChrs=TRUE, arePeaks=TRUE,
+                            verbose=TRUE)
 {
     fileType <- match.arg(fileType)
     stopifnot(is.character(filePath))
@@ -217,12 +216,12 @@ readFilesAsGRangesList <- function(filePath, fileType=c("bam", "bed","bed.zip"),
     }
     grl <- GenomicRanges::GRangesList(
                             lapply(files, constructBedRanges,
-                                   filetype=fileType,
-                                   genomeName=genomeName,
-                                   onlyStdChrs=onlyStdChrs,
-                                   arePeaks=arePeaks,
-                                   verbose=verbose)
-                             )
+                                    filetype=fileType,
+                                    genomeName=genomeName,
+                                    onlyStdChrs=onlyStdChrs,
+                                    arePeaks=arePeaks,
+                                    verbose=verbose)
+                            )
     names(grl) <- basename(files)
     return(grl)
 }
@@ -325,7 +324,7 @@ saveGRangesAsBed <- function(GRanges, filepath, filename, force=FALSE,
 #' @return none
 #' @keywords internal
 saveGRangesAsTsv <- function(GRanges, filepath, filename, force=FALSE,
-                             verbose=FALSE)
+                            verbose=FALSE)
 {
     stopifnot(is(GRanges, "GRanges"))
 
@@ -431,15 +430,12 @@ createGranges <- function(chrSeqInfo, starts, widths,
 
     if(!is.null(mcolname) )
     {
-        if(!is.null(mcolvalues)
-            &&
+        if(!is.null(mcolvalues) &&
             (length(gr@ranges@start) == length(mcolvalues))
         )
         {
             S4Vectors::mcols(gr)[[mcolname]] <- mcolvalues
-        }
-        else
-        {
+        } else {
             warning("Cannot set mcols values!",
                     " Vector length not matching Ranges")
         }
@@ -513,7 +509,7 @@ cutGRangesPerChromosome <- function(GRanges)
 #' (grlChr <- keepRelevantChrs(grlc, c("chr1", "chr3")))
 keepRelevantChrs <- function(chrGRangesList, chr=NULL)
 {
-    if(!is.null(chr) && length(grep(pattern="chr", chr))!=length(chr))
+    if(!is.null(chr) && length(grep(pattern="chr", chr)) != length(chr))
         stop("Insert valid chr(s), use the \"chr#\" form!")
     # stopifnot(is(chrGRangesList, "GRangesList"))
 
