@@ -38,8 +38,9 @@ the coverage.}
 \item{verbose}{verbose output.}
 }
 \value{
-A Matrix containing read counts with regions as rows and samples as
-columns.
+A SummarizedExperiment object containing as assays the read counts
+matrix with regions as rows and samples as columns, and as rowRanges
+the GRanges object representing the peaks used as rows in the matrix.
 }
 \description{
 count reads falling within the final regions.

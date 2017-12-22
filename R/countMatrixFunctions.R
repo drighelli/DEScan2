@@ -18,8 +18,9 @@
 #' @param savePath the path where to store the results.
 #' @param verbose verbose output.
 #'
-#' @return A Matrix containing read counts with regions as rows and samples as
-#' columns.
+#' @return A SummarizedExperiment object containing as assays the read counts
+#' matrix with regions as rows and samples as columns, and as rowRanges
+#' the GRanges object representing the peaks used as rows in the matrix.
 #' @export
 #' @importFrom GenomicAlignments summarizeOverlaps
 #' @importFrom SummarizedExperiment assay SummarizedExperiment
