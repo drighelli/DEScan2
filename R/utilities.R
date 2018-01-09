@@ -89,7 +89,9 @@ setGRGenomeInfo <- function(GRanges, genomeName=NULL, verbose=FALSE)
     seqNamesIdx <- which(genomeInfo@seqnames %in% uniqueSeqnames)
     if(length(seqNamesIdx) != 0)
     {
-        GRanges@seqinfo <- genomeInfo[genomeInfo@seqnames[seqNamesIdx]]
+        sqi <- genomeInfo[genomeInfo@seqnames[seqNamesIdx]]
+        sqi <- sqi[sqi@seqnames[order(sqi@seqnames)],]
+        seqinfo(GRanges) <- sqi
     }
     else
     {
@@ -98,7 +100,7 @@ setGRGenomeInfo <- function(GRanges, genomeName=NULL, verbose=FALSE)
             " Maybe a problem of chromosome labels")
     }
     GenomeInfoDb::seqnames(GRanges) <- droplevels(
-                                                GenomeInfoDb::seqnames(GRanges))
+                                        GenomeInfoDb::seqnames(GRanges))
     return(GRanges)
 }
 
