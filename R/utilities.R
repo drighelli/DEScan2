@@ -91,7 +91,7 @@ setGRGenomeInfo <- function(GRanges, genomeName=NULL, verbose=FALSE)
     {
         sqi <- genomeInfo[genomeInfo@seqnames[seqNamesIdx]]
         sqi <- sqi[sqi@seqnames[order(sqi@seqnames)],]
-        seqinfo(GRanges) <- sqi
+        GRanges@seqinfo <- sqi
     }
     else
     {
