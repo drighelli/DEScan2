@@ -4,7 +4,8 @@
 #' element is a sample of called peaks.
 #'
 #' @param peakSamplesGRangesList named GRangesList where each element is a
-#' sample of called peaks. A z-score mcols values is needed for each GRanges.
+#' sample of called peaks. A score mcols values is needed for each GRanges.
+#' The scorecolname param can be used as reference name for the score.
 #' (tipically returned by findPeaks function).
 #' @param zThreshold a minimum threshold for the z score.
 #' All peaks lesser than this value will be ignored.
@@ -13,11 +14,14 @@
 #' @param saveFlag a flag for saving results in a tsv file.
 #' @param outputFolder the directory name to store the bed file.
 #' @param verbose verbose output.
+#' @param scorecolname character describing the name of the column within the
+#' peaks score.
 #'
 #' @return a GRanges of selected overlapping peaks with z-score,
 #' n-peaks, k-carriers as mcols object.
 #' @export
 #' @importFrom GenomicRanges GRangesList
+#' @importFrom S4Vectors mcols
 #' @examples
 #' peak.path <- system.file("extdata/peaks/RData/peaksGRL_all_files.rds",
 #'                             package="DEScan2")
@@ -29,7 +33,8 @@
 finalRegions <- function(peakSamplesGRangesList, zThreshold=20, minCarriers=2,
                                     saveFlag=TRUE,
                                     outputFolder="overlappedPeaks",
-                                    verbose=FALSE)
+                                    verbose=FALSE,
+                                    scorecolname="z-score")
 {
     stopifnot(is(peakSamplesGRangesList, "GRangesList"))
 
@@ -38,7 +43,9 @@ finalRegions <- function(peakSamplesGRangesList, zThreshold=20, minCarriers=2,
     zedPeaksSamplesGRList <- GenomicRanges::GRangesList(
                     lapply(peakSamplesGRangesList, function(sample)
                     {
-                        return(sample[which(sample$`z-score` >= zThreshold),])
+                        return(sample[
+                            which(S4Vectors::mcols(sample)[[scorecolname]]
+                                                            >= zThreshold),])
                     }))
 
     zedPeaksChrsGRList <- fromSamplesToChrsGRangesList(zedPeaksSamplesGRList)
@@ -47,7 +54,8 @@ finalRegions <- function(peakSamplesGRangesList, zThreshold=20, minCarriers=2,
     overlappedPeaksGRList <- GenomicRanges::GRangesList(
         lapply(zedPeaksChrsGRList, function(chrSampleGRList) {
             return(findOverlapsOverSamples(chrSampleGRList,
-                    zThresh=zThreshold, verbose=verbose))
+                    zThresh=zThreshold, verbose=verbose,
+                    scorecolname=scorecolname))
     }))
     overlappedPeaksGR <- unlist(overlappedPeaksGRList)
     idxK <- which(overlappedPeaksGR$`k-carriers` >= minCarriers)
@@ -137,8 +145,9 @@ initMergedPeaksNames <- function(mergedGRanges)
 #' (see ChipPeakAnno::findOverlapsOfPeaks)
 #' @param maxGap the maximum gap admissible between the peaks.
 #' (see ChipPeakAnno::findOverlapsOfPeaks)
-#' @param zThresh a threshold for the z-score
-#' @param verbose verbose output
+#' @param verbose verbose flag
+#' @param scorecolname character describing the name of the column within the
+#' peaks score.
 #'
 #' @return a GRanges of peaks overlapped and unique between samples.
 #' @export
@@ -160,7 +169,8 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
                                     minOverlap=0L,
                                     maxGap=-1L,
                                     zThresh=0,
-                                    verbose=FALSE)
+                                    verbose=FALSE,
+                                    scorecolname="z-score")
 {
     stopifnot(is(samplePeaksGRangelist, "GRangesList"))
 
@@ -169,7 +179,7 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
 
     namedSamplePeaksGRL <- lapply(namedSamplePeaksGRL, function(x)
     {
-        x <- x[as.numeric(S4Vectors::mcols(x)[["z-score"]]) >= zThresh]
+        x <- x[as.numeric(S4Vectors::mcols(x)[[scorecolname]]) >= zThresh]
         if(length(x) ==0 ) stop("no peaks found in one sample\n",
                             "please try again providing an higher zThreshold")
         S4Vectors::mcols(x)[["n-peaks"]] <-  1
@@ -233,7 +243,7 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
         newcols <- lapply(mrgPksNms, function(l)
         {
             idx <- which(names(mmpeaks) %in% l)
-            scores <- as.numeric(mmpeaks$`z-score`[idx])
+            scores <- as.numeric(S4Vectors::mcols(mmpeaks)[idx, scorecolname])
             nPeaks <- as.numeric(mmpeaks$`n-peaks`[idx])
             kCarr <- as.numeric(mmpeaks$`k-carriers`[idx])
             np = sum(nPeaks) ## total number of peaks found
@@ -252,7 +262,7 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
         {
             stop("No overlapping regions found!")
         }
-        colnames(S4Vectors::mcols(mrgPks)) <- c("z-score",
+        colnames(S4Vectors::mcols(mrgPks)) <- c(scorecolname,
                                                     "n-peaks",
                                                     "k-carriers")
 

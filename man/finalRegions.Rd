@@ -5,11 +5,13 @@
 \title{finalRegions}
 \usage{
 finalRegions(peakSamplesGRangesList, zThreshold = 20, minCarriers = 2,
-  saveFlag = TRUE, outputFolder = "overlappedPeaks", verbose = FALSE)
+  saveFlag = TRUE, outputFolder = "overlappedPeaks", verbose = FALSE,
+  scorecolname = "z-score")
 }
 \arguments{
 \item{peakSamplesGRangesList}{named GRangesList where each element is a
-sample of called peaks. A z-score mcols values is needed for each GRanges.
+sample of called peaks. A score mcols values is needed for each GRanges.
+The scorecolname param can be used as reference name for the score.
 (tipically returned by findPeaks function).}
 
 \item{zThreshold}{a minimum threshold for the z score.
@@ -23,6 +25,9 @@ regions.}
 \item{outputFolder}{the directory name to store the bed file.}
 
 \item{verbose}{verbose output.}
+
+\item{scorecolname}{character describing the name of the column within the
+peaks score.}
 }
 \value{
 a GRanges of selected overlapping peaks with z-score,
