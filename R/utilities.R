@@ -31,6 +31,7 @@ readBamAsBed <- function(file)
 #' @importFrom GenomicRanges GRanges
 #' @importFrom rtracklayer import.bed
 #' @importFrom GenomeInfoDb seqlevelsStyle
+#' @importFrom S4Vectors mcols
 readBedFile <- function(filename, arePeaks=FALSE)
 {
     if (tools::file_ext(filename) == "zip") {
@@ -45,7 +46,14 @@ readBedFile <- function(filename, arePeaks=FALSE)
         bed <- GenomicRanges::GRanges(seqnames=bed@seqnames,
                                         ranges=bed@ranges,
                                         strand=bed@strand)
+    } else {
+        cidx <- grep("name", colnames(S4Vectors::mcols(bed)))
+        if(length(cidx) > 0 )
+        {
+            S4Vectors::mcols(bed) <- S4Vectors::mcols(bed)[,-cidx, drop=FALSE]
+        }
     }
+
     GenomeInfoDb::seqlevelsStyle(bed) <- "UCSC"
     return(bed)
 }
@@ -567,7 +575,7 @@ fromSamplesToChrsGRangesList <- function(samplesGRangesList)
         chrList <- GenomicRanges::GRangesList(
             lapply(samplesList, function(samp)
             {
-                idx <- grep(chr, names(samp))
+                idx <- grep(paste0(chr,"$"), names(samp))
                 return(samp[[idx]]) ## it can be only one chr
             }))
         return(chrList)
