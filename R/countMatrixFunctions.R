@@ -49,8 +49,12 @@ countFinalRegions <- function(regionsGRanges, readsFilePath=NULL,
     idxK <- which(regionsGRanges$`k-carriers` >= minCarriers)
     regionsGRanges <- regionsGRanges[idxK,]
 
-    regionsGRanges <- setGRGenomeInfo(GRanges=regionsGRanges,
-                                    genomeName=genomeName)
+    if(!is.null(genomeName))
+    {
+        regionsGRanges <- setGRGenomeInfo(GRanges=regionsGRanges,
+                                          genomeName=genomeName)
+    }
+
 
     if(fileType == "bam")
     {
