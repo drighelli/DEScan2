@@ -6,4 +6,5 @@ inst/doc
 src/*\.*o
 config\.status
 config\.log
-src/Makevars
+DEScan2_cache
+Makevars
