@@ -148,6 +148,7 @@ initMergedPeaksNames <- function(mergedGRanges)
 #' @param verbose verbose flag
 #' @param scorecolname character describing the name of the column within the
 #' peaks score.
+#' @param zThresh a threshold value on z-score/scorecolname
 #'
 #' @return a GRanges of peaks overlapped and unique between samples.
 #' @export
@@ -168,7 +169,7 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
                                     extendRegions=200,
                                     minOverlap=0L,
                                     maxGap=-1L,
-                                    zThresh=0,
+                                    zThresh=10,
                                     verbose=FALSE,
                                     scorecolname="z-score")
 {

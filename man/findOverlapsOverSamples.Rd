@@ -5,7 +5,7 @@
 \title{findOverlapsOverSamples}
 \usage{
 findOverlapsOverSamples(samplePeaksGRangelist, extendRegions = 200,
-  minOverlap = 0L, maxGap = -1L, zThresh = 0, verbose = FALSE,
+  minOverlap = 0L, maxGap = -1L, zThresh = 10, verbose = FALSE,
   scorecolname = "z-score")
 }
 \arguments{
@@ -20,6 +20,8 @@ and end.}
 
 \item{maxGap}{the maximum gap admissible between the peaks.
 (see ChipPeakAnno::findOverlapsOfPeaks)}
+
+\item{zThresh}{a threshold value on z-score/scorecolname}
 
 \item{verbose}{verbose flag}
 
