@@ -95,14 +95,19 @@ giveUniqueNamesToPeaksOverSamples <- function(samplePeaksGRangelist)
     sFormat <- paste0("s%0", ncs,"d")
     format <- paste0("s%0", ncs,"d_p%0", ncp, "d")
     listNames <- character()
+    ## for each sample assign unique names to the peaks
     samplePeaksGRangelista <- lapply(
         seq_along(samplePeaksGRangelist),
         function(x, i)
         {
             peakNames <- sprintf(format, i, 1:length(x[[i]]))
             # print(peakNames)
-            names(x[[i]]) <- peakNames
-            return(x[[i]])
+            y <- x[[i]]
+            names(y) <- peakNames
+            return(y)
+            # x[[i]] <- y
+            # names(x[[i]]) <- peakNames
+            # return(x[[i]])
         },
         x=samplePeaksGRangelist
     )
