@@ -79,7 +79,7 @@ countFinalRegions <- function(regionsGRanges, readsFilePath=NULL,
     })
     names(fileReadsList) <- readsFiles
 
-    summRegMat <- sapply(fileReadsList, function(fileReads)
+    summRegMat <- vapply(fileReadsList, function(fileReads)
     {
         summReg <- GenomicAlignments::summarizeOverlaps(
                                     features=regionsGRanges,
@@ -87,7 +87,7 @@ countFinalRegions <- function(regionsGRanges, readsFilePath=NULL,
                                     ignore.strand=ignStrandSO,
                                     mode=modeSO)
         return(SummarizedExperiment::assay(summReg))
-    })
+    }, integer(length(regionsGRanges)))
     if(!is.matrix(summRegMat)) {
         if(length(summRegMat) == length(fileReadsList))
         {
