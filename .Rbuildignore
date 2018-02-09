@@ -33,6 +33,7 @@ README[.]md
 ^[.]check
 ^.*\.Rproj$
 ^\.Rproj\.user$
+vignettes/coverage.html
 
 #----------------------------
 # CPP builded
