@@ -1,8 +1,8 @@
 Package: DEScan2
 Type: Package
 Title: Differential Enrichment Scan 2
-Version: 0.99.0
-Date: 2017-12-20
+Version: 0.99.1
+Date: 2018-02-22
 Authors@R: c(
     person("Dario", "Righelli", role=c("aut", "cre"), 
             email="dario.righelli@gmail.com"),
@@ -20,14 +20,14 @@ License: Artistic-2.0
 LazyData: TRUE
 biocViews: PeakDetection, Epigenetics, Software
 Depends: 
-    R (>= 3.5)
+    R (>= 3.5),
+    GenomicRanges
 Imports:
     BiocGenerics,
     ChIPpeakAnno,
     data.table,
     DelayedArray,
     GenomeInfoDb,
-    GenomicRanges,
     GenomicAlignments,
     glue,
     IRanges,
