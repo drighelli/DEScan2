@@ -260,8 +260,8 @@ readFilesAsGRangesList <- function(filePath, fileType=c("bam", "bed","bed.zip"),
 #         seqlengths=c(chr1=11, chr2=12, chr3=13))
 #
 # saveGRangesAsBed(GRanges=gr, filepath="./", filename="gr", verbose=TRUE)
-saveGRangesAsBed <- function(GRanges, filepath, filename, force=FALSE,
-                            verbose=FALSE)#, extraCols=NULL)
+saveGRangesAsBed <- function(GRanges, filepath=tempdir(), filename=tempdir(),
+                            force=FALSE, verbose=FALSE)#, extraCols=NULL)
 {
     stopifnot(is(GRanges, "GRanges"))
 
@@ -333,8 +333,8 @@ saveGRangesAsBed <- function(GRanges, filepath, filename, force=FALSE,
 #'
 #' @return none
 #' @keywords internal
-saveGRangesAsTsv <- function(GRanges, filepath, filename, force=FALSE,
-                            verbose=FALSE)
+saveGRangesAsTsv <- function(GRanges, filepath=tempdir(), filename=tempfile(),
+                            force=FALSE, verbose=FALSE)
 {
     stopifnot(is(GRanges, "GRanges"))
 
