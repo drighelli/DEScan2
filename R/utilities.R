@@ -125,7 +125,8 @@ setGRGenomeInfo <- function(GRanges, genomeName=NULL, verbose=FALSE)
 #' @param verbose flag to obtain verbose output.
 #' @return a GRanges object.
 #' @export
-#' @importFrom GenomeInfoDb keepStandardChromosomes seqinfo Seqinfo
+#' @importFrom GenomeInfoDb keepStandardChromosomes seqinfo Seqinfo seqnames
+#' keepSeqlevels
 #' @importFrom glue collapse
 #' @importFrom GenomicRanges sort
 #' @examples
@@ -155,7 +156,7 @@ constructBedRanges <- function(filename,
                                                         pruning.mode="coarse")
     }
 
-    uniqueSeqnames <- droplevels(unique(bedGRanges@seqnames))
+    uniqueSeqnames <- droplevels(unique(GenomeInfoDb::seqnames(bedGRanges)))
 
     if( !is.null(genomeName) )
     {
@@ -166,8 +167,13 @@ constructBedRanges <- function(filename,
     }
 
     # checking bed seqnames, useful in peak calling algorithm
-    if( (sum(is.na(GenomeInfoDb::seqinfo(bedGRanges)@seqlengths)) > 0) ||
-        (length(GenomeInfoDb::seqinfo(bedGRanges)@seqnames) == 0 ))
+    veclengths <- as.vector(
+                    GenomeInfoDb::seqlengths(
+                        GenomeInfoDb::seqinfo(bedGRanges)))
+    vecnames <- GenomeInfoDb::seqnames(GenomeInfoDb::seqinfo(bedGRanges))
+
+    if( (sum(is.na(veclengths)) > 0) ||
+        (length(vecnames) == 0 ))
     {
         if(!arePeaks)
         {
@@ -177,11 +183,11 @@ constructBedRanges <- function(filename,
         }
     }
     else if(length(uniqueSeqnames) <
-                length(GenomeInfoDb::seqinfo(bedGRanges)@seqnames))
+            length(GenomeInfoDb::seqnames(GenomeInfoDb::seqinfo(bedGRanges)))
     {
         if(verbose) message("Keeping only necessary seqInfos")
-        bedGRanges@seqinfo <- bedGRanges@seqinfo[as.character(uniqueSeqnames)]
-        bedGRanges@seqnames <- droplevels(bedGRanges@seqnames)
+        bedGRanges <- GenomeInfoDb::keepSeqlevels(bedGRanges, uniqueSeqnames)
+
     }
 
     bedGRanges <- GenomicRanges::sort(bedGRanges, ignore.strand=TRUE)
