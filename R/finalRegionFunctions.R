@@ -158,9 +158,9 @@ initMergedPeaksNames <- function(mergedGRanges)
 #' @return a GRanges of peaks overlapped and unique between samples.
 #' @export
 #'
-#' @importFrom S4Vectors mcols
+#' @importFrom S4Vectors mcols runValue
 #' @importFrom BiocGenerics start end
-#' @importFrom GenomeInfoDb seqlengths
+#' @importFrom GenomeInfoDb seqlengths seqnames
 #' @importFrom ChIPpeakAnno findOverlapsOfPeaks
 #' @importFrom data.table rbindlist
 #' @importFrom GenomicRanges GRangesList
@@ -236,7 +236,8 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
         if(length(mmpeaks) == 0)
         {
             message("No merged peaks found at sample ", i,
-                " and chromosome ", as.character(grj@seqnames@values),
+                " and chromosome ",
+                as.character(S4Vectors::runValue(GenomeInfoDb::seqnames(grj))),
                 "\nNB: skipping this sample!")
             foundedPeaks <- gri
             next

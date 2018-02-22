@@ -36,7 +36,8 @@
 #' the peak as mcols.
 #' @export
 #'
-#' @importFrom  GenomicRanges GRangesList
+#' @importFrom GenomicRanges GRangesList
+#' @importFrom GenomeInfoDb seqinfo seqlengths
 #' @examples
 #' bam.files <- list.files(system.file("extdata/bam", package = "DEScan2"),
 #'                         full.names = TRUE)
@@ -122,20 +123,23 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
                                     maxChrRleWComp=maxCompRunWinRleList[[1]],
                                     maxCompWinWidth=maxCompWinWidth,
                                     verbose=verbose)
+            seqlength <- GenomeInfoDb::seqlengths(
+                                        GenomeInfoDb::seqinfo(chrGRanges))[[1]]
             Z <- computeZ(lambdaChrRleList=lambdaChrRleList,
                             runWinRleList=runWinRleList,
-                            chrLength=chrGRanges@seqinfo@seqlengths,
+                            chrLength=seqlength,
                             minCount=minCount, binSize=binSize,
                             verbose=verbose)
             newS <- c_get_disjoint_max_win(z0=Z,
                                     sigwin=sigwin,
                                     zthresh=zthresh,
                                     verbose=verbose)
-            chrZRanges <- createGranges(chrSeqInfo=chrGRanges@seqinfo,
-                                    starts=as.numeric(rownames(Z)[newS[,1]]),
-                                    widths=newS[,2]*binSize,
-                                    mcolname="z-score",
-                                    mcolvalues=newS[,3])
+            chrZRanges <- createGranges(
+                                chrSeqInfo=GenomeInfoDb::seqinfo(chrGRanges),
+                                starts=as.numeric(rownames(Z)[newS[,1]]),
+                                widths=newS[,2]*binSize,
+                                mcolname="z-score",
+                                mcolvalues=newS[,3])
 
             return(chrZRanges) ## one for each chromosome
             })
@@ -380,6 +384,8 @@ computeLambdaOnChr <- function(chrGRanges,
 #' @importFrom GenomicRanges tileGenome coverage
 #' @importFrom IRanges RleList
 #' @importFrom GenomicAlignments summarizeOverlaps
+#' @importFrom GenomeInfoDb seqinfo seqnames
+#' @importFrom S4Vectors runValue
 #'
 #' @keywords internal
 computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=50,
@@ -390,9 +396,10 @@ computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=50,
     minWinWidth <- minWinWidth/binWidth
     maxWinWidth <- maxWinWidth/binWidth
 
+    lengths <- GenomeInfoDb::seqinfo(chrBedGRanges)
     ## dividing chromosome in bins of binWidth dimention each
     binnedChromosome <- GenomicRanges::tileGenome(
-                                            seqlengths=chrBedGRanges@seqinfo,
+                                            seqlengths=lengths,
                                             tilewidth=binWidth,
                                             cut.last.tile.in.chrom=TRUE)
 
@@ -409,8 +416,9 @@ computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=50,
     chrCoverage <- GenomicRanges::coverage(x=chrBedGRanges)
     ## computing coverage per each bin on chromosome
     if(verbose) message("Computing coverage on Chromosome ",
-                        chrBedGRanges@seqnames@values,
-                        " binned by ", binWidth, " bin dimension")
+                S4Vectors::runValue(GenomeInfoDb::seqnames(chrBedGRanges)),
+                " binned by ", binWidth, " bin dimension")
+
     chrCovRle <- binnedCovOnly(bins=binnedChromosome,
                                 numvar=chrCoverage,
                                 mcolname="bin_cov")

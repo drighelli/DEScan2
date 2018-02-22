@@ -25,6 +25,7 @@
 #' @importFrom GenomicAlignments summarizeOverlaps
 #' @importFrom SummarizedExperiment assay SummarizedExperiment
 #' @importFrom BiocGenerics start end
+#' @importFrom GenomeInfoDb seqnames
 #' @importFrom utils write.table
 #' @examples
 #' filename <- system.file("extdata/regions/regions.rds", package="DEScan2")
@@ -97,7 +98,7 @@ countFinalRegions <- function(regionsGRanges, readsFilePath=NULL,
         }
     }
 
-    regionsRN <- paste0(regionsGRanges@seqnames, ":",
+    regionsRN <- paste0(GenomeInfoDb::seqnames(regionsGRanges), ":",
                         BiocGenerics::start(regionsGRanges), "-",
                         BiocGenerics::end(regionsGRanges))
 
