@@ -100,7 +100,7 @@ giveUniqueNamesToPeaksOverSamples <- function(samplePeaksGRangelist)
         seq_along(samplePeaksGRangelist),
         function(x, i)
         {
-            peakNames <- sprintf(format, i, 1:length(x[[i]]))
+            peakNames <- sprintf(format, i, seq_len(length(x[[i]])))
             # print(peakNames)
             y <- x[[i]]
             names(y) <- peakNames
@@ -132,7 +132,7 @@ initMergedPeaksNames <- function(mergedGRanges)
     np <- nchar(max(mergedGRanges$`n-peaks`))
     format <-  paste0("p%0", ncp, "d_np%0", np, "d_k%0", nk,"d")
 
-    peakNames <- sprintf(format, 1:length(mergedGRanges@ranges),
+    peakNames <- sprintf(format, seq_len(length(mergedGRanges@ranges)),
                         mergedGRanges$`n-peaks`, mergedGRanges$`k-carriers`)
     names(mergedGRanges) <- peakNames
     return(mergedGRanges)
@@ -314,7 +314,7 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
     }
     peaks_all <- list()
 
-    for (i in 1:length(files))
+    for (i in seq_len(length(files)))
     {
         p = load(files[i])
         if(length(p) > 1 )

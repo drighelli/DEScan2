@@ -79,7 +79,7 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
     fileGRangesList <- NULL
     winVector <- c((minWin/binSize):(maxWin/binSize))
 
-    for (fileIdx in 1:length(files))
+    for (fileIdx in seq_len(length(files)))
     {
         file <- files[[fileIdx]]
         bedGRanges <- constructBedRanges(filename=file, filetype=filetype,
@@ -326,7 +326,7 @@ get_disjoint_max_win <- function(z0, sigwin=20, nmax=Inf,
 #'
 #' @keywords internal
 computeLambdaOnChr <- function(chrGRanges,
-                                winVector=c(1:20),
+                                winVector=seq_len(20),
                                 minChrRleWComp,
                                 minCompWinWidth=5000,
                                 maxChrRleWComp,
