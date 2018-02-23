@@ -114,7 +114,6 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
                                                 maxWinWidth=maxCompWinWidth,
                                                 binWidth=binSize,
                                                 verbose=verbose)
-            ## test the lambdas with the old lambdas
             lambdaChrRleList <- computeLambdaOnChr(
                                     chrGRanges=chrGRanges,
                                     winVector=winVector,
