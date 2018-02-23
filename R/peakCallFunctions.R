@@ -67,7 +67,7 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
 
     if(!is.null(chr) && length(grep(pattern="chr", chr))!=length(chr))
         stop("Insert valid chr(s), use the \"chr#\" form!")
-    if(!save) warning("Save is false, not saving results!\n")
+    if(!save) message("Save is false, not saving results!\n")
     if(length(files) == 0)
         stop("You have to provide one or more input files!\nExiting.")
     stopifnot((minWin %% binSize) == 0)

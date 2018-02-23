@@ -183,7 +183,7 @@ constructBedRanges <- function(filename,
         }
     }
     else if(length(uniqueSeqnames) <
-            length(GenomeInfoDb::seqnames(GenomeInfoDb::seqinfo(bedGRanges)))
+            length(GenomeInfoDb::seqnames(GenomeInfoDb::seqinfo(bedGRanges))))
     {
         if(verbose) message("Keeping only necessary seqInfos")
         bedGRanges <- GenomeInfoDb::keepSeqlevels(bedGRanges, uniqueSeqnames)
