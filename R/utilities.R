@@ -110,7 +110,10 @@ setGRGenomeInfo <- function(GRanges, genomeName=NULL, verbose=FALSE)
         sqi <- genomeInfo[GenomeInfoDb::seqnames(genomeInfo)[seqNamesIdx]]
         sqi <- sqi[GenomeInfoDb::seqnames(sqi)[
                                         order(GenomeInfoDb::seqnames(sqi))],]
+        GenomeInfoDb::seqlevels(GRanges) <-
+                                        GenomeInfoDb::seqlevelsInUse(GRanges)
         GenomeInfoDb::seqinfo(GRanges) <- sqi
+
     }
     else
     {
@@ -535,7 +538,6 @@ cutGRangesPerChromosome <- function(GRanges)
         if(length(bgr) > 0)
         {
             GenomeInfoDb::seqlevels(bgr) <- GenomeInfoDb::seqlevelsInUse(bgr)
-
             GenomeInfoDb::seqinfo(bgr) <- GenomeInfoDb::seqinfo(GRanges)[x]
             return(bgr)
         }
