@@ -73,7 +73,8 @@ readBedFile <- function(filename, arePeaks=FALSE)
 #'
 #' @return a GRanges object with the seqinfo of the genome code
 #' @export
-#'
+#' @importFrom S4Vectors runValue
+#' @importFrom GenomeInfoDb seqnames Seqinfo seqinfo
 #' @examples
 #' library("GenomicRanges")
 #' gr <- GRanges(
@@ -88,7 +89,8 @@ setGRGenomeInfo <- function(GRanges, genomeName=NULL, verbose=FALSE)
     stopifnot(!is.null(genomeName))
     if(length(genomeName)>1) stop("Please provide just one genome code!\n")
 
-    uniqueSeqnames <- droplevels(unique(GRanges@seqnames@values))
+    uniqueSeqnames <- droplevels(unique(S4Vectors::runValue(
+                                    GenomeInfoDb::seqnames(GRanges))))
 
     if(verbose) message("Get seqlengths from genome ", genomeName)
     tryCatch({genomeInfo <- GenomeInfoDb::Seqinfo(genome=genomeName)},
@@ -98,12 +100,13 @@ setGRGenomeInfo <- function(GRanges, genomeName=NULL, verbose=FALSE)
         }
     )
 
-    seqNamesIdx <- which(genomeInfo@seqnames %in% uniqueSeqnames)
+    seqNamesIdx <- which(GenomeInfoDb::seqnames(genomeInfo) %in% uniqueSeqnames)
     if(length(seqNamesIdx) != 0)
     {
-        sqi <- genomeInfo[genomeInfo@seqnames[seqNamesIdx]]
-        sqi <- sqi[sqi@seqnames[order(sqi@seqnames)],]
-        GRanges@seqinfo <- sqi
+        sqi <- genomeInfo[GenomeInfoDb::seqnames(genomeInfo)[seqNamesIdx]]
+        sqi <- sqi[GenomeInfoDb::seqnames(sqi)[
+                                        order(GenomeInfoDb::seqnames(sqi))],]
+        GenomeInfoDb::seqinfo(GRanges) <- sqi
     }
     else
     {
