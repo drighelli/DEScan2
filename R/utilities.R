@@ -484,8 +484,10 @@ createGranges <- function(chrSeqInfo, starts, widths,
 #'
 #' @return a named list of GRanges, one for each chromosome.
 #'
-#' @importFrom GenomeInfoDb seqnames
+#' @importFrom GenomeInfoDb seqnames seqinfo seqlevels seqlevelsInUse
 #' @importFrom GenomicRanges GRangesList
+#' @importFrom GenomicAlignments levels
+#' @importFrom S4Vectors runValue
 #' @export
 #'
 #' @examples
@@ -499,16 +501,18 @@ createGranges <- function(chrSeqInfo, starts, widths,
 cutGRangesPerChromosome <- function(GRanges)
 {
     stopifnot(is(GRanges, "GRanges"))
-    interestedChrs <- GRanges@seqinfo@seqnames
+
+    interestedChrs <- GenomicAlignments::levels(S4Vectors::runValue(
+                                            GenomeInfoDb::seqnames(GRanges)))
 
     GRList <- lapply(interestedChrs, function(x)
     {
         bgr <- GRanges[ GenomeInfoDb::seqnames(GRanges) == x ]
         if(length(bgr) > 0)
         {
-            bgr@seqinfo <- GRanges@seqinfo[x]
-            GenomeInfoDb::seqnames(bgr) <-
-                                        droplevels(GenomeInfoDb::seqnames(bgr))
+            GenomeInfoDb::seqlevels(bgr) <- GenomeInfoDb::seqlevelsInUse(bgr)
+
+            GenomeInfoDb::seqinfo(bgr) <- GenomeInfoDb::seqinfo(GRanges)[x]
             return(bgr)
         }
     })
