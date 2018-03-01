@@ -4,13 +4,13 @@
 \alias{saveGRangesAsBed}
 \title{saveGRangesAsBed}
 \usage{
-saveGRangesAsBed(GRanges, filepath, filename, force = FALSE,
-  verbose = FALSE)
+saveGRangesAsBed(GRanges, filepath = tempdir(), filename = tempfile(),
+  force = FALSE, verbose = FALSE)
 }
 \arguments{
 \item{GRanges}{the GRanges object.}
 
-\item{filepath}{the path to store the files.}
+\item{filepath}{the path to store the files.@}
 
 \item{filename}{the name to give to the files.}
 
@@ -21,5 +21,16 @@ none
 }
 \description{
 save a GRanges object as bed file.
+}
+\examples{
+library("GenomicRanges")
+gr <- GRanges(
+        seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
+        ranges=IRanges(1:10, end=10),
+        strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
+        seqlengths=c(chr1=11, chr2=12, chr3=13))
+
+saveGRangesAsBed(GRanges=gr, filepath=tempdir(), filename=tempfile(),
+                    verbose=TRUE)
 }
 \keyword{internal}

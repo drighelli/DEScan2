@@ -18,4 +18,9 @@ GRanges object
 read a bed file into a GenomicRanges like format.
              forcing UCSC format for chromosomes names.
 }
+\examples{
+bedFile <- list.files(system.file("extdata/bed",package="DEScan2"),
+                        full.names=TRUE)
+gr <- readBedFile(bedFile)
+}
 \keyword{internal}

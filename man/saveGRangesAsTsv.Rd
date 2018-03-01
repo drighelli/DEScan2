@@ -4,8 +4,8 @@
 \alias{saveGRangesAsTsv}
 \title{saveGRangesAsTsv}
 \usage{
-saveGRangesAsTsv(GRanges, filepath, filename, force = FALSE,
-  verbose = FALSE)
+saveGRangesAsTsv(GRanges, filepath = tempdir(), filename = tempfile(),
+  force = FALSE, verbose = FALSE)
 }
 \arguments{
 \item{GRanges}{the GRanges object.}
@@ -21,5 +21,13 @@ none
 }
 \description{
 save a GRanges object as tsv file.
+}
+\examples{
+gr <- GRanges(
+        seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
+        ranges=IRanges(1:10, end=10),
+        strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
+        seqlengths=c(chr1=11, chr2=12, chr3=13))
+saveGRangesAsTsv(gr, verbose=TRUE)
 }
 \keyword{internal}

@@ -16,4 +16,9 @@ GRanges object.
 read a bam file into a bed like format.
               forcing UCSC format for chromosomes names.
 }
+\examples{
+files <- list.files(system.file("extdata/bam", package="DEScan2"),
+                    full.names=TRUE)
+gr <- readBamAsBed(files[1])
+}
 \keyword{internal}
