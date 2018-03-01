@@ -8,6 +8,10 @@
 #' @importFrom GenomicRanges granges
 #' @importFrom GenomicAlignments readGAlignments
 #' @importFrom GenomeInfoDb seqlevelsStyle
+#' @examples
+#' files <- list.files(system.file("extdata/bam", package="DEScan2"),
+#'                     full.names=TRUE)
+#' gr <- readBamAsBed(files[1])
 readBamAsBed <- function(file)
 {
     ga <- GenomicAlignments::readGAlignments(file, index=file)
@@ -253,7 +257,7 @@ readFilesAsGRangesList <- function(filePath, fileType=c("bam", "bed","bed.zip"),
 #' @description save a GRanges object as bed file.
 #'
 #' @param GRanges the GRanges object.
-#' @param filepath the path to store the files.
+#' @param filepath the path to store the files.@
 #' @param filename the name to give to the files.
 #' @param force force overwriting.
 #' @importFrom rtracklayer export.bed
@@ -347,6 +351,13 @@ saveGRangesAsBed <- function(GRanges, filepath=tempdir(), filename=tempfile(),
 #'
 #' @return none
 #' @keywords internal
+#' @examples
+#' gr <- GRanges(
+#'         seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
+#'         ranges=IRanges(1:10, end=10),
+#'         strand=Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
+#'         seqlengths=c(chr1=11, chr2=12, chr3=13))
+#' saveGRangesAsTsv(gr, verbose=TRUE)
 saveGRangesAsTsv <- function(GRanges, filepath=tempdir(), filename=tempfile(),
                             force=FALSE, verbose=FALSE)
 {
@@ -356,6 +367,7 @@ saveGRangesAsTsv <- function(GRanges, filepath=tempdir(), filename=tempfile(),
     {
         dir.create(path=filepath, showWarnings=FALSE, recursive=TRUE)
     }
+    filename <- basename(filename)
     filePathName <- file.path(filepath, paste0(filename, ".tsv"))
     if(file.exists(filePathName))
     {
@@ -368,8 +380,13 @@ saveGRangesAsTsv <- function(GRanges, filepath=tempdir(), filename=tempfile(),
             message("overwriting", filePathName)
         }
     }
-
-    grdf <- as.data.frame(GRanges, row.names=names(grdf))
+    if(!is.null(names(GRanges)))
+    {
+        rownames <- names(GRanges)
+    } else {
+        rownames <- NULL
+    }
+    grdf <- as.data.frame(GRanges, row.names=rownames)
     utils::write.table(x=grdf, file=filePathName, quote=FALSE,
                 sep="\t", row.names=TRUE, col.names=NA)
     if(verbose) message("file ", filePathName, " written on disk!")
