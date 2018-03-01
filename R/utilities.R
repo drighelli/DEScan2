@@ -426,6 +426,14 @@ RleListToRleMatrix <- function(RleList, dimnames=NULL)
 #' @importFrom S4Vectors mcols
 #' @importFrom GenomeInfoDb seqlengths isCircular seqnames
 #' @keywords internal
+#' @examples
+#' chrSeqInfo <- GenomeInfoDb::Seqinfo(genome="mm9")["chr1"]
+#' starts=sample(seq_len(100), 10)
+#' widths=starts+10;
+#' mcolname <- "z-score";
+#' mcolvalues <- sample(seq_len(100), 10)
+#' chrGR <- createGranges(chrSeqInfo=chrSeqInfo, starts=starts, widths=widths,
+#'               mcolname=mcolname, mcolvalues=mcolvalues)
 createGranges <- function(chrSeqInfo, starts, widths,
                             mcolname=NULL, mcolvalues=NULL) {
     stopifnot(is(chrSeqInfo, "Seqinfo"))
