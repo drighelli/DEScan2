@@ -236,6 +236,7 @@ readFilesAsGRangesList <- function(filePath, fileType=c("bam", "bed","bed.zip"),
                             genomeName=NULL, onlyStdChrs=TRUE, arePeaks=TRUE,
                             verbose=TRUE)
 {
+
     fileType <- match.arg(fileType)
     stopifnot(is.character(filePath))
 
