@@ -422,7 +422,9 @@ RleListToRleMatrix <- function(RleList, dimnames=NULL)
 #'
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges
+#' @importFrom rtracklayer start
 #' @importFrom S4Vectors mcols
+#' @importFrom GenomeInfoDb seqlengths isCircular seqnames
 #' @keywords internal
 createGranges <- function(chrSeqInfo, starts, widths,
                             mcolname=NULL, mcolvalues=NULL) {
@@ -430,25 +432,30 @@ createGranges <- function(chrSeqInfo, starts, widths,
     stopifnot(identical(length(starts), length(widths)))
 
     maxlengths <- starts+widths
-    idxm <- which(maxlengths >= chrSeqInfo@seqlengths)
-    if( (length(idxm) > 0) && (!chrSeqInfo@is_circular) )
+    slen <- as.numeric(GenomeInfoDb::seqlengths(chrSeqInfo))
+    iscirc <- as.logical(GenomeInfoDb::isCircular(chrSeqInfo))
+    idxm <- which(maxlengths >= slen)
+    if( (length(idxm) > 0) && (!iscirc) )
     {
+
         warning("GRanges object contains ", length(idxm), " out-of-bound range",
-                " located on sequence ",  chrSeqInfo@seqnames, ".",
+                " located on sequence ",
+                GenomeInfoDb::seqnames(chrSeqInfo), ".",
                 " A non-circular sequence!",
                 "\nTrimming out-of-bound range to the admitted seqlength."
                 )
-        widths[idxm] <- chrSeqInfo@seqlengths - starts[idxm]
+        widths[idxm] <- slen - starts[idxm]
     }
 
-    gr <- GenomicRanges::GRanges(seqnames=as.character(chrSeqInfo@seqnames),
+    gr <- GenomicRanges::GRanges(seqnames=as.character(
+                            GenomeInfoDb::seqnames(chrSeqInfo)),
                             ranges=IRanges::IRanges(start=starts, width=widths),
                             seqinfo=chrSeqInfo)
 
     if(!is.null(mcolname) )
     {
         if(!is.null(mcolvalues) &&
-            (length(gr@ranges@start) == length(mcolvalues))
+            (length(rtracklayer::start(gr)) == length(mcolvalues))
         )
         {
             S4Vectors::mcols(gr)[[mcolname]] <- mcolvalues
