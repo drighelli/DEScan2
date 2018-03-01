@@ -29,9 +29,13 @@ readBamAsBed <- function(file)
 #' @importFrom tools file_ext
 #' @importFrom utils unzip
 #' @importFrom GenomicRanges GRanges
-#' @importFrom rtracklayer import.bed
-#' @importFrom GenomeInfoDb seqlevelsStyle
+#' @importFrom rtracklayer import.bed ranges strand
+#' @importFrom GenomeInfoDb seqlevelsStyle seqnames
 #' @importFrom S4Vectors mcols
+#' @examples
+#' bedFile <- list.files(system.file("extdata/bed",package="DEScan2"),
+#'                         full.names=TRUE)
+#' gr <- readBedFile(bedFile)
 readBedFile <- function(filename, arePeaks=FALSE)
 {
     if (tools::file_ext(filename) == "zip") {
@@ -43,9 +47,9 @@ readBedFile <- function(filename, arePeaks=FALSE)
 
     bed <- rtracklayer::import.bed(con=file)
     if(!arePeaks) {
-        bed <- GenomicRanges::GRanges(seqnames=bed@seqnames,
-                                        ranges=bed@ranges,
-                                        strand=bed@strand)
+        bed <- GenomicRanges::GRanges(seqnames=GenomeInfoDb::seqnames(bed),
+                                        ranges=rtracklayer::ranges(bed),
+                                        strand=rtracklayer::strand(bed))
     } else {
         cidx <- grep("name", colnames(S4Vectors::mcols(bed)))
         if(length(cidx) > 0 )
