@@ -453,7 +453,7 @@ RleListToRleMatrix <- function(RleList, dimnames=NULL)
 #' @importFrom rtracklayer start
 #' @importFrom S4Vectors mcols
 #' @importFrom GenomeInfoDb seqlengths isCircular seqnames
-#' @keywords internal
+#' @export
 #' @examples
 #' chrSeqInfo <- GenomeInfoDb::Seqinfo(genome="mm9")["chr1"]
 #' starts=sample(seq_len(100), 10)
