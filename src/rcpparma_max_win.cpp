@@ -31,13 +31,15 @@ arma::mat rcpparma_fill_matrix(arma::mat matrix, arma::uword row,
 //' @keywords internal
 // [[Rcpp::export]]
 arma::mat  rcpparma_get_disjoint_max_win(arma::mat z0,  int sigwin=10,
-                                            double zthresh=10, int nmax=9999999,
-                                            bool verbose=true) {
+                                            double zthresh=10,
+                                            arma::uword nmax=9999999,
+                                            bool verbose=true)
+{
 
     if(verbose) Rcpp::Rcout << "Maximizing with zthresh: " << zthresh <<
                                 "\tsigwin: " << sigwin << "\n" ;
 
-    int maxwin=z0.n_cols;
+    arma::uword maxwin=z0.n_cols;
     int i=1;
     arma::mat s=arma::mat(0, 3);
     while (TRUE)
@@ -48,7 +50,7 @@ arma::mat  rcpparma_get_disjoint_max_win(arma::mat z0,  int sigwin=10,
 
         if(maxv1(1) == -std::numeric_limits<float>::infinity()) {break;}
 
-        for(int j=0; j<maxv.n_elem; j++)
+        for(arma::uword j=0; j<maxv.n_elem; j++)
         {
             maxv1(j) = z0(maxv(j), j);
         }
@@ -77,7 +79,7 @@ arma::mat  rcpparma_get_disjoint_max_win(arma::mat z0,  int sigwin=10,
         // Rcpp::Rcout << "st: " << st << "\ted:" << ed << "\n" ;
         for(int j=st; j<=ed; j++)
         {
-            for(int k=0; k<z0.n_cols; k++)
+            for(arma::uword k=0; k<z0.n_cols; k++)
             {
                 z0(j,k) = -std::numeric_limits<float>::infinity();
             }
