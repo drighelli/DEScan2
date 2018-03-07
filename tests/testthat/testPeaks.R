@@ -2,7 +2,8 @@
 context("Peak Finding")
 
 test_that("Test if new findPeaks works with bam and bed files", {
-    bam.path <- system.file("extdata/tests/inputdata/bam", package="DEScan2")
+    bam.path <- system.file(file.path("extdata","tests","inputdata","bam"),
+                            package="DEScan2")
     bam.file <- list.files(bam.path, full.names=TRUE, pattern=".bam$")
 
     binSize=50
@@ -33,8 +34,9 @@ test_that("Test if new findPeaks works with bam and bed files", {
                             sigwin=sigwin, onlyStdChrs=osc)
         names(bampeaksGRL) <- "FC1"
 
-        grl.path <- system.file("extdata/tests/peaks/FC1_GRL.rds",
-                                package="DEScan2")
+        grl.path <- system.file(
+                            file.path("extdata","tests","peaks","FC1_GRL.rds"),
+                            package="DEScan2")
         bampeaksRef <- readRDS(grl.path)
         expect_identical(bampeaksGRL, bampeaksRef)
     }
@@ -43,7 +45,8 @@ test_that("Test if new findPeaks works with bam and bed files", {
         warning("bam file does not exist!")
     }
 
-    bedpath <- system.file("extdata/tests/inputdata/bed", package="DEScan2")
+    bedpath <- system.file(file.path("extdata","tests","inputdata","bed"),
+                                package="DEScan2")
     bedfile <- list.files(bedpath, full.names=TRUE, pattern=".bed.zip$")
     if( file.exists(bedfile) ) {
         bedpeaksGRL <- findPeaks(files=bedfile, filetype="bed",
@@ -63,7 +66,7 @@ test_that("Test if new findPeaks works with bam and bed files", {
 })
 
 test_that("Test disjoint function R & C", {
-    zpath <- system.file("extdata/tests/z/", package="DEScan2")
+    zpath <- system.file(file.path("extdata","tests","z"), package="DEScan2")
     zfile <- list.files(zpath, full.names=TRUE)
     zzz <- readRDS(zfile)
 

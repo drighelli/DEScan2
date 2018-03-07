@@ -47,7 +47,8 @@ to genomic location. Aligned data in this example is provided as bed files, but
 DEScan accepts bam format alignments. 
 
 ```{r eval=TRUE}
-bam.files <- list.files(system.file("extdata/bam", package="DEScan2"),
+bam.files <- list.files(system.file(file.path("extdata","bam"), 
+                            package="DEScan2"),
                         pattern="bam$", full.names=TRUE)
 ```
 
@@ -167,8 +168,9 @@ peaks for reporting.
 : the directory name to store the output file.
 
 ```{r finalRegions, cache=TRUE, eval=TRUE, message=FALSE}
-peaks.file <- system.file("extdata/peaks/RData/peaksGRL_all_files.rds",
-                    package="DEScan2")
+peaks.file <- system.file(
+                file.path("extdata","peaks","RData","peaksGRL_all_files.rds"),
+                package="DEScan2")
 
 peaksGRL <- readRDS(peaks.file)
 regionsGR <- finalRegions(peakSamplesGRangesList=peaksGRL, zThreshold=10,
@@ -193,7 +195,7 @@ order to speed up the process. In this case we will not specify a minimum number
 *summarizeOverlaps*.
 
 ```{r countFinalRegions, cache=TRUE, eval=TRUE, message=FALSE}
-bam.path <- system.file("extdata/bam", package="DEScan2")
+bam.path <- system.file(file.path("extdata","bam"), package="DEScan2")
 finalRegions <- countFinalRegions(regionsGRanges=regionsGR, 
                     readsFilePath=bam.path, fileType="bam", minCarriers=1,
                     genomeName="mm9", onlyStdChrs=TRUE, saveFlag=FALSE,

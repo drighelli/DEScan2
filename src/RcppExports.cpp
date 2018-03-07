@@ -7,7 +7,7 @@
 using namespace Rcpp;
 
 // rcpparma_get_disjoint_max_win
-arma::mat rcpparma_get_disjoint_max_win(arma::mat z0, int sigwin, double zthresh, int nmax, bool verbose);
+arma::mat rcpparma_get_disjoint_max_win(arma::mat z0, int sigwin, double zthresh, arma::uword nmax, bool verbose);
 RcppExport SEXP _DEScan2_rcpparma_get_disjoint_max_win(SEXP z0SEXP, SEXP sigwinSEXP, SEXP zthreshSEXP, SEXP nmaxSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -15,7 +15,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat >::type z0(z0SEXP);
     Rcpp::traits::input_parameter< int >::type sigwin(sigwinSEXP);
     Rcpp::traits::input_parameter< double >::type zthresh(zthreshSEXP);
-    Rcpp::traits::input_parameter< int >::type nmax(nmaxSEXP);
+    Rcpp::traits::input_parameter< arma::uword >::type nmax(nmaxSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
     rcpp_result_gen = Rcpp::wrap(rcpparma_get_disjoint_max_win(z0, sigwin, zthresh, nmax, verbose));
     return rcpp_result_gen;
