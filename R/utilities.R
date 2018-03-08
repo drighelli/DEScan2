@@ -112,7 +112,20 @@ setGRGenomeInfo <- function(GRanges, genomeName=NULL, verbose=FALSE)
                                         order(GenomeInfoDb::seqnames(sqi))],]
         GenomeInfoDb::seqlevels(GRanges) <-
                                         GenomeInfoDb::seqlevelsInUse(GRanges)
-        GenomeInfoDb::seqinfo(GRanges) <- sqi
+        tryCatch({GenomeInfoDb::seqinfo(GRanges) <- sqi},
+                warning=function(w)
+                {
+                    warning(paste0("The genome ", genomeName,
+                                " you chose maybe it's not ",
+                                "the rightest one for these reads. ",
+                                "\nPlease check the genome version and retry!",
+                                "\nMoreover: ", w))
+                },
+                error=function(e)
+                {
+                    stop("The genome code ", genomeName, " returned: ", e)
+                }
+        )
 
     }
     else
@@ -121,8 +134,21 @@ setGRGenomeInfo <- function(GRanges, genomeName=NULL, verbose=FALSE)
             " in genome ", genomeName,
             " Maybe a problem of chromosome labels")
     }
-    GenomeInfoDb::seqnames(GRanges) <- droplevels(
-                                        GenomeInfoDb::seqnames(GRanges))
+    tryCatch({GenomeInfoDb::seqnames(GRanges) <- droplevels(
+                                    GenomeInfoDb::seqnames(GRanges))},
+            warning=function(w)
+            {
+                warning(paste0("The genome ", genomeName,
+                    " you chose maybe it's not ",
+                    "the rightest one for these reads. ",
+                    "\nPlease check the genome version and retry!",
+                    "\nMoreover: ", w))
+            },
+            error=function(e)
+            {
+                stop("The genome code ", genomeName, " returned: ", e)
+            }
+    )
     return(GRanges)
 }
 

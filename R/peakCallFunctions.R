@@ -397,10 +397,9 @@ computeCoverageMovingWindowOnChr <- function(chrBedGRanges, minWinWidth=50,
 
     lengths <- GenomeInfoDb::seqinfo(chrBedGRanges)
     ## dividing chromosome in bins of binWidth dimention each
-    binnedChromosome <- GenomicRanges::tileGenome(
-                                            seqlengths=lengths,
-                                            tilewidth=binWidth,
-                                            cut.last.tile.in.chrom=TRUE)
+    binnedChromosome <- GenomicRanges::tileGenome(seqlengths=lengths,
+                                                    tilewidth=binWidth,
+                                                    cut.last.tile.in.chrom=TRUE)
 
     # olap <- GenomicAlignments::summarizeOverlaps(features=binnedChromosome,
     #                                               reads=chrBedGRanges,
