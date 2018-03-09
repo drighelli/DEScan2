@@ -18,7 +18,7 @@ Description:
     broad epigenomic signals.
 License: Artistic-2.0
 LazyData: TRUE
-biocViews: PeakDetection, Epigenetics, Software
+biocViews: PeakDetection, Epigenetics, Software, Sequencing, Coverage
 Depends: 
     R (>= 3.5),
     GenomicRanges
