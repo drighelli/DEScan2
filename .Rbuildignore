@@ -33,6 +33,11 @@ README[.]md
 ^[.]check
 ^.*\.Rproj$
 ^\.Rproj\.user$
+
+#----------------------------
+# DESCan2
+#----------------------------
+^vignettes/DEScan2_cache
 vignettes/coverage.html
 
 #----------------------------
