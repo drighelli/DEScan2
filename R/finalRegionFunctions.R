@@ -187,7 +187,7 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
     {
         x <- x[as.numeric(S4Vectors::mcols(x)[[scorecolname]]) >= zThresh]
         if(length(x) ==0 ) stop("no peaks found in one sample\n",
-                            "please try again providing an higher zThreshold")
+                            "please try again providing a lower zThreshold")
         S4Vectors::mcols(x)[["n-peaks"]] <-  1
         S4Vectors::mcols(x)[["k-carriers"]] <-  1
         BiocGenerics::start(x) <- BiocGenerics::start(x) - extendRegions
@@ -215,70 +215,79 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
 
     if(verbose) message("Computing overlapping reagions over samples...")
     # startTime <- Sys.time()
-    for(i in 2:length(namedSamplePeaksGRL))
+    if(length(namedSamplePeaksGRL) > 1 )
     {
-        if( i == 2 ) {
-            gri <- namedSamplePeaksGRL[[1]]
-            foundedPeaks <- NULL
-        } else {
-            gri <- foundedPeaks
-        }
-
-        grj <- namedSamplePeaksGRL[[i]]
-
-        grij <- ChIPpeakAnno::findOverlapsOfPeaks(gri,
-                                                    grj,
-                                                    minoverlap=minOverlap,
-                                                    maxgap=maxGap,
-                                                    connectedPeaks="merge")
-
-        mmpeaks <- grij$peaksInMergedPeaks
-        if(length(mmpeaks) == 0)
+        for(i in 2:length(namedSamplePeaksGRL))
         {
-            message("No merged peaks found at sample ", i,
-                " and chromosome ",
-                as.character(S4Vectors::runValue(GenomeInfoDb::seqnames(grj))),
-                "\nNB: skipping this sample!")
-            foundedPeaks <- gri
-            next
+            if( i == 2 ) {
+                gri <- namedSamplePeaksGRL[[1]]
+                foundedPeaks <- NULL
+            } else {
+                gri <- foundedPeaks
+            }
+
+            grj <- namedSamplePeaksGRL[[i]]
+
+            grij <- ChIPpeakAnno::findOverlapsOfPeaks(gri,
+                                                        grj,
+                                                        minoverlap=minOverlap,
+                                                        maxgap=maxGap,
+                                                        connectedPeaks="merge")
+
+            mmpeaks <- grij$peaksInMergedPeaks
+            if(length(mmpeaks) == 0)
+            {
+                message("No merged peaks found at sample ", i,
+                    " and chromosome ",
+                    as.character(S4Vectors::runValue(
+                        GenomeInfoDb::seqnames(grj))),
+                    "\nNB: skipping this sample!")
+                foundedPeaks <- gri
+                next
+            }
+
+            ## cleaning peaks names
+            mrgPks <- grij$mergedPeaks
+            mrgPksNms <- as.list(mrgPks$peakNames)
+            # stTime <- Sys.time()
+            newcols <- lapply(mrgPksNms, function(l)
+            {
+                idx <- which(names(mmpeaks) %in% l)
+                scores <- as.numeric(S4Vectors::mcols(mmpeaks)[idx,
+                                                            scorecolname])
+                nPeaks <- as.numeric(mmpeaks$`n-peaks`[idx])
+                kCarr <- as.numeric(mmpeaks$`k-carriers`[idx])
+                np = sum(nPeaks) ## total number of peaks found
+                ## it's necessary to rescale the score on the basis of the peaks
+                ## found from previous computations
+                mmzp <- sum(scores*nPeaks)/np
+                ## the carriers are just the number of samples
+                k <- max(kCarr)+1
+                as.data.frame(cbind(mmzp, np, k))
+            })
+            # endTime <- Sys.time()
+            # print((endTime-stTime))
+            newcols1 <- data.table::rbindlist(newcols)
+            S4Vectors::mcols(mrgPks) <-  S4Vectors::DataFrame(newcols1)
+            if( dim(S4Vectors::mcols(mrgPks))[1] == 0 )
+            {
+                stop("No overlapping regions found!")
+            }
+            colnames(S4Vectors::mcols(mrgPks)) <- c(scorecolname,
+                                                        "n-peaks",
+                                                        "k-carriers")
+
+            ## peaks uniques
+            unqPks <- grij$uniquePeaks
+            ## putting together all the peaks
+            foundedPeaks <- unlist(GenomicRanges::GRangesList(unqPks, mrgPks))
+
+            foundedPeaks <- initMergedPeaksNames(foundedPeaks)
         }
-
-        ## cleaning peaks names
-        mrgPks <- grij$mergedPeaks
-        mrgPksNms <- as.list(mrgPks$peakNames)
-        # stTime <- Sys.time()
-        newcols <- lapply(mrgPksNms, function(l)
-        {
-            idx <- which(names(mmpeaks) %in% l)
-            scores <- as.numeric(S4Vectors::mcols(mmpeaks)[idx, scorecolname])
-            nPeaks <- as.numeric(mmpeaks$`n-peaks`[idx])
-            kCarr <- as.numeric(mmpeaks$`k-carriers`[idx])
-            np = sum(nPeaks) ## total number of peaks found
-            ## it's necessary to rescale the score on the basis of the peaks
-            ## found from previous computations
-            mmzp <- sum(scores*nPeaks)/np
-            ## the carriers are just the number of samples
-            k <- max(kCarr)+1
-            as.data.frame(cbind(mmzp, np, k))
-        })
-        # endTime <- Sys.time()
-        # print((endTime-stTime))
-        newcols1 <- data.table::rbindlist(newcols)
-        S4Vectors::mcols(mrgPks) <-  S4Vectors::DataFrame(newcols1)
-        if( dim(S4Vectors::mcols(mrgPks))[1] == 0 )
-        {
-            stop("No overlapping regions found!")
-        }
-        colnames(S4Vectors::mcols(mrgPks)) <- c(scorecolname,
-                                                    "n-peaks",
-                                                    "k-carriers")
-
-        ## peaks uniques
-        unqPks <- grij$uniquePeaks
-        ## putting together all the peaks
-        foundedPeaks <- unlist(GenomicRanges::GRangesList(unqPks, mrgPks))
-
-        foundedPeaks <- initMergedPeaksNames(foundedPeaks)
+    } else if(length(namedSamplePeaksGRL) == 1) {
+        foundedPeaks <- initMergedPeaksNames(namedSamplePeaksGRL[[1]])
+    } else if(length(namedSamplePeaksGRL) == 0){
+        stop("No regions found with this threshold!")
     }
     # endingTime <- Sys.time()
     # print((endingTime - startTime))

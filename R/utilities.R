@@ -108,10 +108,11 @@ setGRGenomeInfo <- function(GRanges, genomeName=NULL, verbose=FALSE)
     if(length(seqNamesIdx) != 0)
     {
         sqi <- genomeInfo[GenomeInfoDb::seqnames(genomeInfo)[seqNamesIdx]]
-        sqi <- sqi[GenomeInfoDb::seqnames(sqi)[
-                                        order(GenomeInfoDb::seqnames(sqi))],]
+        # sqi <- sqi[GenomeInfoDb::seqnames(sqi)[
+        #                                 order(GenomeInfoDb::seqnames(sqi))],]
         GenomeInfoDb::seqlevels(GRanges) <-
                                         GenomeInfoDb::seqlevelsInUse(GRanges)
+        GRanges <- GenomeInfoDb::sortSeqlevels(GRanges)
         tryCatch({GenomeInfoDb::seqinfo(GRanges) <- sqi},
                 warning=function(w)
                 {
@@ -212,8 +213,7 @@ constructBedRanges <- function(filename,
                         GenomeInfoDb::seqinfo(bedGRanges)))
     vecnames <- GenomeInfoDb::seqnames(GenomeInfoDb::seqinfo(bedGRanges))
 
-    if( (sum(is.na(veclengths)) > 0) ||
-        (length(vecnames) == 0 ))
+    if( (sum(is.na(veclengths)) > 0) || (length(vecnames) == 0 ))
     {
         if(!arePeaks)
         {
@@ -221,13 +221,11 @@ constructBedRanges <- function(filename,
                 "\nDEScan2 needs seqlenghts to work properly.",
                 "\nPlease provide a genomeName to setup the GRanges!")
         }
-    }
-    else if(length(uniqueSeqnames) <
+    } else if(length(uniqueSeqnames) <
             length(GenomeInfoDb::seqnames(GenomeInfoDb::seqinfo(bedGRanges))))
     {
         if(verbose) message("Keeping only necessary seqInfos")
         bedGRanges <- GenomeInfoDb::keepSeqlevels(bedGRanges, uniqueSeqnames)
-
     }
 
     bedGRanges <- GenomicRanges::sort(bedGRanges, ignore.strand=TRUE)
