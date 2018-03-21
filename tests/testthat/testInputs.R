@@ -18,3 +18,27 @@ test_that("Check if bed and bam file produces the same object", {
     expect_identical(bamRange, bedRange)
 })
 
+
+test_that("Check readFilesAsGRangesList with and without peaks ", {
+    bed.path <- system.file(file.path("extdata","peaks", "bed"),
+                            package="DEScan2")
+
+    grl <- readFilesAsGRangesList(filePath=bed.path, fileType="bed.zip",
+                        genomeName="mm10", onlyStdChrs=TRUE, arePeaks=TRUE,
+                        verbose=FALSE)
+    grl1 <- readRDS(system.file(file.path("extdata","tests","peaks",
+                            "peaks_all_samples.rds"), package="DEScan2"))
+    expect_identical(grl, grl1)
+
+    bam.path <- system.file(file.path("extdata","tests","inputdata","bam"),
+                            package="DEScan2")
+
+    grl <- readFilesAsGRangesList(filePath=bam.path, fileType="bam",
+                          genomeName="mm10", onlyStdChrs=TRUE, arePeaks=FALSE,
+                          verbose=FALSE)
+
+    grl1 <- readRDS(system.file(file.path("extdata","tests","inputdata",
+                            "FCGRL.rds"), package="DEScan2"))
+
+    expect_identical(grl1, grl)
+})

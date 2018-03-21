@@ -5,7 +5,6 @@
 ^.git
 ^/\.gitattributes$
 README[.]md
-._*
 
 #----------------------------
 # Travis-CI et al.
