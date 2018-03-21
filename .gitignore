@@ -9,3 +9,4 @@ config\.status
 config\.log
 DEScan2_cache
 Makevars
+._*
