@@ -6,8 +6,8 @@
 \usage{
 countFinalRegions(regionsGRanges, readsFilePath = NULL, fileType = c("bam",
   "bed"), minCarriers = 2, genomeName = NULL, onlyStdChrs = FALSE,
-  ignStrandSO = TRUE, modeSO = "Union", saveFlag = FALSE,
-  savePath = "finalRegions", verbose = TRUE)
+  carrierscolname = "k-carriers", ignStrandSO = TRUE, modeSO = "Union",
+  saveFlag = FALSE, savePath = "finalRegions", verbose = TRUE)
 }
 \arguments{
 \item{regionsGRanges}{a GRanges objects representing the peaks to compute
@@ -24,6 +24,9 @@ the coverage.}
 \item{genomeName}{code name of the genome of reads files (i.e. "mm9").}
 
 \item{onlyStdChrs}{a flag indicating if to keep only the standard chromosomes}
+
+\item{carrierscolname}{character describing the name of the column within the
+carriers number (default is "k-carriers").}
 
 \item{ignStrandSO}{a flag indicating if to ignore the reads strand.
 (see GenomicAlignments::summarizeOverlaps).}

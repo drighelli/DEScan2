@@ -17,6 +17,8 @@
 #' @param saveFlag a flag indicating if to save the results.
 #' @param savePath the path where to store the results.
 #' @param verbose verbose output.
+#' @param carrierscolname character describing the name of the column within the
+#' carriers number (default is "k-carriers").
 #'
 #' @return A SummarizedExperiment object containing as assays the read counts
 #' matrix with regions as rows and samples as columns, and as rowRanges
@@ -40,14 +42,14 @@
 #' rowRanges(finalRegionsSE) ## the GRanges of the input regions
 countFinalRegions <- function(regionsGRanges, readsFilePath=NULL,
             fileType=c("bam", "bed"), minCarriers=2, genomeName=NULL,
-            onlyStdChrs=FALSE, ignStrandSO=TRUE, modeSO="Union", saveFlag=FALSE,
+            onlyStdChrs=FALSE, carrierscolname="k-carriers", ignStrandSO=TRUE, modeSO="Union", saveFlag=FALSE,
             savePath="finalRegions", verbose=TRUE)
 {
     match.arg(fileType)
     stopifnot(is(regionsGRanges, "GRanges"))
     if(is.null(readsFilePath)) {stop("readsFilePath cannot be NULL!")}
 
-    idxK <- which(regionsGRanges$`k-carriers` >= minCarriers)
+    idxK <- which(regionsGRanges[[carrierscolname]] >= minCarriers)
     regionsGRanges <- regionsGRanges[idxK,]
 
     if(!is.null(genomeName))
