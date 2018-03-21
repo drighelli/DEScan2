@@ -52,3 +52,4 @@ Suggests:
     RColorBrewer,
     statmod
 VignetteBuilder: knitr
+
