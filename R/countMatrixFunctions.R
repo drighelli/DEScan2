@@ -49,7 +49,7 @@ countFinalRegions <- function(regionsGRanges, readsFilePath=NULL,
     stopifnot(is(regionsGRanges, "GRanges"))
     if(is.null(readsFilePath)) {stop("readsFilePath cannot be NULL!")}
 
-    idxK <- which(regionsGRanges[[carrierscolname]] >= minCarriers)
+    idxK <- which(regionsGRanges@elementMetadata[[carrierscolname]] >= minCarriers)
     regionsGRanges <- regionsGRanges[idxK,]
 
     if(!is.null(genomeName))
