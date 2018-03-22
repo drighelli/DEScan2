@@ -107,6 +107,7 @@ countFinalRegions <- function(regionsGRanges, readsFilePath=NULL,
     rownames(summRegMat) <- regionsRN
     if(saveFlag)
     {
+        dir.create(path=savePath, recursive=TRUE, showWarnings=FALSE)
         datename <- paste0(strsplit(gsub(pattern=":", replacement=" ",
                                         date()), " ")[[1]], collapse="_")
         filename <- paste0("regions_", datename, "_minK", minCarriers,
