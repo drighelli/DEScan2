@@ -30,6 +30,9 @@
 #' @param sigwin an integer value used to compute the length of the signal
 #' of a peak (default value is 10).
 #' @param verbose if to show additional messages
+#' @param BPPARAM object of class \code{bpparamClass} that specifies the
+#'   back-end to be used for computations. See
+#'   \code{\link[BiocParallel]{bpparam}} for details.
 #'
 #' @return A GRangesList where each element is a sample.
 #' Each GRanges represents the founded peaks and attached the z-score of
@@ -38,6 +41,7 @@
 #'
 #' @importFrom GenomicRanges GRangesList
 #' @importFrom GenomeInfoDb seqinfo seqlengths
+#' @importFrom BiocParallel bpparam bplapply
 #' @examples
 #' bam.files <- list.files(system.file("extdata/bam", package = "DEScan2"),
 #'                         full.names = TRUE)
@@ -62,7 +66,8 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
                         verbose=FALSE,
                         sigwin=10,
                         onlyStdChrs=TRUE,
-                        chr=NULL)
+                        chr=NULL,
+                        BPPARAM=BiocParallel::bpparam())
 {
 
     if(!is.null(chr) && length(grep(pattern="chr", chr))!=length(chr))
@@ -94,7 +99,8 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
         if(verbose) message("Calling Peaks on chromosomes...")
 
         chrZRangesList <- GenomicRanges::GRangesList(
-            lapply(bedGrangesChrsList, function(chrGRanges) {
+            BiocParallel::bplapply(bedGrangesChrsList, function(chrGRanges)
+            {
 
             runWinRleList <- computeCoverageMovingWindowOnChr(
                                                 chrBedGRanges=chrGRanges,
@@ -141,7 +147,7 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
                                 mcolvalues=newS[,3])
 
             return(chrZRanges) ## one for each chromosome
-            })
+            }, BPPARAM=BPPARAM)
         )
         # names(chrZRangesList) <- names(bedGrangesChrsList)
         ZRanges <- unlist(chrZRangesList)

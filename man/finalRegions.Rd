@@ -6,7 +6,7 @@
 \usage{
 finalRegions(peakSamplesGRangesList, zThreshold = 20, minCarriers = 2,
   saveFlag = TRUE, outputFolder = "overlappedPeaks", verbose = FALSE,
-  scorecolname = "z-score")
+  scorecolname = "z-score", BPPARAM = BiocParallel::bpparam())
 }
 \arguments{
 \item{peakSamplesGRangesList}{named GRangesList where each element is a
@@ -28,6 +28,10 @@ regions.}
 
 \item{scorecolname}{character describing the name of the column within the
 peaks score.}
+
+\item{BPPARAM}{object of class \code{bpparamClass} that specifies the
+back-end to be used for computations. See
+\code{\link[BiocParallel]{bpparam}} for details.}
 }
 \value{
 a GRanges of selected overlapping peaks with z-score,

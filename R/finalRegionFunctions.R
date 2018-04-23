@@ -16,12 +16,16 @@
 #' @param verbose verbose output.
 #' @param scorecolname character describing the name of the column within the
 #' peaks score.
+#' @param BPPARAM object of class \code{bpparamClass} that specifies the
+#'   back-end to be used for computations. See
+#'   \code{\link[BiocParallel]{bpparam}} for details.
 #'
 #' @return a GRanges of selected overlapping peaks with z-score,
 #' n-peaks, k-carriers as mcols object.
 #' @export
 #' @importFrom GenomicRanges GRangesList
 #' @importFrom S4Vectors mcols
+#' @importFrom BiocParallel bpparam bplapply
 #' @examples
 #' peak.path <- system.file("extdata/peaks/RData/peaksGRL_all_files.rds",
 #'                             package="DEScan2")
@@ -34,7 +38,8 @@ finalRegions <- function(peakSamplesGRangesList, zThreshold=20, minCarriers=2,
                                     saveFlag=TRUE,
                                     outputFolder="overlappedPeaks",
                                     verbose=FALSE,
-                                    scorecolname="z-score")
+                                    scorecolname="z-score",
+                                    BPPARAM=BiocParallel::bpparam())
 {
     stopifnot(is(peakSamplesGRangesList, "GRangesList"))
 
@@ -52,16 +57,19 @@ finalRegions <- function(peakSamplesGRangesList, zThreshold=20, minCarriers=2,
 
     #### to parallelize over chrs
     overlappedPeaksGRList <- GenomicRanges::GRangesList(
-        lapply(zedPeaksChrsGRList, function(chrSampleGRList) {
+        BiocParallel::bplapply(zedPeaksChrsGRList, function(chrSampleGRList)
+        {
             return(findOverlapsOverSamples(chrSampleGRList,
                     zThresh=zThreshold, verbose=verbose,
                     scorecolname=scorecolname))
-    }))
+        }, BPPARAM=BPPARAM)
+    )
     overlappedPeaksGR <- unlist(overlappedPeaksGRList)
     idxK <- which(overlappedPeaksGR$`k-carriers` >= minCarriers)
     overlMinKPeaksGR <- overlappedPeaksGR[idxK,]
 
-    if(saveFlag) {
+    if(saveFlag)
+    {
         datename <- paste0(strsplit(gsub(pattern=":", replacement=" ",
                                             date()), " ")[[1]], collapse="_")
         filename <- paste0("regions_", datename, "_zt", zThreshold,
@@ -213,7 +221,7 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
     })
 
 
-    if(verbose) message("Computing overlapping reagions over samples...")
+    if(verbose) message("Computing overlapping regions over samples...")
     # startTime <- Sys.time()
     if(length(namedSamplePeaksGRL) > 1 )
     {
@@ -344,10 +352,6 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
     }
     return(peaks_all)
 }
-
-
-
-
 
 
 

@@ -8,7 +8,8 @@ findPeaks(files, filetype = c("bam", "bed"), genomeName = NULL,
   binSize = 50, minWin = 50, maxWin = 1000, zthresh = 10,
   minCount = 0.1, minCompWinWidth = 5000, maxCompWinWidth = 10000,
   outputFolder = "Peaks", save = TRUE, force = TRUE, verbose = FALSE,
-  sigwin = 10, onlyStdChrs = TRUE, chr = NULL)
+  sigwin = 10, onlyStdChrs = TRUE, chr = NULL,
+  BPPARAM = BiocParallel::bpparam())
 }
 \arguments{
 \item{files}{Character vector containing paths of files to be analyzed.}
@@ -54,6 +55,10 @@ of a peak (default value is 10).}
 
 \item{chr}{if not NULL, a character like "chr#" indicating the chromosomes
 to use.}
+
+\item{BPPARAM}{object of class \code{bpparamClass} that specifies the
+back-end to be used for computations. See
+\code{\link[BiocParallel]{bpparam}} for details.}
 }
 \value{
 A GRangesList where each element is a sample.
