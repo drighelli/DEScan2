@@ -22,17 +22,18 @@ editor_options:
 options(scipen = 1, digits = 4)
 ```
 
-#Overview
+# Overview
 This document describes how to use DEScan2 to detect regions of differential
 enrichment in epigenomic sequencing data. DEScan2 is an R/Bioconductor based 
 tool, developed for Bioconductor v3.6 and R v3.4.3.
 
-#A typical differential enrichment analysis workflow
-
+# A typical differential enrichment analysis workflow
+First, let's load the packages and set serial computations. 
 ```{r, message=FALSE}
 library("DEScan2")
 library("RUVSeq")
 library("edgeR")
+BiocParallel::register(BiocParallel::SerialParam())
 ```
 
 ##Example data
@@ -299,3 +300,30 @@ head(res$table)
 dim(res$table)
 regions[rownames(res$table)]
 ```
+
+
+# A note on performance and serial computing
+
+The DEScan2 package uses the BiocParallel package to allow for parallel computing. 
+Here, we used the register command to ensure that the vignette runs with serial computations.
+
+However, in real datasets, parallel computations can speed up the computations dramatically, in the presence of many genes and/or many cells.
+
+There are two ways of allowing parallel computations in DEScan2 The first is to register() a parallel back-end (see ?BiocParallel::register for details). 
+Alternatively, one can pass a BPPARAM object to findPeaks and finalRegions functions, e.g.
+
+```{r, eval=FALSE}
+library("BiocParallel")
+
+peaksGRL <- findPeaks(files=bam.files[1], filetype="bam", genomeName="mm9",
+    binSize=50, minWin=50, maxWin=1000, zthresh=10, minCount=0.1, sigwin=10,
+    minCompWinWidth=5000, maxCompWinWidth=10000, save=FALSE, 
+    outputFolder="peaks", force=TRUE, onlyStdChrs=TRUE, chr=NULL, verbose=FALSE,
+    BPPARAM=MulticoreParam(2))
+```
+
+We found that MulticoreParam() may have some performance issues on Mac; hence, we recommend DoparParam() when working on Mac.
+
+
+
+
