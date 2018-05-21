@@ -2,9 +2,6 @@ DEScan2 v0.99.9
 - finalRegions and findPeaks now works with bplapply
 - minor bug fixing
 
-DEScan2 v0.99.9
-- minor bug fixing
-
 DEScan2 v0.99.8
 - countFinalRegions now creates the saving directory/ies
 
