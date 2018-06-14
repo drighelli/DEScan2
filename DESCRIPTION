@@ -24,6 +24,7 @@ Depends:
     R (>= 3.5),
     GenomicRanges
 Imports:
+    BiocParallel,
     BiocGenerics,
     ChIPpeakAnno,
     data.table,
