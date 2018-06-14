@@ -10,4 +10,4 @@ config\.log
 DEScan2_cache
 Makevars
 ._*
-^.*\.Rproj$
+DEScan2.Rproj
