@@ -21,4 +21,3 @@ files <- list.files(system.file("extdata/bam", package="DEScan2"),
                     full.names=TRUE)
 gr <- readBamAsBed(files[1])
 }
-\keyword{internal}

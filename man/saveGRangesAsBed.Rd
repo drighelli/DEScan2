@@ -15,6 +15,8 @@ saveGRangesAsBed(GRanges, filepath = tempdir(), filename = tempfile(),
 \item{filename}{the name to give to the files.}
 
 \item{force}{force overwriting.}
+
+\item{verbose}{verbose output flag.}
 }
 \value{
 none
@@ -33,4 +35,3 @@ gr <- GRanges(
 saveGRangesAsBed(GRanges=gr, filepath=tempdir(), filename=tempfile(),
                     verbose=TRUE)
 }
-\keyword{internal}

@@ -4,7 +4,7 @@
 #' @param file Character indicating path to bam file.
 #' @return GRanges object.
 #'
-#' @keywords internal
+#' @export
 #' @importFrom GenomicRanges granges
 #' @importFrom GenomicAlignments readGAlignments
 #' @importFrom GenomeInfoDb seqlevelsStyle
@@ -29,7 +29,7 @@ readBamAsBed <- function(file)
 #' @param arePeaks a flag indicating if the the bed file represents peaks.
 #'
 #' @return GRanges object
-#' @keywords internal
+#' @export
 #' @importFrom tools file_ext
 #' @importFrom utils unzip
 #' @importFrom GenomicRanges GRanges
@@ -288,14 +288,14 @@ readFilesAsGRangesList <- function(filePath, fileType=c("bam", "bed","bed.zip"),
 #' @param filepath the path to store the files.@
 #' @param filename the name to give to the files.
 #' @param force force overwriting.
+#' @param verbose verbose output flag.
 #' @importFrom rtracklayer export.bed
 #' @importFrom GenomeInfoDb sortSeqlevels seqnames
 #' @importFrom S4Vectors mcols
 #' @importFrom BiocGenerics start end
 #'
 #' @return none
-#' @keywords internal
-# @export
+#' @export
 #' @examples
 #' library("GenomicRanges")
 #' gr <- GRanges(
@@ -315,7 +315,7 @@ saveGRangesAsBed <- function(GRanges, filepath=tempdir(), filename=tempfile(),
     {
         dir.create(path=filepath, showWarnings=FALSE, recursive=TRUE)
     }
-    filePathName <- file.path(filepath, paste0(filename, ".bed"))
+    filePathName <- file.path(filepath, paste0(basename(filename), ".bed"))
 
     if(file.exists(filePathName))
     {
@@ -325,7 +325,7 @@ saveGRangesAsBed <- function(GRanges, filepath=tempdir(), filename=tempfile(),
         }
         else
         {
-            message("overwriting", filePathName)
+            message("overwriting ", filePathName)
         }
     }
 
@@ -374,11 +374,13 @@ saveGRangesAsBed <- function(GRanges, filepath=tempdir(), filename=tempfile(),
 #' @param GRanges the GRanges object.
 #' @param filepath the path to store the files.
 #' @param filename the name to give to the files.
+#' @param verbose verbose output flag.
 #' @param force force overwriting.
+#'
 #' @importFrom utils write.table
 #'
 #' @return none
-#' @keywords internal
+#' @export
 #' @examples
 #' gr <- GRanges(
 #'         seqnames=Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
@@ -477,7 +479,7 @@ RleListToRleMatrix <- function(RleList, dimnames=NULL)
 #' @importFrom rtracklayer start
 #' @importFrom S4Vectors mcols
 #' @importFrom GenomeInfoDb seqlengths isCircular seqnames
-#' @keywords internal
+#' @export
 #' @examples
 #' chrSeqInfo <- GenomeInfoDb::Seqinfo(genome="mm9")["chr1"]
 #' starts=sample(seq_len(100), 10)

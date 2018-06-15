@@ -23,4 +23,3 @@ bedFile <- list.files(system.file("extdata/bed",package="DEScan2"),
                         full.names=TRUE)
 gr <- readBedFile(bedFile)
 }
-\keyword{internal}

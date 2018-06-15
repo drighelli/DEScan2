@@ -33,4 +33,3 @@ mcolvalues <- sample(seq_len(100), 10)
 chrGR <- createGranges(chrSeqInfo=chrSeqInfo, starts=starts, widths=widths,
               mcolname=mcolname, mcolvalues=mcolvalues)
 }
-\keyword{internal}

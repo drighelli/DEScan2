@@ -15,6 +15,8 @@ saveGRangesAsTsv(GRanges, filepath = tempdir(), filename = tempfile(),
 \item{filename}{the name to give to the files.}
 
 \item{force}{force overwriting.}
+
+\item{verbose}{verbose output flag.}
 }
 \value{
 none
@@ -30,4 +32,3 @@ gr <- GRanges(
         seqlengths=c(chr1=11, chr2=12, chr3=13))
 saveGRangesAsTsv(gr, verbose=TRUE)
 }
-\keyword{internal}
