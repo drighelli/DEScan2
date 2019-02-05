@@ -7,8 +7,8 @@
 findPeaks(files, filetype = c("bam", "bed"), genomeName = NULL,
   binSize = 50, minWin = 50, maxWin = 1000, zthresh = 10,
   minCount = 0.1, minCompWinWidth = 5000, maxCompWinWidth = 10000,
-  outputFolder = "Peaks", save = TRUE, force = TRUE, verbose = FALSE,
-  sigwin = 10, onlyStdChrs = TRUE, chr = NULL,
+  outputFolder = "Peaks", save = TRUE, force = TRUE,
+  verbose = FALSE, sigwin = 10, onlyStdChrs = TRUE, chr = NULL,
   BPPARAM = BiocParallel::bpparam())
 }
 \arguments{

@@ -4,10 +4,11 @@
 \alias{countFinalRegions}
 \title{countFinalRegions}
 \usage{
-countFinalRegions(regionsGRanges, readsFilePath = NULL, fileType = c("bam",
-  "bed"), minCarriers = 2, genomeName = NULL, onlyStdChrs = FALSE,
-  carrierscolname = "k-carriers", ignStrandSO = TRUE, modeSO = "Union",
-  saveFlag = FALSE, savePath = "finalRegions", verbose = TRUE)
+countFinalRegions(regionsGRanges, readsFilePath = NULL,
+  fileType = c("bam", "bed"), minCarriers = 2, genomeName = NULL,
+  onlyStdChrs = FALSE, carrierscolname = "k-carriers",
+  ignStrandSO = TRUE, modeSO = "Union", saveFlag = FALSE,
+  savePath = "finalRegions", verbose = TRUE)
 }
 \arguments{
 \item{regionsGRanges}{a GRanges objects representing the peaks to compute

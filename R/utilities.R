@@ -449,13 +449,13 @@ RleListToRleMatrix <- function(RleList, dimnames=NULL)
     lengths <- unlist(lapply(RleList, length), use.names=FALSE)
     stopifnot(all.equal(lengths, rep(lengths[1], length(lengths))))
     if(!is.null(dimnames)) {
-        rlem <- DelayedArray::RleArray(rle=unlist(RleList, use.names=FALSE),
+        rlem <- DelayedArray::RleArray(data=unlist(RleList, use.names=FALSE),
                                         dim=c(length(RleList[[1]]),
                                         length(RleList)),
                                         dimnames=dimnames
         )
     } else {
-        rlem <- DelayedArray::RleArray(rle=unlist(RleList, use.names=FALSE),
+        rlem <- DelayedArray::RleArray(data=unlist(RleList, use.names=FALSE),
                                         dim=c(length(RleList[[1]]),
                                         length(RleList)))
     }

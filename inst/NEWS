@@ -1,4 +1,5 @@
 DEScan2 v1.1.2
+- fixed RleListToRleMatrix check error
 - minor bug fixing
 
 DEScan2 v1.1.1

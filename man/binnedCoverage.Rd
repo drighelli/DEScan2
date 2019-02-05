@@ -4,8 +4,8 @@
 \alias{binnedCoverage}
 \title{binnedCoverage}
 \usage{
-binnedCoverage(bins, numvar, mcolname, covMethod = c("max", "mean", "sum",
-  "min"), roundingMethod = c("none", "floor", "ceiling", "round"))
+binnedCoverage(bins, numvar, mcolname, covMethod = c("max", "mean",
+  "sum", "min"), roundingMethod = c("none", "floor", "ceiling", "round"))
 }
 \arguments{
 \item{bins}{a GRanges object representing a chromosome binned.}

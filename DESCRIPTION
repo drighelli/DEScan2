@@ -41,7 +41,7 @@ Imports:
     tools,
     utils
 LinkingTo: Rcpp, RcppArmadillo
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.1
 Suggests: 
     BiocStyle, 
     knitr, 
@@ -54,4 +54,3 @@ Suggests:
     RColorBrewer,
     statmod
 VignetteBuilder: knitr
-
