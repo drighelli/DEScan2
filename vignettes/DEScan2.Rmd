@@ -49,7 +49,7 @@ DEScan accepts bam format alignments.
 
 ```{r eval=TRUE}
 bam.files <- list.files(system.file(file.path("extdata","bam"), 
-                            package="DEScan2"),
+                        package="DEScan2"),
                         pattern="bam$", full.names=TRUE)
 ```
 
@@ -131,7 +131,7 @@ function parameters)
 **chr** if not NULL, a character like "chr#" indicating the chromosomes to use
 
 ```{r findPeaks, cache=TRUE, eval=FALSE}
-peaksGRL <- findPeaks(files=bam.files[1], filetype="bam", genomeName="mm9",
+peaksGRL <- DEScan2::findPeaks(files=bam.files[1], filetype="bam", genomeName="mm9",
     binSize=50, minWin=50, maxWin=1000, zthresh=10, minCount=0.1, sigwin=10,
     minCompWinWidth=5000, maxCompWinWidth=10000, save=FALSE, 
     outputFolder="peaks", force=TRUE, onlyStdChrs=TRUE, chr=NULL, verbose=FALSE)
@@ -173,7 +173,7 @@ peaks.file <- system.file(
                 package="DEScan2")
 
 peaksGRL <- readRDS(peaks.file)
-regionsGR <- finalRegions(peakSamplesGRangesList=peaksGRL, zThreshold=10,
+regionsGR <- DEScan2::finalRegions(peakSamplesGRangesList=peaksGRL, zThreshold=10,
                 minCarriers=3, saveFlag=FALSE, outputFolder=NULL, verbose=FALSE)
 
 head(regionsGR)
@@ -196,7 +196,7 @@ order to speed up the process. In this case we will not specify a minimum number
 
 ```{r countFinalRegions, cache=TRUE, eval=TRUE, message=FALSE}
 bam.path <- system.file(file.path("extdata","bam"), package="DEScan2")
-finalRegions <- countFinalRegions(regionsGRanges=regionsGR, 
+finalRegions <- DEScan2::countFinalRegions(regionsGRanges=regionsGR, 
                     readsFilePath=bam.path, fileType="bam", minCarriers=1,
                     genomeName="mm9", onlyStdChrs=TRUE, saveFlag=FALSE,
                     verbose=FALSE)
@@ -238,7 +238,7 @@ differences in total counts in the count matrix can be due to the treatment of
 interest.
 
 ```{r RUV, cache=TRUE, eval=TRUE}
-library(RColorBrewer)
+library("RColorBrewer")
 colors <- brewer.pal(3, "Set2")
 set <- EDASeq::betweenLaneNormalization(counts, which = "upper")
 groups <- matrix(c(1:8), nrow=2, byrow=TRUE)
@@ -314,11 +314,11 @@ Alternatively, one can pass a BPPARAM object to findPeaks and finalRegions funct
 ```{r, eval=FALSE}
 library("BiocParallel")
 
-peaksGRL <- findPeaks(files=bam.files[1], filetype="bam", genomeName="mm9",
+peaksGRL <- DEScan2::findPeaks(files=bam.files[1], filetype="bam", genomeName="mm9",
     binSize=50, minWin=50, maxWin=1000, zthresh=10, minCount=0.1, sigwin=10,
     minCompWinWidth=5000, maxCompWinWidth=10000, save=FALSE, 
     outputFolder="peaks", force=TRUE, onlyStdChrs=TRUE, chr=NULL, verbose=FALSE,
-    BPPARAM=MulticoreParam(2))
+    BPPARAM=BiocParallel::MulticoreParam(2))
 ```
 
 We found that MulticoreParam() may have some performance issues on Mac; hence, we recommend DoparParam() when working on Mac.

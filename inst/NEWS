@@ -1,3 +1,7 @@
+DEScan2 v1.3.2
+- fixed finalRegions vignettes error
+- minor adjustment fixing
+
 DEScan2 v1.3.1
 - fixed RleListToRleMatrix check error
 
