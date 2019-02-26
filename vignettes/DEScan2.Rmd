@@ -135,7 +135,6 @@ peaksGRL <- findPeaks(files=bam.files[1], filetype="bam", genomeName="mm9",
     binSize=50, minWin=50, maxWin=1000, zthresh=10, minCount=0.1, sigwin=10,
     minCompWinWidth=5000, maxCompWinWidth=10000, save=FALSE, 
     outputFolder="peaks", force=TRUE, onlyStdChrs=TRUE, chr=NULL, verbose=FALSE)
-head(peaksGRL)
 ```
 
 ##Aligning peaks across replicates to produce regions
