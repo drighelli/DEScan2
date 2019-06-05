@@ -23,7 +23,9 @@ buildValleys <- function(regionsGR, genomeCode)
     ref.genome <- DEScan2::keepRelevantChrs(chrGRangesList=ref.genome,
                                         chr=unique(seqnames(regionsGR)))
     valleys <- setdiff(ref.genome, regionsGR)
-
+    idx <- grep(pattern="*score*", x=colnames(regionsGR@elementMetadata))
+    scorename <- colnames(regionsGR@elementMetadata)[idx]
+    valleys@elementMetadata[scorename] <- 0
     return(valleys)
 }
 

@@ -76,7 +76,7 @@ countFinalRegions <- function(regionsGRanges, readsFilePath=NULL,
                                 pattern=".bed$")
     }
     if(length(readsFiles) == 0 ) stop("No reads files found!")
-    if(verbose) message("Final regions on ", length(readsFiles), " files.")
+    if(verbose) message("Final counts on ", length(readsFiles), " files.")
 
     fileReadsList <- lapply(readsFiles, function(file)
     {

@@ -19,6 +19,9 @@
 #' @param BPPARAM object of class \code{bpparamClass} that specifies the
 #'   back-end to be used for computations. See
 #'   \code{\link[BiocParallel]{bpparam}} for details.
+#' @param extendRegions
+#' @param minOverlap
+#' @param maxGap
 #'
 #' @return a GRanges of selected overlapping peaks with z-score,
 #' n-peaks, k-carriers as mcols object.
@@ -39,6 +42,9 @@ finalRegions <- function(peakSamplesGRangesList, zThreshold=20, minCarriers=2,
                                     outputFolder="overlappedPeaks",
                                     verbose=FALSE,
                                     scorecolname="z-score",
+                                    extendRegions=200,
+                                    minOverlap=0L,
+                                    maxGap=-1L,
                                     BPPARAM=BiocParallel::bpparam())
 {
     stopifnot(is(peakSamplesGRangesList, "GRangesList"))
@@ -52,7 +58,7 @@ finalRegions <- function(peakSamplesGRangesList, zThreshold=20, minCarriers=2,
                             which(S4Vectors::mcols(sample)[[scorecolname]]
                                                             >= zThreshold),])
                     }))
-
+    if(length(zedPeaksSamplesGRList) == 0) message("All peaks filtered out, try to lower the zThreshold")
     zedPeaksChrsGRList <- fromSamplesToChrsGRangesList(zedPeaksSamplesGRList)
 
     #### to parallelize over chrs
@@ -61,6 +67,8 @@ finalRegions <- function(peakSamplesGRangesList, zThreshold=20, minCarriers=2,
         {
             return(findOverlapsOverSamples(chrSampleGRList,
                     zThresh=zThreshold, verbose=verbose,
+                    extendRegions=extendRegions,
+                    minOverlap=minOverlap, maxGap=maxGap,
                     scorecolname=scorecolname))
         }, BPPARAM=BPPARAM)
     )
