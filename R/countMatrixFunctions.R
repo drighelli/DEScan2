@@ -42,15 +42,21 @@
 #' rowRanges(finalRegionsSE) ## the GRanges of the input regions
 countFinalRegions <- function(regionsGRanges, readsFilePath=NULL,
             fileType=c("bam", "bed"), minCarriers=2, genomeName=NULL,
-            onlyStdChrs=FALSE, carrierscolname="k-carriers", ignStrandSO=TRUE, modeSO="Union", saveFlag=FALSE,
+            onlyStdChrs=FALSE, carrierscolname="k-carriers", ignStrandSO=TRUE,
+            modeSO="Union", saveFlag=FALSE,
             savePath="finalRegions", verbose=TRUE)
 {
     match.arg(fileType)
     stopifnot(is(regionsGRanges, "GRanges"))
     if(is.null(readsFilePath)) {stop("readsFilePath cannot be NULL!")}
 
-    idxK <- which(regionsGRanges@elementMetadata[[carrierscolname]] >= minCarriers)
-    regionsGRanges <- regionsGRanges[idxK,]
+    if(carrierscolname %in% colnames(regionsGRanges@elementMetadata))
+    {
+        idxK <- which(regionsGRanges@elementMetadata[[carrierscolname]]
+                                                                >= minCarriers)
+        regionsGRanges <- regionsGRanges[idxK,]
+    }
+
 
     if(!is.null(genomeName))
     {
