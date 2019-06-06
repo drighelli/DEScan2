@@ -67,9 +67,9 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
                         sigwin=10,
                         onlyStdChrs=TRUE,
                         chr=NULL,
+                        useNB=FALSE,
                         BPPARAM=BiocParallel::bpparam())
 {
-
     if(!is.null(chr) && length(grep(pattern="chr", chr))!=length(chr))
         stop("Insert valid chr(s), use the \"chr#\" form!")
     if(!save) message("Save is false, not saving results!\n")
@@ -130,11 +130,21 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
                                     verbose=verbose)
             seqlength <- GenomeInfoDb::seqlengths(
                                         GenomeInfoDb::seqinfo(chrGRanges))[[1]]
-            Z <- computeZ(lambdaChrRleList=lambdaChrRleList,
-                            runWinRleList=runWinRleList,
-                            chrLength=seqlength,
-                            minCount=minCount, binSize=binSize,
-                            verbose=verbose)
+            if(!useNB)
+            {
+                Z <- computeZ(lambdaChrRleList=lambdaChrRleList,
+                              runWinRleList=runWinRleList,
+                              chrLength=seqlength,
+                              minCount=minCount, binSize=binSize,
+                              verbose=verbose)
+            } else {
+                Z <- computeZNB(lambdaChrRleList=lambdaChrRleList,
+                              runWinRleList=runWinRleList,
+                              chrLength=seqlength,
+                              minCount=minCount, binSize=binSize,
+                              verbose=verbose)
+            }
+
             newS <- c_get_disjoint_max_win(z0=Z,
                                     sigwin=sigwin,
                                     zthresh=zthresh,
@@ -215,6 +225,61 @@ computeZ <- function(lambdaChrRleList, runWinRleList, chrLength,
     return(z)
 }
 
+
+#' computeZNB
+#' @description Computes Z-Scores returning the z matrix.
+#'
+#' @param lambdaChrRleList an RleList of lambda values computed by
+#' computeLambdaOnChr function each element of the list is an Rle representing
+#' the lambda for the moving window in the list position.
+#' @param runWinRleList an RleList of coverage values computed.
+#' by computeCoverageMovingWindowOnChr function each element of the list is an
+#' Rle representing the coverage for the moving window in the list position.
+#' @param chrLength the length of the chr in analysis.
+#' @param minCount A small constant (usually no larger than one) to be added to
+#' the counts prior to the log transformation to avoid problems with log(0).
+#' @param binSize the size of the bin.
+#' @param verbose verbose output.
+#'
+#' @return z a matrix of z scores for each window (column) and bin (row).
+#' where the rownames represent the starting base of each bin.
+#' @keywords internal.
+computeZNB <- function(lambdaChrRleList, runWinRleList, chrLength,
+                     minCount=0.1, binSize=50, verbose=FALSE)
+{
+    # runWinRleM <- RleListToRleMatrix(runWinRleList)
+    # lambdaChrRleM <- RleListToRleMatrix(lambdaChrRleList)
+
+    # lambdaChrRleMm <- matrix(unlist(lambdaChrRleList),
+    #                          ncol=20, byrow=TRUE)
+
+    lambdaChrRleMm <- matrix(unlist(lambdaChrRleList),
+                             ncol=length(lambdaChrRleList), byrow=FALSE)
+
+    # runWinRleMm <- matrix(unlist(runWinRleList), ncol=20, byrow=TRUE)
+    runWinRleMm <- matrix(unlist(runWinRleList),
+                          ncol=length(runWinRleList), byrow=FALSE)
+
+    if(verbose) message("Computing NB Z-Score")
+
+    phiWins <- edgeR::estimateDisp(matwin, lib.size=pmax(apply(matwin, 2, sum) != 0, minCount))
+    thetaWins <- 1/phiWins$tagwise.dispersion
+    # thetaWins <- t(1/
+
+                       # )
+    z <- sqrt(2) * sign(runWinRleMm - lambdaChrRleMm) *
+        sqrt(runWinRleMm *
+                log(pmax(runWinRleMm, minCount) / lambdaChrRleMm) -
+                ((thetaWins+1) *
+                log((thetaWins + lambdaChrRleMm) /
+                    (thetaWins + pmax(runWinRleMm, minCount))))
+        ) ## sqrt?
+
+    z <- binToChrCoordMatRowNames(binMatrix=z,
+                                  chrLength=chrLength,
+                                  binWidth=binSize)
+    return(z)
+}
 
 #' c_get_disjoint_max_win
 #' @description just a wrapper for the C function. Useful to modify indexes and
