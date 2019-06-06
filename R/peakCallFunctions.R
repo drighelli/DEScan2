@@ -261,19 +261,26 @@ computeZNB <- function(lambdaChrRleList, runWinRleList, chrLength,
                           ncol=length(runWinRleList), byrow=FALSE)
 
     if(verbose) message("Computing NB Z-Score")
-
-    phiWins <- edgeR::estimateDisp(matwin, lib.size=pmax(apply(matwin, 2, sum) != 0, minCount))
+    matwin<- as.matrix(runWinRleList)
+    phiWins <- edgeR::estimateDisp(matwin,
+                        # lib.size=pmax(apply(matwin, 2, sum) != 0, minCount))
+                        lib.size = rep(1, ncol(matwin)),
+                        trend.method = "none")
     thetaWins <- 1/phiWins$tagwise.dispersion
     # thetaWins <- t(1/
 
                        # )
-    z <- sqrt(2) * sign(runWinRleMm - lambdaChrRleMm) *
-        sqrt(runWinRleMm *
-                log(pmax(runWinRleMm, minCount) / lambdaChrRleMm) -
-                ((thetaWins+1) *
-                log((thetaWins + lambdaChrRleMm) /
-                    (thetaWins + pmax(runWinRleMm, minCount))))
-        ) ## sqrt?
+    z <-  sqrt(2) * sign(runWinRleMm - lambdaChrRleMm) *
+        sqrt(
+            log( (thetaWins + lambdaChrRleMm) / (thetaWins + runWinRleMm) ) *
+                (thetaWins + runWinRleMm) -
+                runWinRleMm * log(lambdaChrRleMm/ pmax(runWinRleMm, minCount))
+            # runWinRleMm *
+            #     log(pmax(runWinRleMm, minCount) / lambdaChrRleMm) -
+            #     ((thetaWins+runWinRleMm) *
+            #     log((thetaWins + lambdaChrRleMm) /
+            #         (thetaWins + pmax(runWinRleMm, minCount))))
+        )
 
     z <- binToChrCoordMatRowNames(binMatrix=z,
                                   chrLength=chrLength,
