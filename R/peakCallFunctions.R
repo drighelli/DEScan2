@@ -56,6 +56,15 @@
 #'                         chr=NULL,
 #'                         verbose=FALSE)
 #' head(peaks)
+
+# filetype="bam"
+# genomeName="mm10"
+# binSize=50; minWin=50; maxWin=1000;
+# zthresh=0; minCount=0.1; sigwin=10;
+# minCompWinWidth=5000; maxCompWinWidth=10000;
+# onlyStdChrs=TRUE
+# chr="chr1"
+# verbose=FALSE
 findPeaks <- function(files, filetype=c("bam", "bed"),
                         genomeName=NULL,
                         binSize=50, minWin=50, maxWin=1000,
@@ -147,8 +156,9 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
 
             newS <- c_get_disjoint_max_win(z0=Z,
                                     sigwin=sigwin,
-                                    zthresh=zthresh,
+                                    zthresh=0,
                                     verbose=verbose)
+
             chrZRanges <- createGranges(
                                 chrSeqInfo=GenomeInfoDb::seqinfo(chrGRanges),
                                 starts=as.numeric(rownames(Z)[newS[,1]]),
@@ -261,26 +271,103 @@ computeZNB <- function(lambdaChrRleList, runWinRleList, chrLength,
                           ncol=length(runWinRleList), byrow=FALSE)
 
     if(verbose) message("Computing NB Z-Score")
-    matwin<- as.matrix(runWinRleList)
+    matwin <- as.matrix(runWinRleList)
+    if(verbose) message("Estimating dispersion")
     phiWins <- edgeR::estimateDisp(matwin,
                         # lib.size=pmax(apply(matwin, 2, sum) != 0, minCount))
                         lib.size = rep(1, ncol(matwin)),
                         trend.method = "none")
     thetaWins <- 1/phiWins$tagwise.dispersion
+    nobs <- nrow(runWinRleMm) # num of bins
+    thetaWinsRep <- matrix(rep(thetaWins, nobs), nrow=nobs, byrow=TRUE)
     # thetaWins <- t(1/
-
+    if(verbose) message("Computing scores")
+    z <- computeZnbLRT(mu1=runWinRleMm, mu2=lambdaChrRleMm, theta=thetaWinsRep,
+                       minCount=minCount)
                        # )
-    z <-  sqrt(2) * sign(runWinRleMm - lambdaChrRleMm) *
-        sqrt(
-            log( (thetaWins + lambdaChrRleMm) / (thetaWins + runWinRleMm) ) *
-                (thetaWins + runWinRleMm) -
-                runWinRleMm * log(lambdaChrRleMm/ pmax(runWinRleMm, minCount))
+    # z <-  sqrt(2) * sign(runWinRleMm - lambdaChrRleMm) *
+    #     sqrt(
+    #         log( (thetaWins + lambdaChrRleMm) / (thetaWins + runWinRleMm) ) *
+    #             (thetaWins + runWinRleMm) -
+    #             runWinRleMm * log(lambdaChrRleMm/ pmax(runWinRleMm, minCount))
             # runWinRleMm *
             #     log(pmax(runWinRleMm, minCount) / lambdaChrRleMm) -
             #     ((thetaWins+runWinRleMm) *
             #     log((thetaWins + lambdaChrRleMm) /
             #         (thetaWins + pmax(runWinRleMm, minCount))))
-        )
+        # )
+
+    z <- binToChrCoordMatRowNames(binMatrix=z,
+                                  chrLength=chrLength,
+                                  binWidth=binSize)
+    return(z)
+}
+
+
+#' computeRandomZNB
+#' @description Computes Z-Scores returning the z matrix.
+#'
+#' @param lambdaChrRleList an RleList of lambda values computed by
+#' computeLambdaOnChr function each element of the list is an Rle representing
+#' the lambda for the moving window in the list position.
+#' @param runWinRleList an RleList of coverage values computed.
+#' by computeCoverageMovingWindowOnChr function each element of the list is an
+#' Rle representing the coverage for the moving window in the list position.
+#' @param chrLength the length of the chr in analysis.
+#' @param minCount A small constant (usually no larger than one) to be added to
+#' the counts prior to the log transformation to avoid problems with log(0).
+#' @param binSize the size of the bin.
+#' @param verbose verbose output.
+#'
+#' @return z a matrix of z scores for each window (column) and bin (row).
+#' where the rownames represent the starting base of each bin.
+#' @keywords internal.
+computeRandomZNB <- function(lambdaChrRleList, runWinRleList, chrLength,
+                       minCount=0.1, binSize=50, verbose=FALSE)
+{
+    # runWinRleM <- RleListToRleMatrix(runWinRleList)
+    # lambdaChrRleM <- RleListToRleMatrix(lambdaChrRleList)
+
+    # lambdaChrRleMm <- matrix(unlist(lambdaChrRleList),
+    #                          ncol=20, byrow=TRUE)
+
+    lambdaChrRleMm <- matrix(unlist(lambdaChrRleList),
+                             ncol=length(lambdaChrRleList), byrow=FALSE)
+
+    # runWinRleMm <- matrix(unlist(runWinRleList), ncol=20, byrow=TRUE)
+    runWinRleMm <- matrix(unlist(runWinRleList),
+                          ncol=length(runWinRleList), byrow=FALSE)
+
+    if(verbose) message("Computing NB Z-Score")
+    matwin <- as.matrix(runWinRleList)
+    phiWins <- edgeR::estimateDisp(matwin,
+                                   # lib.size=pmax(apply(matwin, 2, sum) != 0, minCount))
+                                   lib.size = rep(1, ncol(matwin)),
+                                   trend.method = "none")
+    thetaWins <- 1/phiWins$tagwise.dispersion
+    # thetaWins <- t(1/
+
+    muMeanWins <- apply(runWinRleList, 2, mean)
+    nobs <- nrow(runWinRleMm) # num of bins
+    nbinom <- lapply(c(1:20), function(i) {
+        rnbinom(n=nobs, size=thetaWins[i], prob=sample(0:1,1), mu=muMeanWins[i])
+    })
+    # )
+    thetaWinsRep <- matrix(rep(thetaWins, nobs), nrow=nobs, byrow=TRUE)
+
+    z <- computeZnbLRT(mu1=runWinRleMm, mu2=lambdaChrRleMm, theta=thetaWinsRep,
+                        minCount=minCount)
+    # z <-  sqrt(2) * sign(runWinRleMm - lambdaChrRleMm) *
+    #     sqrt(
+    #         log( (thetaWins + lambdaChrRleMm) / (thetaWins + runWinRleMm) ) *
+    #             (thetaWins + runWinRleMm) -
+    #             runWinRleMm * log(lambdaChrRleMm/ pmax(runWinRleMm, minCount))
+    #         # runWinRleMm *
+    #         #     log(pmax(runWinRleMm, minCount) / lambdaChrRleMm) -
+    #         #     ((thetaWins+runWinRleMm) *
+    #         #     log((thetaWins + lambdaChrRleMm) /
+    #         #         (thetaWins + pmax(runWinRleMm, minCount))))
+    #     )
 
     z <- binToChrCoordMatRowNames(binMatrix=z,
                                   chrLength=chrLength,
@@ -692,10 +779,30 @@ binToChrCoordMatRowNames <- function(binMatrix, chrLength, binWidth=50)
     startBinRanges <- endBinRanges-(binWidth-1)
     if(dim(binMatrix)[1] != length(startBinRanges))
     {
-        stop("something went wrong! matrix row dimension",
+        stop("something went wrong! matrix row dimension ",
                 "different than expected")
     }
     rownames(binMatrix) <- startBinRanges
     return(binMatrix)
 }
 
+
+#' computeZnbLRT
+#'
+#' @param mu1 a matrix m x n
+#' @param mu2 a matrix m x n
+#' @param theta a matrix m x n (vector of theta has to be replicated m times)
+#' @param minCount a minimal constant to avoid zeros computations
+#'
+#' @return a matrix m x n of z values
+#' @keyword internal
+computeZnbLRT <- function(mu1, mu2, theta, minCount=0.1)
+{
+    zlrt <-  sqrt(2) * sign(mu1 - mu2) *
+        sqrt(
+            log( (theta + mu2) / (theta + mu1) ) *
+                (theta + mu1) -
+                mu1 * log(mu2 / pmax(mu1, minCount))
+        )
+    zlrt
+}

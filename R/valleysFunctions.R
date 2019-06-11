@@ -15,7 +15,7 @@
 #' regionsGR <- readRDS(file=filename)
 #' (valleysGR <- buildValleys(regionsGR, "mm9"))
 #'
-buildValleys <- function(regionsGR, genomeCode)
+buildValleys <- function(regionsGR, genomeCode, offsetBp=200)
 {
     stopifnot(is(regionsGR, "GRanges"))
     ref.genome <- as(rtracklayer::SeqinfoForUCSCGenome(genomeCode), "GRanges")
@@ -25,7 +25,13 @@ buildValleys <- function(regionsGR, genomeCode)
     valleys <- setdiff(ref.genome, regionsGR)
     idx <- grep(pattern="*score*", x=colnames(regionsGR@elementMetadata))
     scorename <- colnames(regionsGR@elementMetadata)[idx]
+
     valleys@elementMetadata[scorename] <- 0
+
+    valleys <- valleys[ GenomicRanges::width(valleys) >= (2 * offsetBp + 100) ]
+    start(valleys) <- start(valleys) + offsetBp
+    end(valleys) <- end(valleys) - offsetBp
+
     return(valleys)
 }
 
