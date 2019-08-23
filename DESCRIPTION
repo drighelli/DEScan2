@@ -1,7 +1,7 @@
 Package: DEScan2
 Type: Package
 Title: Differential Enrichment Scan 2
-Version: 1.5.0
+Version: 1.5.1
 Date: 2018-02-05
 Authors@R: c(
     person("Dario", "Righelli", role=c("aut", "cre"), 
@@ -36,7 +36,7 @@ Imports:
     plyr,
     Rcpp (>= 0.12.13),
     rtracklayer,
-    S4Vectors,
+    S4Vectors (>= 0.23.19),
     SummarizedExperiment,
     tools,
     utils
