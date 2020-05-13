@@ -70,8 +70,8 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
                         BPPARAM=BiocParallel::bpparam())
 {
 
-    if(!is.null(chr) && length(grep(pattern="chr", chr))!=length(chr))
-        stop("Insert valid chr(s), use the \"chr#\" form!")
+    #if(!is.null(chr) && length(grep(pattern="chr", chr))!=length(chr))
+    #    stop("Insert valid chr(s), use the \"chr#\" form!")
     if(!save) message("Save is false, not saving results!\n")
     if(length(files) == 0)
         stop("You have to provide one or more input files!\nExiting.")

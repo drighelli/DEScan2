@@ -598,8 +598,8 @@ cutGRangesPerChromosome <- function(GRanges)
 #' (grlChr <- keepRelevantChrs(grlc, c("chr1", "chr3")))
 keepRelevantChrs <- function(chrGRangesList, chr=NULL)
 {
-    if(!is.null(chr) && length(grep(pattern="chr", chr)) != length(chr))
-        stop("Insert valid chr(s), use the \"chr#\" form!")
+    # if(!is.null(chr) && length(grep(pattern="chr", chr)) != length(chr))
+    #     stop("Insert valid chr(s), use the \"chr#\" form!")
     # stopifnot(is(chrGRangesList, "GRangesList"))
 
     idxs <- which(names(chrGRangesList) %in% chr)
