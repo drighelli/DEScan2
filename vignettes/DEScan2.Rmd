@@ -238,6 +238,7 @@ differences in total counts in the count matrix can be due to the treatment of
 interest.
 
 ```{r RUV, cache=TRUE, eval=TRUE}
+
 library("RColorBrewer")
 colors <- brewer.pal(3, "Set2")
 set <- EDASeq::betweenLaneNormalization(counts, which = "upper")
@@ -283,10 +284,11 @@ In the end we get the coordinates of differentially enriched regions by
 subsetting the regions computed previously.
 
 ```{r test, cache=TRUE, eval=TRUE}
-design <- model.matrix(~0 + trt + s$W)
+design <- model.matrix(~0 + trt + sV$W)
 colnames(design) <- c(levels(trt), paste0("W", 1:k))
 
 y <- edgeR::DGEList(counts=counts, group=trt)
+ # y <- edgeR::calcNormFactors(y, "upperquartile")
 y <- edgeR::estimateDisp(y, design)
 
 fit <- edgeR::glmQLFit(y, design, robust=TRUE)

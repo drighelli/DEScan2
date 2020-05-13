@@ -36,7 +36,19 @@ buildValleys <- function(regionsGR, genomeCode, offsetBp=200)
 }
 
 
-#
+buildValleysList <- function(regionsGRList, genomeCode, offsetBp=200)
+{
+    stopifnot(is(regionsGRList, "GRangesList"))
+
+    valleyGRList <- lapply(regionsGRList, function(gr)
+    {
+        buildValleys(gr, genomeCode=genomeCode, offsetBp=offsetBp)
+    })
+    return(GRangesList(valleyGRList))
+}
+
+
+
 # reads.path <- system.file("extdata/bam", package="DEScan2")
 # finalRegionsSE <- countFinalRegions(regionsGRanges=valleysGR,
 #         readsFilePath=reads.path, fileType="bam", minCarriers=1,

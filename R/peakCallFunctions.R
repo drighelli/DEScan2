@@ -107,6 +107,7 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
 
         if(verbose) message("Calling Peaks on chromosomes...")
 
+             # chrGRanges <- bedGrangesChrsList[[1]]
         chrZRangesList <- GenomicRanges::GRangesList(
             BiocParallel::bplapply(bedGrangesChrsList, function(chrGRanges)
             {
@@ -155,16 +156,30 @@ findPeaks <- function(files, filetype=c("bam", "bed"),
             }
 
             newS <- c_get_disjoint_max_win(z0=Z,
-                                    sigwin=sigwin,
-                                    zthresh=0,
-                                    verbose=verbose)
-
+                                              sigwin=sigwin,
+                                              zthresh=0,
+                                              verbose=verbose)
             chrZRanges <- createGranges(
+                chrSeqInfo=GenomeInfoDb::seqinfo(chrGRanges),
+                starts=as.numeric(rownames(Z)[newS[,1]]),
+                widths=newSnew[,2]*binSize,
+                mcolname="z-score",
+                mcolvalues=newS[,3])
+            # newSnew <- c_get_disjoint_max_win(z0=Znew,
+            #                         sigwin=sigwin,
+            #                         zthresh=0,
+            #                         verbose=verbose)
+            newSold <- c_get_disjoint_max_win(z0=Zold,
+                                              sigwin=sigwin,
+                                              zthresh=0,
+                                              verbose=verbose)
+
+            chrZRangesnew <- createGranges(
                                 chrSeqInfo=GenomeInfoDb::seqinfo(chrGRanges),
-                                starts=as.numeric(rownames(Z)[newS[,1]]),
-                                widths=newS[,2]*binSize,
+                                starts=as.numeric(rownames(Znew)[newSnew[,1]]),
+                                widths=newSnew[,2]*binSize,
                                 mcolname="z-score",
-                                mcolvalues=newS[,3])
+                                mcolvalues=newSnew[,3])
 
             return(chrZRanges) ## one for each chromosome
             }, BPPARAM=BPPARAM)
