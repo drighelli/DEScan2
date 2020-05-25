@@ -1,5 +1,6 @@
-DEScan2 v1.3.3
+DEScan2 v1.9.1
 - removing check on chromosome string from callPeaks and keepRelevantChrs
+
 DEScan2 v1.3.2
 - fixed finalRegions vignettes error
 - minor adjustment fixing
