@@ -157,7 +157,7 @@ setGRGenomeInfo <- function(GRanges, genomeName=NULL, verbose=FALSE)
 #' @description Constructs a GRanges object from a bam/bed/bed.zip file in a
 #' consistent way.
 #' @param filename the complete file path of a bam?bed file.
-#' @param filetype the file type bam/bed/bed.zip.
+#' @param filetype the file type bam/bed/bed.zip/narrow/broad.
 #' @param genomeName the name of the genome used to map the reads (i.e. "mm9").
 #' N.B. if NOT NULL the GRanges Seqinfo will be forced to genomeName Seqinfo
 #' (needs Internet access, but strongly suggested!)
@@ -177,7 +177,8 @@ setGRGenomeInfo <- function(GRanges, genomeName=NULL, verbose=FALSE)
 #'                             onlyStdChrs=TRUE)
 #' bgr
 constructBedRanges <- function(filename,
-                                filetype=c("bam", "bed", "bed.zip"),
+                                filetype=c("bam", "bed", "bed.zip",
+                                            "narrow", "broad"),
                                 genomeName=NULL,
                                 onlyStdChrs=FALSE,
                                 arePeaks=FALSE,
@@ -237,8 +238,8 @@ constructBedRanges <- function(filename,
 #' them in a GRangesList object, named with filePath/filenames.
 #' (for lazy people)
 #' @param filePath the path of input files.
-#' @param fileType the type of the files (bam/bed/bed.zip).
-#' @param genomeName the genome code to associate to the files. (reccommended)
+#' @param fileType the type of the files (bam/bed/bed.zip/narrow/broad).
+#' @param genomeName the genome code to associate to the files. (recommended)
 #' (i.e. "mm9", "hg17")
 #' @param onlyStdChrs a flag to keep only standard chromosomes.
 #' @param arePeaks a flag indicating if the files contain peaks.
@@ -256,7 +257,8 @@ constructBedRanges <- function(filename,
 #' class(grl)
 #' names(grl)
 #' grl
-readFilesAsGRangesList <- function(filePath, fileType=c("bam", "bed","bed.zip"),
+readFilesAsGRangesList <- function(filePath, fileType=c("bam", "bed", "bed.zip",
+                                                        "narrow", "broad"),
                             genomeName=NULL, onlyStdChrs=TRUE, arePeaks=TRUE,
                             verbose=TRUE)
 {
