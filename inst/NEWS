@@ -1,3 +1,6 @@
+DEScan2 v1.11.1
+- patching error with no score colname found by finalRegion functions
+
 DEScan2 v1.9.2
 - adding support for narrow and broad peak loading
 

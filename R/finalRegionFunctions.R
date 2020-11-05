@@ -243,6 +243,9 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
                                                         connectedPeaks="merge")
 
             mmpeaks <- grij$peaksInMergedPeaks
+
+
+
             if(length(mmpeaks) == 0)
             {
                 message("No merged peaks found at sample ", i,
@@ -254,12 +257,31 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
                 next
             }
 
+            ##### Patch for missing score column name in findOverlapsOfPeaks
+            mmpeaks$score <- NA
+            colnames(mcols(mmpeaks)) <- c(colnames(mcols(grij$peaksInMergedPeaks)), scorecolname)
+            grip <- grep("gri", names(mmpeaks))
+            grjp <- grep("grj", names(mmpeaks))
+            grim <- sort(mmpeaks[grip])
+            grjm <- sort(mmpeaks[grjp])
+            gri <- sort(gri)
+            grj <- sort(grj)
+            idx <- which(gsub("gri__", "", names(grim)) %in% names(gri))
+            imdx <- which(names(gri) %in% gsub("gri__", "", names(grim)))
+            mcols(grim)[idx, scorecolname] <- mcols(gri)[imdx[!is.na(imdx)], scorecolname]
+            jdx <- which(gsub("grj__", "", names(grjm)) %in% names(grj))
+            jmdx <- which(names(grj) %in% gsub("grj__", "", names(grjm)))
+            mcols(grjm)[jdx, scorecolname] <- mcols(grj)[jmdx[!is.na(jmdx)], scorecolname]
+            mmpeaks <- c(grim, grjm)
+            #########
+
             ## cleaning peaks names
             mrgPks <- grij$mergedPeaks
             mrgPksNms <- as.list(mrgPks$peakNames)
             # stTime <- Sys.time()
             newcols <- lapply(mrgPksNms, function(l)
             {
+                # print(l)
                 idx <- which(names(mmpeaks) %in% l)
                 scores <- as.numeric(S4Vectors::mcols(mmpeaks)[idx,
                                                             scorecolname])
