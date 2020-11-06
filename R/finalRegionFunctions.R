@@ -227,6 +227,7 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
     {
         for(i in 2:length(namedSamplePeaksGRL))
         {
+            # print(i)
             if( i == 2 ) {
                 gri <- namedSamplePeaksGRL[[1]]
                 foundedPeaks <- NULL
@@ -244,8 +245,6 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
 
             mmpeaks <- grij$peaksInMergedPeaks
 
-
-
             if(length(mmpeaks) == 0)
             {
                 message("No merged peaks found at sample ", i,
@@ -258,21 +257,24 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
             }
 
             ##### Patch for missing score column name in findOverlapsOfPeaks
-            mmpeaks$score <- NA
-            colnames(mcols(mmpeaks)) <- c(colnames(mcols(grij$peaksInMergedPeaks)), scorecolname)
-            grip <- grep("gri", names(mmpeaks))
-            grjp <- grep("grj", names(mmpeaks))
-            grim <- sort(mmpeaks[grip])
-            grjm <- sort(mmpeaks[grjp])
-            gri <- sort(gri)
-            grj <- sort(grj)
-            idx <- which(gsub("gri__", "", names(grim)) %in% names(gri))
-            imdx <- which(names(gri) %in% gsub("gri__", "", names(grim)))
-            mcols(grim)[idx, scorecolname] <- mcols(gri)[imdx[!is.na(imdx)], scorecolname]
-            jdx <- which(gsub("grj__", "", names(grjm)) %in% names(grj))
-            jmdx <- which(names(grj) %in% gsub("grj__", "", names(grjm)))
-            mcols(grjm)[jdx, scorecolname] <- mcols(grj)[jmdx[!is.na(jmdx)], scorecolname]
-            mmpeaks <- c(grim, grjm)
+            if(sum(scorecolname %in% colnames(mcols(mmpeaks)))==0)
+            {
+                mmpeaks$score <- NA
+                colnames(mcols(mmpeaks)) <- c(colnames(mcols(grij$peaksInMergedPeaks)), scorecolname)
+                grip <- grep("gri", names(mmpeaks))
+                grjp <- grep("grj", names(mmpeaks))
+                grim <- sort(mmpeaks[grip])
+                grjm <- sort(mmpeaks[grjp])
+                gri <- sort(gri)
+                grj <- sort(grj)
+                idx <- which(gsub("gri__", "", names(grim)) %in% names(gri))
+                imdx <- which(names(gri) %in% gsub("gri__", "", names(grim)))
+                mcols(grim)[idx, scorecolname] <- mcols(gri)[imdx[!is.na(imdx)], scorecolname]
+                jdx <- which(gsub("grj__", "", names(grjm)) %in% names(grj))
+                jmdx <- which(names(grj) %in% gsub("grj__", "", names(grjm)))
+                mcols(grjm)[jdx, scorecolname] <- mcols(grj)[jmdx[!is.na(jmdx)], scorecolname]
+                mmpeaks <- c(grim, grjm)
+            }
             #########
 
             ## cleaning peaks names
