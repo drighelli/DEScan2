@@ -318,7 +318,7 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
 
             ## peaks uniques
             unqPks <- grij$uniquePeaks
-            if(sum(scorecolname %in% colnames(mcols(mmpeaks)))==0)
+            if(sum(scorecolname %in% colnames(mcols(unqPks)))==0)
             {
                 unqPks <- .addScoreCol(targetgr=unqPks, gri=gri, grj=grj, scorecolname=scorecolname)
             }
