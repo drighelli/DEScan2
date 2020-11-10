@@ -4,16 +4,21 @@
 \alias{readFilesAsGRangesList}
 \title{readFilesAsGRangesList}
 \usage{
-readFilesAsGRangesList(filePath, fileType = c("bam", "bed", "bed.zip"),
-  genomeName = NULL, onlyStdChrs = TRUE, arePeaks = TRUE,
-  verbose = TRUE)
+readFilesAsGRangesList(
+  filePath,
+  fileType = c("bam", "bed", "bed.zip", "narrow", "broad"),
+  genomeName = NULL,
+  onlyStdChrs = TRUE,
+  arePeaks = TRUE,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{filePath}{the path of input files.}
 
-\item{fileType}{the type of the files (bam/bed/bed.zip).}
+\item{fileType}{the type of the files (bam/bed/bed.zip/narrow/broad).}
 
-\item{genomeName}{the genome code to associate to the files. (reccommended)
+\item{genomeName}{the genome code to associate to the files. (recommended)
 (i.e. "mm9", "hg17")}
 
 \item{onlyStdChrs}{a flag to keep only standard chromosomes.}

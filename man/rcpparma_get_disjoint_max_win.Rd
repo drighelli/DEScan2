@@ -5,8 +5,13 @@
 \title{rcpparma_get_disjoint_max_win
 Computes the disjoint max_win matrix.}
 \usage{
-rcpparma_get_disjoint_max_win(z0, sigwin = 10L, zthresh = 10,
-  nmax = 9999999L, verbose = TRUE)
+rcpparma_get_disjoint_max_win(
+  z0,
+  sigwin = 10L,
+  zthresh = 10,
+  nmax = 9999999L,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{z0}{a matrix.}

@@ -3,7 +3,6 @@
 \docType{package}
 \name{DEScan2}
 \alias{DEScan2}
-\alias{DEScan2-package}
 \title{DEScan2}
 \description{
 integrated peak and differential caller,

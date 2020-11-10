@@ -4,8 +4,13 @@
 \alias{saveGRangesAsBed}
 \title{saveGRangesAsBed}
 \usage{
-saveGRangesAsBed(GRanges, filepath = tempdir(), filename = tempfile(),
-  force = FALSE, verbose = FALSE)
+saveGRangesAsBed(
+  GRanges,
+  filepath = tempdir(),
+  filename = tempfile(),
+  force = FALSE,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{GRanges}{the GRanges object.}

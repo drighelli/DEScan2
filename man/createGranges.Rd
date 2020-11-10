@@ -4,8 +4,7 @@
 \alias{createGranges}
 \title{createGranges}
 \usage{
-createGranges(chrSeqInfo, starts, widths, mcolname = NULL,
-  mcolvalues = NULL)
+createGranges(chrSeqInfo, starts, widths, mcolname = NULL, mcolvalues = NULL)
 }
 \arguments{
 \item{chrSeqInfo}{a seqinfo object.}

@@ -4,9 +4,16 @@
 \alias{finalRegions}
 \title{finalRegions}
 \usage{
-finalRegions(peakSamplesGRangesList, zThreshold = 20, minCarriers = 2,
-  saveFlag = TRUE, outputFolder = "overlappedPeaks", verbose = FALSE,
-  scorecolname = "z-score", BPPARAM = BiocParallel::bpparam())
+finalRegions(
+  peakSamplesGRangesList,
+  zThreshold = 20,
+  minCarriers = 2,
+  saveFlag = TRUE,
+  outputFolder = "overlappedPeaks",
+  verbose = FALSE,
+  scorecolname = "z-score",
+  BPPARAM = BiocParallel::bpparam()
+)
 }
 \arguments{
 \item{peakSamplesGRangesList}{named GRangesList where each element is a

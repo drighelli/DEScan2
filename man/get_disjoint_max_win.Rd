@@ -4,8 +4,14 @@
 \alias{get_disjoint_max_win}
 \title{get_disjoint_max_win}
 \usage{
-get_disjoint_max_win(z0, sigwin = 20, nmax = Inf, zthresh = -Inf,
-  two_sided = FALSE, verbose = FALSE)
+get_disjoint_max_win(
+  z0,
+  sigwin = 20,
+  nmax = Inf,
+  zthresh = -Inf,
+  two_sided = FALSE,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{z0}{Matrix containing z scores with bins as rows and windows size as

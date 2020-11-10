@@ -146,6 +146,27 @@ initMergedPeaksNames <- function(mergedGRanges)
     return(mergedGRanges)
 }
 
+.addScoreCol <- function(targetgr, gri, grj, scorecolname)
+{
+    oldcols <- colnames(mcols(targetgr))
+    targetgr$score <- NA
+    colnames(mcols(targetgr)) <- c(oldcols, scorecolname)
+    grip <- grep("gri", names(targetgr))
+    grjp <- grep("grj", names(targetgr))
+    grim <- sort(targetgr[grip])
+    grjm <- sort(targetgr[grjp])
+    gri <- sort(gri)
+    grj <- sort(grj)
+    idx <- which(gsub("gri__", "", names(grim)) %in% names(gri))
+    imdx <- which(names(gri) %in% gsub("gri__", "", names(grim)))
+    mcols(grim)[idx, scorecolname] <- mcols(gri)[imdx[!is.na(imdx)], scorecolname]
+    jdx <- which(gsub("grj__", "", names(grjm)) %in% names(grj))
+    jmdx <- which(names(grj) %in% gsub("grj__", "", names(grjm)))
+    mcols(grjm)[jdx, scorecolname] <- mcols(grj)[jmdx[!is.na(jmdx)], scorecolname]
+    targetgr <- c(grim, grjm)
+    return(targetgr)
+}
+
 #' findOverlapsOverSamples
 #' @description given in input a GRangeList where each element is a sample
 #' computes the coverage extending a both direction window of prefixed length.
@@ -259,21 +280,7 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
             ##### Patch for missing score column name in findOverlapsOfPeaks
             if(sum(scorecolname %in% colnames(mcols(mmpeaks)))==0)
             {
-                mmpeaks$score <- NA
-                colnames(mcols(mmpeaks)) <- c(colnames(mcols(grij$peaksInMergedPeaks)), scorecolname)
-                grip <- grep("gri", names(mmpeaks))
-                grjp <- grep("grj", names(mmpeaks))
-                grim <- sort(mmpeaks[grip])
-                grjm <- sort(mmpeaks[grjp])
-                gri <- sort(gri)
-                grj <- sort(grj)
-                idx <- which(gsub("gri__", "", names(grim)) %in% names(gri))
-                imdx <- which(names(gri) %in% gsub("gri__", "", names(grim)))
-                mcols(grim)[idx, scorecolname] <- mcols(gri)[imdx[!is.na(imdx)], scorecolname]
-                jdx <- which(gsub("grj__", "", names(grjm)) %in% names(grj))
-                jmdx <- which(names(grj) %in% gsub("grj__", "", names(grjm)))
-                mcols(grjm)[jdx, scorecolname] <- mcols(grj)[jmdx[!is.na(jmdx)], scorecolname]
-                mmpeaks <- c(grim, grjm)
+                mmpeaks <- .addScoreCol(targetgr=mmpeaks, gri=gri, grj=grj, scorecolname=scorecolname)
             }
             #########
 
@@ -311,12 +318,15 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
 
             ## peaks uniques
             unqPks <- grij$uniquePeaks
+            unqPks <- .addScoreCol(targetgr=unqPks, gri=gri, grj=grj, scorecolname=scorecolname)
             ## putting together all the peaks
             foundedPeaks <- unlist(GenomicRanges::GRangesList(unqPks, mrgPks))
 
             foundedPeaks <- initMergedPeaksNames(foundedPeaks)
+            if(sum(is.na(foundedPeaks$score))!=0) stop(paste0("score NA at iteration: ",i))
         }
     } else if(length(namedSamplePeaksGRL) == 1) {
+        print()
         foundedPeaks <- initMergedPeaksNames(namedSamplePeaksGRL[[1]])
     } else if(length(namedSamplePeaksGRL) == 0){
         stop("No regions found with this threshold!")

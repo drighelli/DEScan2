@@ -4,8 +4,14 @@
 \alias{computeZ}
 \title{computeZ}
 \usage{
-computeZ(lambdaChrRleList, runWinRleList, chrLength, minCount = 0.1,
-  binSize = 50, verbose = FALSE)
+computeZ(
+  lambdaChrRleList,
+  runWinRleList,
+  chrLength,
+  minCount = 0.1,
+  binSize = 50,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{lambdaChrRleList}{an RleList of lambda values computed by

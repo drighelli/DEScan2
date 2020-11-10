@@ -4,9 +4,15 @@
 \alias{findOverlapsOverSamples}
 \title{findOverlapsOverSamples}
 \usage{
-findOverlapsOverSamples(samplePeaksGRangelist, extendRegions = 200,
-  minOverlap = 0L, maxGap = -1L, zThresh = 10, verbose = FALSE,
-  scorecolname = "z-score")
+findOverlapsOverSamples(
+  samplePeaksGRangelist,
+  extendRegions = 200,
+  minOverlap = 0L,
+  maxGap = -1L,
+  zThresh = 10,
+  verbose = FALSE,
+  scorecolname = "z-score"
+)
 }
 \arguments{
 \item{samplePeaksGRangelist}{given a granges list of samples finds

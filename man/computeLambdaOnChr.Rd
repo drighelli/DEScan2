@@ -4,9 +4,15 @@
 \alias{computeLambdaOnChr}
 \title{computeLambdaOnChr}
 \usage{
-computeLambdaOnChr(chrGRanges, winVector = seq_len(20), minChrRleWComp,
-  minCompWinWidth = 5000, maxChrRleWComp, maxCompWinWidth = 10000,
-  verbose = TRUE)
+computeLambdaOnChr(
+  chrGRanges,
+  winVector = seq_len(20),
+  minChrRleWComp,
+  minCompWinWidth = 5000,
+  maxChrRleWComp,
+  maxCompWinWidth = 10000,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{chrGRanges}{the GRanges representing the reads of the chromosome.}

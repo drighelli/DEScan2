@@ -2,6 +2,7 @@
 
 export(RleListToRleMatrix)
 export(binnedCoverage)
+export(buildValleys)
 export(constructBedRanges)
 export(countFinalRegions)
 export(createGranges)

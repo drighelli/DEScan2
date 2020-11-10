@@ -4,8 +4,13 @@
 \alias{c_get_disjoint_max_win}
 \title{c_get_disjoint_max_win}
 \usage{
-c_get_disjoint_max_win(z0, sigwin = 10, nmax = 9999999, zthresh = 10,
-  verbose = FALSE)
+c_get_disjoint_max_win(
+  z0,
+  sigwin = 10,
+  nmax = 9999999,
+  zthresh = 10,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{z0}{the z matrix.}

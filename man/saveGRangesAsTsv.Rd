@@ -4,8 +4,13 @@
 \alias{saveGRangesAsTsv}
 \title{saveGRangesAsTsv}
 \usage{
-saveGRangesAsTsv(GRanges, filepath = tempdir(), filename = tempfile(),
-  force = FALSE, verbose = FALSE)
+saveGRangesAsTsv(
+  GRanges,
+  filepath = tempdir(),
+  filename = tempfile(),
+  force = FALSE,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{GRanges}{the GRanges object.}
