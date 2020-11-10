@@ -318,7 +318,10 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
 
             ## peaks uniques
             unqPks <- grij$uniquePeaks
-            unqPks <- .addScoreCol(targetgr=unqPks, gri=gri, grj=grj, scorecolname=scorecolname)
+            if(sum(scorecolname %in% colnames(mcols(mmpeaks)))==0)
+            {
+                unqPks <- .addScoreCol(targetgr=unqPks, gri=gri, grj=grj, scorecolname=scorecolname)
+            }
             ## putting together all the peaks
             foundedPeaks <- unlist(GenomicRanges::GRangesList(unqPks, mrgPks))
 
