@@ -17,6 +17,7 @@ Maintainer: Dario Righelli <dario.righelli@gmail.com>
 Description: 
     Integrated peak and differential caller, specifically designed for
     broad epigenomic signals.
+Encoding: UTF-8
 License: Artistic-2.0
 LazyData: TRUE
 biocViews: ImmunoOncology, PeakDetection, Epigenetics, Software, Sequencing, Coverage
