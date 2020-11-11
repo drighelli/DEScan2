@@ -317,14 +317,19 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
 
             ## peaks uniques
             unqPks <- grij$uniquePeaks
-            ##### Patch for missing score column name in findOverlapsOfPeaks
-            if(sum(scorecolname %in% colnames(mcols(unqPks)))==0)
+            if( length(unqPks) > 0 )
             {
-                unqPks <- .addScoreCol(targetgr=unqPks, gri=gri, grj=grj, scorecolname=scorecolname)
+                ##### Patch for missing score column name in findOverlapsOfPeaks
+                if(sum(scorecolname %in% colnames(mcols(unqPks)))==0)
+                {
+                    unqPks <- .addScoreCol(targetgr=unqPks, gri=gri, grj=grj, scorecolname=scorecolname)
+                }
+                ################################################################
+                ## putting together all the peaks
+                foundedPeaks <- unlist(GenomicRanges::GRangesList(unqPks, mrgPks))
+            } else {
+                foundedPeaks <- mrgPks
             }
-            ################################################################
-            ## putting together all the peaks
-            foundedPeaks <- unlist(GenomicRanges::GRangesList(unqPks, mrgPks))
 
             foundedPeaks <- initMergedPeaksNames(foundedPeaks)
             if(sum(is.na(foundedPeaks$score))!=0) stop(paste0("score NA at iteration: ",i))
