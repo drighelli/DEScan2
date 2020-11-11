@@ -208,7 +208,7 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
                                     scorecolname="z-score")
 {
     stopifnot(is(samplePeaksGRangelist, "GRangesList"))
-
+    print("start overlap samples")
     namedSamplePeaksGRL <- giveUniqueNamesToPeaksOverSamples(
                                                         samplePeaksGRangelist)
 
@@ -248,7 +248,7 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
     {
         for(i in 2:length(namedSamplePeaksGRL))
         {
-            print(i)
+
             if( i == 2 ) {
                 gri <- namedSamplePeaksGRL[[1]]
                 foundedPeaks <- NULL
@@ -263,7 +263,6 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
                                                         minoverlap=minOverlap,
                                                         maxgap=maxGap,
                                                         connectedPeaks="merge")
-
             mmpeaks <- grij$peaksInMergedPeaks
 
             if(length(mmpeaks) == 0)
@@ -338,6 +337,7 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
     # endingTime <- Sys.time()
     # print((endingTime - startTime))
     # save(foundedPeaks, file="testData/new_files/foundedPeaks.RData")
+    print("end overlap samples")
     return(foundedPeaks)
 }
 
