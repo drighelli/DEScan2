@@ -246,7 +246,6 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
     {
         for(i in 2:length(namedSamplePeaksGRL))
         {
-            print(i)
             if( i == 2 ) {
                 gri <- namedSamplePeaksGRL[[1]]
                 foundedPeaks <- NULL
