@@ -112,7 +112,7 @@ countFinalRegions <- function(regionsGRanges, readsFilePath=NULL,
                                         date()), " ")[[1]], collapse="_")
         filename <- paste0("regions_", datename, "_minK", minCarriers,
                             "_mso", modeSO, ".tsv")
-        utils::write.table(x=summRegMat, file=paste0(savePath, filename),
+        utils::write.table(x=summRegMat, file=file.path(savePath, filename),
                             quote=FALSE, sep="\t")
         if(verbose) message("file ", filename, " saved on disk!")
     }
