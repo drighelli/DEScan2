@@ -1,5 +1,9 @@
+DEScan2 v1.15.1
+- fixing glue::collapse deprecation
+
 DEScan2 v1.11.2
 - patching error with no score colname found by finalRegion functions
+- fixing file.path into countFinalRegions
 
 DEScan2 v1.9.2
 - adding support for narrow and broad peak loading
