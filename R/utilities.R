@@ -78,6 +78,7 @@ readBedFile <- function(filename, arePeaks=FALSE)
 #' @return a GRanges object with the seqinfo of the genome code
 #' @export
 #' @importFrom S4Vectors runValue
+#' @importFrom glue glue_collapse
 #' @importFrom GenomeInfoDb seqnames Seqinfo seqinfo
 #' @examples
 #' library("GenomicRanges")
@@ -131,7 +132,7 @@ setGRGenomeInfo <- function(GRanges, genomeName=NULL, verbose=FALSE)
     }
     else
     {
-        stop("Cannot find the ", glue::collapse(uniqueSeqnames, " "),
+        stop("Cannot find the ", glue::glue_collapse(uniqueSeqnames, " "),
             " in genome ", genomeName,
             " Maybe a problem of chromosome labels")
     }
@@ -168,7 +169,6 @@ setGRGenomeInfo <- function(GRanges, genomeName=NULL, verbose=FALSE)
 #' @export
 #' @importFrom GenomeInfoDb keepStandardChromosomes seqinfo Seqinfo seqnames
 #' keepSeqlevels
-#' @importFrom glue collapse
 #' @importFrom GenomicRanges sort
 #' @examples
 #' files <- list.files(system.file("extdata/bam/", package="DEScan2"),
