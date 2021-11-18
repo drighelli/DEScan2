@@ -78,8 +78,8 @@ readBedFile <- function(filename, arePeaks=FALSE)
 #' @return a GRanges object with the seqinfo of the genome code
 #' @export
 #' @importFrom S4Vectors runValue
-#' @importFrom glue glue_collapse
 #' @importFrom GenomeInfoDb seqnames Seqinfo seqinfo
+#' @importFrom glue glue_collapse
 #' @examples
 #' library("GenomicRanges")
 #' gr <- GRanges(
