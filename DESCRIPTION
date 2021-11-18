@@ -42,7 +42,7 @@ Imports:
     tools,
     utils
 LinkingTo: Rcpp, RcppArmadillo
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 Suggests: 
     BiocStyle, 
     knitr, 
