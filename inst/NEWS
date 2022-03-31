@@ -1,3 +1,6 @@
+DEScan2 v1.15.4
+- adding coverageFlag to the findOverlapsOverSamples function: see doc
+
 DEScan2 v1.15.3
 - fixing glue::collapse deprecation
 
