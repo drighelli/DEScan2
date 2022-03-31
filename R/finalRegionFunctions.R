@@ -16,6 +16,9 @@
 #' @param verbose verbose output.
 #' @param scorecolname character describing the name of the column within the
 #' peaks score.
+#' @param coverageFlag boolean indicating if to compute the scores in a coverage
+#' mode (sum of the reads of merged peak) or in a score mode
+#' (a normalized score across the merged peaks)
 #' @param BPPARAM object of class \code{bpparamClass} that specifies the
 #'   back-end to be used for computations. See
 #'   \code{\link[BiocParallel]{bpparam}} for details.
@@ -39,6 +42,7 @@ finalRegions <- function(peakSamplesGRangesList, zThreshold=20, minCarriers=2,
                                     outputFolder="overlappedPeaks",
                                     verbose=FALSE,
                                     scorecolname="z-score",
+                                    coverageFlag=FALSE,
                                     BPPARAM=BiocParallel::bpparam())
 {
     stopifnot(is(peakSamplesGRangesList, "GRangesList"))
@@ -61,7 +65,7 @@ finalRegions <- function(peakSamplesGRangesList, zThreshold=20, minCarriers=2,
         {
             return(findOverlapsOverSamples(chrSampleGRList,
                     zThresh=zThreshold, verbose=verbose,
-                    scorecolname=scorecolname))
+                    scorecolname=scorecolname, coverageFlag=coverageFlag))
         }, BPPARAM=BPPARAM)
     )
     overlappedPeaksGR <- unlist(overlappedPeaksGRList)
@@ -182,6 +186,9 @@ initMergedPeaksNames <- function(mergedGRanges)
 #' @param scorecolname character describing the name of the column within the
 #' peaks score.
 #' @param zThresh a threshold value on z-score/scorecolname
+#' @param coverageFlag boolean indicating if to compute the scores in a coverage
+#' mode (sum of the reads of merged peak) or in a score mode
+#' (a normalized score across the merged peaks)
 #'
 #' @return a GRanges of peaks overlapped and unique between samples.
 #' @export
@@ -204,7 +211,8 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
                                     maxGap=-1L,
                                     zThresh=10,
                                     verbose=FALSE,
-                                    scorecolname="z-score")
+                                    scorecolname="z-score",
+                                    coverageFlag=FALSE)
 {
     stopifnot(is(samplePeaksGRangelist, "GRangesList"))
     namedSamplePeaksGRL <- giveUniqueNamesToPeaksOverSamples(
@@ -290,12 +298,19 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
                 idx <- which(names(mmpeaks) %in% l)
                 scores <- as.numeric(S4Vectors::mcols(mmpeaks)[idx,
                                                             scorecolname])
-                nPeaks <- as.numeric(mmpeaks$`n-peaks`[idx])
                 kCarr <- as.numeric(mmpeaks$`k-carriers`[idx])
+                nPeaks <- as.numeric(mmpeaks$`n-peaks`[idx])
                 np = sum(nPeaks) ## total number of peaks found
-                ## it's necessary to rescale the score on the basis of the peaks
-                ## found from previous computations
-                mmzp <- sum(scores*nPeaks)/np
+                if (!coverageFlag)
+                {
+                    ## it's necessary to rescale the score on the basis of the peaks
+                    ## found from previous computations
+                    mmzp <- sum(scores*nPeaks)/np
+                } else {
+                    ## in this case we compute the coverage as the sum of the scores,
+                    ## which in turn are the number of the reads per each peak
+                    mmzp <- sum(scores)
+                }
                 ## the carriers are just the number of samples
                 k <- max(kCarr)+1
                 as.data.frame(cbind(mmzp, np, k))

@@ -12,6 +12,7 @@ finalRegions(
   outputFolder = "overlappedPeaks",
   verbose = FALSE,
   scorecolname = "z-score",
+  coverageFlag = FALSE,
   BPPARAM = BiocParallel::bpparam()
 )
 }
@@ -35,6 +36,10 @@ regions.}
 
 \item{scorecolname}{character describing the name of the column within the
 peaks score.}
+
+\item{coverageFlag}{boolean indicating if to compute the scores in a coverage
+mode (sum of the reads of merged peak) or in a score mode
+(a normalized score across the merged peaks)}
 
 \item{BPPARAM}{object of class \code{bpparamClass} that specifies the
 back-end to be used for computations. See
