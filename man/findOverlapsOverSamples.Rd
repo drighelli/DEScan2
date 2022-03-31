@@ -11,7 +11,8 @@ findOverlapsOverSamples(
   maxGap = -1L,
   zThresh = 10,
   verbose = FALSE,
-  scorecolname = "z-score"
+  scorecolname = "z-score",
+  coverageFlag = FALSE
 )
 }
 \arguments{
@@ -33,6 +34,10 @@ and end.}
 
 \item{scorecolname}{character describing the name of the column within the
 peaks score.}
+
+\item{coverageFlag}{boolean indicating if to compute the scores in a coverage
+mode (sum of the reads of merged peak) or in a score mode
+(a normalized score across the merged peaks)}
 }
 \value{
 a GRanges of peaks overlapped and unique between samples.
