@@ -42,7 +42,9 @@ finalRegions <- function(peakSamplesGRangesList, zThreshold=20, minCarriers=2,
                                     outputFolder="overlappedPeaks",
                                     verbose=FALSE,
                                     scorecolname="z-score",
-                                    coverageFlag=FALSE,
+                                    #coverageFlag=FALSE,
+                                    scoreBy=c("normalized", "groups", "sum"),
+                                    multiSamples=FALSE,
                                     BPPARAM=BiocParallel::bpparam())
 {
     stopifnot(is(peakSamplesGRangesList, "GRangesList"))
@@ -50,22 +52,22 @@ finalRegions <- function(peakSamplesGRangesList, zThreshold=20, minCarriers=2,
     if(verbose) message("computing final regions on ",
                         length(peakSamplesGRangesList), " samples...")
     zedPeaksSamplesGRList <- GenomicRanges::GRangesList(
-                    lapply(peakSamplesGRangesList, function(sample)
-                    {
-                        return(sample[
-                            which(S4Vectors::mcols(sample)[[scorecolname]]
-                                                            >= zThreshold),])
-                    }))
-
+        lapply(peakSamplesGRangesList, function(sample)
+        {
+            return(sample[which(
+                S4Vectors::mcols(sample)[[scorecolname]] >= zThreshold),])
+        }))
+    if(verbose) message("Converting samplesGRL to ChrsGRL ... ")
     zedPeaksChrsGRList <- fromSamplesToChrsGRangesList(zedPeaksSamplesGRList)
-
+    if(verbose) message("Looking for overlapping regions over samepls")
     #### to parallelize over chrs
     overlappedPeaksGRList <- GenomicRanges::GRangesList(
         BiocParallel::bplapply(zedPeaksChrsGRList, function(chrSampleGRList)
         {
             return(findOverlapsOverSamples(chrSampleGRList,
                     zThresh=zThreshold, verbose=verbose,
-                    scorecolname=scorecolname, coverageFlag=coverageFlag))
+                    scorecolname=scorecolname, scoreBy=scoreBy,
+                    multiSamples=multiSamples))
         }, BPPARAM=BPPARAM)
     )
     overlappedPeaksGR <- unlist(overlappedPeaksGRList)
@@ -102,16 +104,26 @@ giveUniqueNamesToPeaksOverSamples <- function(samplePeaksGRangelist)
     ncs <- nchar(as.character(ns))
     ## total number of decimals for the peaks taking the max number of peaks
     ncp <- nchar(as.character(max(unlist(
-                                        lapply(samplePeaksGRangelist, length)
-                                        ))))
-    sFormat <- paste0("s%0", ncs,"d")
-    format <- paste0("s%0", ncs,"d_p%0", ncp, "d")
+        lapply(samplePeaksGRangelist, length)))))
+    smplnms <- TRUE
+    if ( is.null(names(samplePeaksGRangelist)) )
+    {
+        sFormat <- paste0("s%0", ncs,"d")
+        format <- paste0("s%0", ncs,"d_p%0", ncp, "d")
+        smplnms <- FALSE
+    }
+
     ## for each sample assign unique names to the peaks
     samplePeaksGRangelista <- lapply(
         seq_along(samplePeaksGRangelist),
         function(x, i)
         {
-            peakNames <- sprintf(format, i, seq_len(length(x[[i]])))
+            if (!smplnms) {
+                peakNames <- sprintf(format, i, seq_len(length(x[[i]])))
+            } else {
+                peakNames <- paste0(names(samplePeaksGRangelist)[i], "_", seq_len(length(x[[i]])))
+            }
+
             # print(peakNames)
             y <- x[[i]]
             names(y) <- peakNames
@@ -122,9 +134,14 @@ giveUniqueNamesToPeaksOverSamples <- function(samplePeaksGRangelist)
         },
         x=samplePeaksGRangelist
     )
+    if (!smplnms)
+    {
+        names(samplePeaksGRangelista) <- sprintf(sFormat,
+            seq_along(samplePeaksGRangelist))
+    } else {
+        names(samplePeaksGRangelista) <- names(samplePeaksGRangelist)
+    }
 
-    names(samplePeaksGRangelista) <- sprintf(sFormat,
-                                            seq_along(samplePeaksGRangelist))
     return(samplePeaksGRangelista)
 }
 
@@ -193,7 +210,7 @@ initMergedPeaksNames <- function(mergedGRanges)
 #' @return a GRanges of peaks overlapped and unique between samples.
 #' @export
 #'
-#' @importFrom S4Vectors mcols runValue
+#' @importFrom S4Vectors mcols runValue cbind.DataFrame
 #' @importFrom BiocGenerics start end
 #' @importFrom GenomeInfoDb seqlengths seqnames
 #' @importFrom ChIPpeakAnno findOverlapsOfPeaks
@@ -212,19 +229,23 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
                                     zThresh=10,
                                     verbose=FALSE,
                                     scorecolname="z-score",
-                                    coverageFlag=FALSE)
+                                    #coverageFlag=FALSE,
+                                    scoreBy=c("normalized", "groups", "sum"),
+                                    multiSamples=FALSE)
 {
     stopifnot(is(samplePeaksGRangelist, "GRangesList"))
-    namedSamplePeaksGRL <- giveUniqueNamesToPeaksOverSamples(
-                                                        samplePeaksGRangelist)
+    scoreBy <- match.arg(scoreBy)
+    namedSamplePeaksGRL <- giveUniqueNamesToPeaksOverSamples(samplePeaksGRangelist)
 
     namedSamplePeaksGRL <- lapply(namedSamplePeaksGRL, function(x)
     {
         x <- x[as.numeric(S4Vectors::mcols(x)[[scorecolname]]) >= zThresh]
-        if(length(x) ==0 ) stop("no peaks found in one sample\n",
-                            "please try again providing a lower zThreshold")
+        if(length(x) ==0 )
+            stop("no peaks found in one sample\n",
+                "please try again providing a lower zThreshold")
         S4Vectors::mcols(x)[["n-peaks"]] <-  1
         S4Vectors::mcols(x)[["k-carriers"]] <-  1
+        S4Vectors::mcols(x)[["peakNames"]] <-  names(x)
         BiocGenerics::start(x) <- BiocGenerics::start(x) - extendRegions
         idxNeg <- which( BiocGenerics::start(x) < 0 )
         if(length(idxNeg) > 0)
@@ -250,24 +271,22 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
 
     if(verbose) message("Computing overlapping regions over samples...")
     # startTime <- Sys.time()
-    if(length(namedSamplePeaksGRL) > 1 )
+    if( length(namedSamplePeaksGRL) > 1 )
     {
         for(i in 2:length(namedSamplePeaksGRL))
         {
             if( i == 2 ) {
                 gri <- namedSamplePeaksGRL[[1]]
-                foundedPeaks <- NULL
+                finalPeaks <- NULL
             } else {
-                gri <- foundedPeaks
+                gri <- finalPeaks
             }
-
+            print(i)
             grj <- namedSamplePeaksGRL[[i]]
 
-            grij <- ChIPpeakAnno::findOverlapsOfPeaks(gri,
-                                                        grj,
-                                                        minoverlap=minOverlap,
-                                                        maxgap=maxGap,
-                                                        connectedPeaks="merge")
+            grij <- ChIPpeakAnno::findOverlapsOfPeaks(gri, grj,
+                minoverlap=minOverlap, maxgap=maxGap, connectedPeaks="merge")
+
             mmpeaks <- grij$peaksInMergedPeaks
 
             if(length(mmpeaks) == 0)
@@ -277,14 +296,15 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
                     as.character(S4Vectors::runValue(
                         GenomeInfoDb::seqnames(grj))),
                     "\nNB: skipping this sample!")
-                foundedPeaks <- gri
+                finalPeaks <- gri
                 next
             }
 
             ##### Patch for missing score column name in findOverlapsOfPeaks
             if(sum(scorecolname %in% colnames(mcols(mmpeaks)))==0)
             {
-                mmpeaks <- .addScoreCol(targetgr=mmpeaks, gri=gri, grj=grj, scorecolname=scorecolname)
+                mmpeaks <- .addScoreCol(targetgr=mmpeaks, gri=gri, grj=grj,
+                    scorecolname=scorecolname)
             }
             #########
 
@@ -296,65 +316,121 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
             {
                 # print(l)
                 idx <- which(names(mmpeaks) %in% l)
-                scores <- as.numeric(S4Vectors::mcols(mmpeaks)[idx,
-                                                            scorecolname])
+                scores <- as.numeric(S4Vectors::mcols(mmpeaks)[idx, scorecolname])
                 kCarr <- as.numeric(mmpeaks$`k-carriers`[idx])
                 nPeaks <- as.numeric(mmpeaks$`n-peaks`[idx])
                 np = sum(nPeaks) ## total number of peaks found
-                if (!coverageFlag)
-                {
-                    ## it's necessary to rescale the score on the basis of the peaks
+                switch (scoreBy,
+                "normalized"= {
+                    ## it's necessary to scale the score on the basis of the peaks
                     ## found from previous computations
                     mmzp <- sum(scores*nPeaks)/np
-                } else {
+                },
+                "sum"= {
                     ## in this case we compute the coverage as the sum of the scores,
                     ## which in turn are the number of the reads per each peak
                     mmzp <- sum(scores)
+                },
+                "groups"=
+                {
+                    ### ANOTHER OPTION COULD BE TO LEAVE THE SCORES AS THEY ARE,
+                    ### AND CBINDING THEM TO THE COLDATA TOGETHER WITH K AND P
+                    mmzp <- 0
                 }
+                )
+
                 ## the carriers are just the number of samples
                 k <- max(kCarr)+1
                 as.data.frame(cbind(mmzp, np, k))
             })
             # endTime <- Sys.time()
             # print((endTime-stTime))
-            newcols1 <- data.table::rbindlist(newcols)
-            S4Vectors::mcols(mrgPks) <-  S4Vectors::DataFrame(newcols1)
+            newcols1 <- DataFrame(data.table::rbindlist(newcols))
+            # newcols1$mrgPksNams <- mrgPksNms
+            S4Vectors::mcols(mrgPks) <-  cbind.DataFrame(
+                S4Vectors::DataFrame(newcols1), S4Vectors::mcols(mrgPks))
+
             if( dim(S4Vectors::mcols(mrgPks))[1] == 0 )
             {
                 stop("No overlapping regions found!")
             }
-            colnames(S4Vectors::mcols(mrgPks)) <- c(scorecolname,
-                                                        "n-peaks",
-                                                        "k-carriers")
+            colnames(S4Vectors::mcols(mrgPks)) <- c(scorecolname, "n-peaks",
+                "k-carriers", "peakNames")
 
             ## peaks uniques
             unqPks <- grij$uniquePeaks
+            if( !is.null(unqPks$`peakNames`) )
+            {
+                unqPks$`peakNames` <- .createChrtrLstFrmChrctr(unqPks$`peakNames`)
+            } else {
+                unqPks$`peakNames` <- .createChrtrLstFrmChrctr(names(unqPks))
+            }
+
+
             if( length(unqPks) > 0 )
             {
                 ##### Patch for missing score column name in findOverlapsOfPeaks
-                if(sum(scorecolname %in% colnames(mcols(unqPks)))==0)
+                if( sum(scorecolname %in% colnames(mcols(unqPks)))==0 )
                 {
-                    unqPks <- .addScoreCol(targetgr=unqPks, gri=gri, grj=grj, scorecolname=scorecolname)
+                    unqPks <- .addScoreCol(targetgr=unqPks, gri=gri, grj=grj,
+                        scorecolname=scorecolname)
                 }
                 ################################################################
                 ## putting together all the peaks
-                foundedPeaks <- unlist(GenomicRanges::GRangesList(unqPks, mrgPks))
+                finalPeaks <- unlist(GenomicRanges::GRangesList(unqPks, mrgPks))
             } else {
-                foundedPeaks <- mrgPks
+                finalPeaks <- mrgPks
             }
 
-            foundedPeaks <- initMergedPeaksNames(foundedPeaks)
-            if(sum(is.na(foundedPeaks$score))!=0) stop(paste0("score NA at iteration: ",i))
+            finalPeaks <- initMergedPeaksNames(finalPeaks)
+            finalPeaks <- .extendPeakNames(finalPeaks, gri)
+            if(sum(is.na(finalPeaks$score))!=0) stop(paste0("score NA at iteration: ",i))
         }
     } else if(length(namedSamplePeaksGRL) == 1) {
-        foundedPeaks <- initMergedPeaksNames(namedSamplePeaksGRL[[1]])
+        finalPeaks <- initMergedPeaksNames(namedSamplePeaksGRL[[1]])
     } else if(length(namedSamplePeaksGRL) == 0){
         stop("No regions found with this threshold!")
     }
     # endingTime <- Sys.time()
     # print((endingTime - startTime))
-    # save(foundedPeaks, file="testData/new_files/foundedPeaks.RData")
-    return(foundedPeaks)
+    # save(finalPeaks, file="testData/new_files/finalPeaks.RData")
+    if(scoreBy=="groups")
+    {
+        finalPeaks <- createMatrix(namedSamplePeaksGRL, finalPeaks)
+    }
+    return(finalPeaks)
+}
+
+createMatrix <- function(grl, fpgr)
+{
+    sampnms <- names(grl)
+    grl <- lapply(seq_along(grl), function(i)
+    {
+        grl[[i]]$sample <- names(grl)[i]
+        grl[[i]]
+    })
+    onegr <- unlist(GRangesList(grl))
+
+    ffp <- gsub("gr[i|j]__", "", fpgr$peakNames)
+
+    mtx <- Matrix::Matrix(data=0, nrow=length(ffp), ncol=length(grl))
+    colnames(mtx) <- sampnms
+
+    scores <- lapply(seq_along(ffp), function(i, mtx)
+    {
+        p <- ffp[[i]]
+        grp <- onegr[which(names(onegr) %in% p)]
+        grps <- grouping(grp$sample)
+        grpreo <- grp[grps]
+
+        scoresp <- as.numeric(by(grpreo$score, grpreo$sample, sum))
+        names(scoresp) <- unique(grpreo$sample)
+        mtx[i, which(colnames(mtx) %in% names(scoresp))] <<- scoresp
+        return(scoresp)
+    }, mtx=mtx)
+
+    fpgr$matrix <- mtx
+    return(fpgr)
 }
 
 
@@ -407,6 +483,56 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
     return(peaks_all)
 }
 
+#' @importFrom IRanges CharacterList
+.createChrtrLstFrmChrctr <- function(chrtr)
+{
+    stopifnot(is.character(chrtr))
 
+    list <- lapply(chrtr, function(c)
+    {
+        return(c)
+    })
+    return(IRanges::CharacterList(list))
+}
 
+#' @importFrom IRanges CharacterList
+.extendPeakNames <- function(finalPeaks, gri)
+{
+    stopifnot(
+        all(
+            is(finalPeaks, "GRanges"),
+            is(gri, "GRanges"),
+            !is.null(finalPeaks$`peakNames`),
+            !is.null(gri$`peakNames`)
+        )
+    )
 
+    fp <- finalPeaks$`peakNames`
+    gi <- gri$`peakNames`
+    names(fp) <- names(finalPeaks)
+    names(gi) <- names(gri)
+
+    fpp <- lapply(seq_along(fp), function(i)
+    {
+        p <- fp[i]
+        # print(i)
+        p <- as.character(p[[1]])
+        idx <- grep("gri", p)
+
+        # print(idx)
+        if ( length(idx)!=0 )
+        {
+            pni <- gi[which(names(gi) %in%
+                gsub("gri__", "", p[idx]))][[1]]
+            pni <- gsub("gr[i|j]__", "", pni)
+            p <- p[-idx]
+            p <- c(p, pni)
+        }
+
+        # print(p)
+        return(p)
+    })
+    fpp <- CharacterList(fpp)
+    finalPeaks$peakNames <- fpp
+    return(finalPeaks)
+}
