@@ -39,4 +39,4 @@ testData
 ^config\.status
 ^config\.log
 tests/testthat/pipeline\.R
-*.RData
+
