@@ -48,7 +48,8 @@ finalRegions <- function(peakSamplesGRangesList, zThreshold=20, minCarriers=2,
                                     BPPARAM=BiocParallel::bpparam())
 {
     stopifnot(is(peakSamplesGRangesList, "GRangesList"))
-
+    stopifnot(length(colnames(mcols(peakSamplesGRangesList[[1]])) %in%
+        scorecolname)!=0)
     if(verbose) message("computing final regions on ",
                         length(peakSamplesGRangesList), " samples...")
     zedPeaksSamplesGRList <- GenomicRanges::GRangesList(
@@ -210,7 +211,7 @@ initMergedPeaksNames <- function(mergedGRanges)
 #' @return a GRanges of peaks overlapped and unique between samples.
 #' @export
 #'
-#' @importFrom S4Vectors mcols runValue cbind.DataFrame
+#' @importFrom S4Vectors mcols runValue cbind.DataFrame isEmpty
 #' @importFrom BiocGenerics start end
 #' @importFrom GenomeInfoDb seqlengths seqnames
 #' @importFrom ChIPpeakAnno findOverlapsOfPeaks
@@ -359,12 +360,16 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
 
             ## peaks uniques
             unqPks <- grij$uniquePeaks
-            if( !is.null(unqPks$`peakNames`) )
+            if( !S4Vectors::isEmpty(unqPks) )
             {
-                unqPks$`peakNames` <- .createChrtrLstFrmChrctr(unqPks$`peakNames`)
-            } else {
-                unqPks$`peakNames` <- .createChrtrLstFrmChrctr(names(unqPks))
+                if( !is.null(unqPks$`peakNames`) )
+                {
+                    unqPks$`peakNames` <- .createChrtrLstFrmChrctr(unqPks$`peakNames`)
+                } else {
+                    unqPks$`peakNames` <- .createChrtrLstFrmChrctr(names(unqPks))
+                }
             }
+
 
 
             if( length(unqPks) > 0 )
