@@ -12,7 +12,8 @@ findOverlapsOverSamples(
   zThresh = 10,
   verbose = FALSE,
   scorecolname = "z-score",
-  coverageFlag = FALSE
+  scoreBy = c("normalized", "groups", "sum"),
+  multiSamples = FALSE
 )
 }
 \arguments{
