@@ -6,6 +6,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // rcpparma_get_disjoint_max_win
 arma::mat rcpparma_get_disjoint_max_win(arma::mat z0, int sigwin, double zthresh, arma::uword nmax, bool verbose);
 RcppExport SEXP _DEScan2_rcpparma_get_disjoint_max_win(SEXP z0SEXP, SEXP sigwinSEXP, SEXP zthreshSEXP, SEXP nmaxSEXP, SEXP verboseSEXP) {
