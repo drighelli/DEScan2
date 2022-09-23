@@ -1,7 +1,7 @@
 Package: DEScan2
 Type: Package
 Title: Differential Enrichment Scan 2
-Version: 1.15.5
+Version: 1.17.1
 Date: 2022-09-23
 Authors@R: c(
     person("Dario", "Righelli", role=c("aut", "cre"), 
