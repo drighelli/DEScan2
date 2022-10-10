@@ -1,3 +1,6 @@
+DEScan2 v1.17.2
+restoring working version of DEScan2
+
 DEScan2 v1.15.4
 - adding coverageFlag to the findOverlapsOverSamples function: see doc
 
