@@ -38,24 +38,24 @@
 #' regionsGR <- finalRegions(peakSamplesGRangesList=grl, zThreshold=1,
 #'                         minCarriers=3, saveFlag=FALSE, verbose=TRUE)
 finalRegions <- function(peakSamplesGRangesList, zThreshold=20, minCarriers=2,
-                                    saveFlag=TRUE,
-                                    outputFolder="overlappedPeaks",
-                                    verbose=FALSE,
-                                    scorecolname="z-score",
-                                    coverageFlag=FALSE,
-                                    BPPARAM=BiocParallel::bpparam())
+                         saveFlag=TRUE,
+                         outputFolder="overlappedPeaks",
+                         verbose=FALSE,
+                         scorecolname="z-score",
+                         coverageFlag=FALSE,
+                         BPPARAM=BiocParallel::bpparam())
 {
     stopifnot(is(peakSamplesGRangesList, "GRangesList"))
 
     if(verbose) message("computing final regions on ",
                         length(peakSamplesGRangesList), " samples...")
     zedPeaksSamplesGRList <- GenomicRanges::GRangesList(
-                    lapply(peakSamplesGRangesList, function(sample)
-                    {
-                        return(sample[
-                            which(S4Vectors::mcols(sample)[[scorecolname]]
-                                                            >= zThreshold),])
-                    }))
+        lapply(peakSamplesGRangesList, function(sample)
+        {
+            return(sample[
+                which(S4Vectors::mcols(sample)[[scorecolname]]
+                      >= zThreshold),])
+        }))
 
     zedPeaksChrsGRList <- fromSamplesToChrsGRangesList(zedPeaksSamplesGRList)
 
@@ -64,8 +64,8 @@ finalRegions <- function(peakSamplesGRangesList, zThreshold=20, minCarriers=2,
         BiocParallel::bplapply(zedPeaksChrsGRList, function(chrSampleGRList)
         {
             return(findOverlapsOverSamples(chrSampleGRList,
-                    zThresh=zThreshold, verbose=verbose,
-                    scorecolname=scorecolname, coverageFlag=coverageFlag))
+                                           zThresh=zThreshold, verbose=verbose,
+                                           scorecolname=scorecolname, coverageFlag=coverageFlag))
         }, BPPARAM=BPPARAM)
     )
     overlappedPeaksGR <- unlist(overlappedPeaksGRList)
@@ -75,11 +75,11 @@ finalRegions <- function(peakSamplesGRangesList, zThreshold=20, minCarriers=2,
     if(saveFlag)
     {
         datename <- paste0(strsplit(gsub(pattern=":", replacement=" ",
-                                            date()), " ")[[1]], collapse="_")
+                                         date()), " ")[[1]], collapse="_")
         filename <- paste0("regions_", datename, "_zt", zThreshold,
-                            "_minK", minCarriers)
+                           "_minK", minCarriers)
         saveGRangesAsTsv(GRanges=overlMinKPeaksGR, filepath=outputFolder,
-                        filename=filename, verbose=verbose)
+                         filename=filename, verbose=verbose)
     }
     return(overlMinKPeaksGR)
 }
@@ -102,8 +102,8 @@ giveUniqueNamesToPeaksOverSamples <- function(samplePeaksGRangelist)
     ncs <- nchar(as.character(ns))
     ## total number of decimals for the peaks taking the max number of peaks
     ncp <- nchar(as.character(max(unlist(
-                                        lapply(samplePeaksGRangelist, length)
-                                        ))))
+        lapply(samplePeaksGRangelist, length)
+    ))))
     sFormat <- paste0("s%0", ncs,"d")
     format <- paste0("s%0", ncs,"d_p%0", ncp, "d")
     ## for each sample assign unique names to the peaks
@@ -124,7 +124,7 @@ giveUniqueNamesToPeaksOverSamples <- function(samplePeaksGRangelist)
     )
 
     names(samplePeaksGRangelista) <- sprintf(sFormat,
-                                            seq_along(samplePeaksGRangelist))
+                                             seq_along(samplePeaksGRangelist))
     return(samplePeaksGRangelista)
 }
 
@@ -144,7 +144,7 @@ initMergedPeaksNames <- function(mergedGRanges)
     format <-  paste0("p%0", ncp, "d_np%0", np, "d_k%0", nk,"d")
 
     peakNames <- sprintf(format, seq_len(length(mergedGRanges@ranges)),
-                        mergedGRanges$`n-peaks`, mergedGRanges$`k-carriers`)
+                         mergedGRanges$`n-peaks`, mergedGRanges$`k-carriers`)
     names(mergedGRanges) <- peakNames
     return(mergedGRanges)
 }
@@ -216,13 +216,13 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
 {
     stopifnot(is(samplePeaksGRangelist, "GRangesList"))
     namedSamplePeaksGRL <- giveUniqueNamesToPeaksOverSamples(
-                                                        samplePeaksGRangelist)
+        samplePeaksGRangelist)
 
     namedSamplePeaksGRL <- lapply(namedSamplePeaksGRL, function(x)
     {
         x <- x[as.numeric(S4Vectors::mcols(x)[[scorecolname]]) >= zThresh]
         if(length(x) ==0 ) stop("no peaks found in one sample\n",
-                            "please try again providing a lower zThreshold")
+                                "please try again providing a lower zThreshold")
         S4Vectors::mcols(x)[["n-peaks"]] <-  1
         S4Vectors::mcols(x)[["k-carriers"]] <-  1
         BiocGenerics::start(x) <- BiocGenerics::start(x) - extendRegions
@@ -264,19 +264,19 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
             grj <- namedSamplePeaksGRL[[i]]
 
             grij <- ChIPpeakAnno::findOverlapsOfPeaks(gri,
-                                                        grj,
-                                                        minoverlap=minOverlap,
-                                                        maxgap=maxGap,
-                                                        connectedPeaks="merge")
+                                                      grj,
+                                                      minoverlap=minOverlap,
+                                                      maxgap=maxGap,
+                                                      connectedPeaks="merge")
             mmpeaks <- grij$peaksInMergedPeaks
 
             if(length(mmpeaks) == 0)
             {
                 message("No merged peaks found at sample ", i,
-                    " and chromosome ",
-                    as.character(S4Vectors::runValue(
-                        GenomeInfoDb::seqnames(grj))),
-                    "\nNB: skipping this sample!")
+                        " and chromosome ",
+                        as.character(S4Vectors::runValue(
+                            GenomeInfoDb::seqnames(grj))),
+                        "\nNB: skipping this sample!")
                 foundedPeaks <- gri
                 next
             }
@@ -297,7 +297,7 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
                 # print(l)
                 idx <- which(names(mmpeaks) %in% l)
                 scores <- as.numeric(S4Vectors::mcols(mmpeaks)[idx,
-                                                            scorecolname])
+                                                               scorecolname])
                 kCarr <- as.numeric(mmpeaks$`k-carriers`[idx])
                 nPeaks <- as.numeric(mmpeaks$`n-peaks`[idx])
                 np = sum(nPeaks) ## total number of peaks found
@@ -324,8 +324,8 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
                 stop("No overlapping regions found!")
             }
             colnames(S4Vectors::mcols(mrgPks)) <- c(scorecolname,
-                                                        "n-peaks",
-                                                        "k-carriers")
+                                                    "n-peaks",
+                                                    "k-carriers")
 
             ## peaks uniques
             unqPks <- grij$uniquePeaks
@@ -364,9 +364,9 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
     for(sample in sall)
     {
         gr <- GenomicRanges::GRanges(seqnames=sample[,1],
-                        ranges=IRanges::IRanges(start=as.numeric(sample[,2]),
-                                                end=as.numeric(sample[,3])
-                                                )
+                                     ranges=IRanges::IRanges(start=as.numeric(sample[,2]),
+                                                             end=as.numeric(sample[,3])
+                                     )
         )
         S4Vectors::mcols(gr)[["z-score"]] <- as.numeric(sample[,4])
         lgr <- c(lgr, gr)
