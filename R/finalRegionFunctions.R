@@ -238,6 +238,7 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
     scoreBy <- match.arg(scoreBy)
     namedSamplePeaksGRL <- giveUniqueNamesToPeaksOverSamples(samplePeaksGRangelist)
 
+    ## Init n-peaks, k-carriers and peakNames on GRList
     namedSamplePeaksGRL <- lapply(namedSamplePeaksGRL, function(x)
     {
         x <- x[as.numeric(S4Vectors::mcols(x)[[scorecolname]]) >= zThresh]
@@ -282,7 +283,7 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
             } else {
                 gri <- finalPeaks
             }
-            print(i)
+            print(i) #####################################
             grj <- namedSamplePeaksGRL[[i]]
 
             grij <- ChIPpeakAnno::findOverlapsOfPeaks(gri, grj,
@@ -401,12 +402,13 @@ findOverlapsOverSamples <- function(samplePeaksGRangelist,
     # save(finalPeaks, file="testData/new_files/finalPeaks.RData")
     if(scoreBy=="groups")
     {
-        finalPeaks <- createMatrix(namedSamplePeaksGRL, finalPeaks)
+        finalPeaks <- createMatrix(grl=namedSamplePeaksGRL, fpgr=finalPeaks,
+                                scorecolname=scorecolname)
     }
     return(finalPeaks)
 }
 
-createMatrix <- function(grl, fpgr)
+createMatrix <- function(grl, fpgr, scorecolname)
 {
     sampnms <- names(grl)
     grl <- lapply(seq_along(grl), function(i)
@@ -428,7 +430,8 @@ createMatrix <- function(grl, fpgr)
         grps <- grouping(grp$sample)
         grpreo <- grp[grps]
 
-        scoresp <- as.numeric(by(grpreo$score, grpreo$sample, sum))
+        scoresp <- as.numeric(by(mcols(grpreo)[[scorecolname]], grpreo$sample,
+                                 sum))
         names(scoresp) <- unique(grpreo$sample)
         mtx[i, which(colnames(mtx) %in% names(scoresp))] <<- scoresp
         return(scoresp)
