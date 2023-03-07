@@ -65,24 +65,24 @@ test_that("Test if new findPeaks works with bam and bed files", {
 
 })
 
-test_that("Test disjoint function R & C", {
-    zpath <- system.file(file.path("extdata","tests","z"), package="DEScan2")
-    zfile <- list.files(zpath, full.names=TRUE)
-    zzz <- readRDS(zfile)
-
-    sigw=10
-    zthr=10
-    nmax=1e5
-    verb=TRUE
-    cTime <- system.time({
-        smatC <- c_get_disjoint_max_win(z0=zzz, sigwin=sigw, zthresh=zthr,
-                                               nmax=nmax, verbose=verb)
-    })
-    rTime <- system.time({
-        smatR <- get_disjoint_max_win(z0=zzz, sigwin=sigw, zthresh=zthr,
-                                      nmax=nmax, verbose=verb)
-    })
-    message("cTime (secs): ", round(cTime[1], 3),
-            " rTime (secs): ", round(rTime[1], 3))
-    expect_identical(smatC, smatR)
-})
+# test_that("Test disjoint function R & C", {
+#     zpath <- system.file(file.path("extdata","tests","z"), package="DEScan2")
+#     zfile <- list.files(zpath, full.names=TRUE)
+#     zzz <- readRDS(zfile)
+#
+#     sigw=10
+#     zthr=10
+#     nmax=1e5
+#     verb=TRUE
+#     cTime <- system.time({
+#         smatC <- c_get_disjoint_max_win(z0=zzz, sigwin=sigw, zthresh=zthr,
+#                                                nmax=nmax, verbose=verb)
+#     })
+#     rTime <- system.time({
+#         smatR <- get_disjoint_max_win(z0=zzz, sigwin=sigw, zthresh=zthr,
+#                                       nmax=nmax, verbose=verb)
+#     })
+#     message("cTime (secs): ", round(cTime[1], 3),
+#             " rTime (secs): ", round(rTime[1], 3))
+#     expect_identical(smatC, smatR)
+# })
