@@ -383,7 +383,7 @@ saveGRangesAsBed <- function(GRanges, filepath=tempdir(), filename=tempfile(),
 #' @param col.names a logical value indicating whether the column names are to be
 #' written in the file, or a character vector indicating the column names, or
 #' NA for writing column names for writing a TAB for the column name of the
-#' row names (see \link[utils]{write.table}).
+#' row names, default is NA (see \link[utils]{write.table}).
 #' @param row.names a logical value indicating whether the row names are to be
 #' written in the file, or a character vector indicating the row names
 #' (see \link[utils]{write.table}).
@@ -401,7 +401,7 @@ saveGRangesAsBed <- function(GRanges, filepath=tempdir(), filename=tempfile(),
 #'         seqlengths=c(chr1=11, chr2=12, chr3=13))
 #' saveGRangesAsTsv(gr, verbose=TRUE)
 saveGRangesAsTsv <- function(GRanges, filepath=tempdir(), filename=tempfile(),
-        col.names=TRUE, row.names=TRUE, sep="\t", force=FALSE, verbose=FALSE)
+        col.names=NA, row.names=TRUE, sep="\t", force=FALSE, verbose=FALSE)
 {
     stopifnot(is(GRanges, "GRanges"))
 
