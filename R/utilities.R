@@ -323,7 +323,8 @@ saveGRangesAsBed <- function(GRanges, filepath=tempdir(), filename=tempfile(),
     {
         if(!force)
         {
-            stop(filePathName, " already exists!\nNot overwriting!")
+            warning(filePathName, " already exists!\nNot overwriting!")
+            return()
         }
         else
         {
@@ -341,6 +342,7 @@ saveGRangesAsBed <- function(GRanges, filepath=tempdir(), filename=tempfile(),
                         BiocGenerics::end(GRanges))
         names(GRanges) <- nn
     }
+
     if(length(which(colnames(S4Vectors::mcols(GRanges)) %in% "z-score")) > 0)
         if(length(which(colnames(S4Vectors::mcols(GRanges)) %in% "score")) == 0)
         S4Vectors::mcols(GRanges)$score <- S4Vectors::mcols(GRanges)$`z-score`
@@ -378,6 +380,14 @@ saveGRangesAsBed <- function(GRanges, filepath=tempdir(), filename=tempfile(),
 #' @param filename the name to give to the files.
 #' @param verbose verbose output flag.
 #' @param force force overwriting.
+#' @param col.names a logical value indicating whether the column names are to be
+#' written in the file, or a character vector indicating the column names, or
+#' NA for writing column names for writing a TAB for the column name of the
+#' row names (see \link[utils]{write.table}).
+#' @param row.names a logical value indicating whether the row names are to be
+#' written in the file, or a character vector indicating the row names
+#' (see \link[utils]{write.table}).
+#' @param sep the column separator character (default is \"\t\").
 #'
 #' @importFrom utils write.table
 #'
@@ -391,7 +401,7 @@ saveGRangesAsBed <- function(GRanges, filepath=tempdir(), filename=tempfile(),
 #'         seqlengths=c(chr1=11, chr2=12, chr3=13))
 #' saveGRangesAsTsv(gr, verbose=TRUE)
 saveGRangesAsTsv <- function(GRanges, filepath=tempdir(), filename=tempfile(),
-                            force=FALSE, verbose=FALSE)
+        col.names=TRUE, row.names=TRUE, sep="\t", force=FALSE, verbose=FALSE)
 {
     stopifnot(is(GRanges, "GRanges"))
 
@@ -405,7 +415,8 @@ saveGRangesAsTsv <- function(GRanges, filepath=tempdir(), filename=tempfile(),
     {
         if(!force)
         {
-            stop(filePathName, " already exists!\nNot overwriting!")
+            warning(filePathName, " already exists!\nNot overwriting!")
+            return()
         }
         else
         {
@@ -420,7 +431,7 @@ saveGRangesAsTsv <- function(GRanges, filepath=tempdir(), filename=tempfile(),
     }
     grdf <- as.data.frame(GRanges, row.names=rownames)
     utils::write.table(x=grdf, file=filePathName, quote=FALSE,
-                sep="\t", row.names=TRUE, col.names=NA)
+                sep=sep, row.names=row.names, col.names=col.names)
     if(verbose) message("file ", filePathName, " written on disk!")
 }
 
