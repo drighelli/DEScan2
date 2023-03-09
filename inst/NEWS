@@ -1,3 +1,7 @@
+DEScan2 v1.19.1
+- now save utilities produce warnings instead of errors in case of existing file
+- save as tsv has additional parameters based on write.table utils function
+
 DEScan2 v1.17.2
 restoring working version of DEScan2
 
