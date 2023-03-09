@@ -8,6 +8,9 @@ saveGRangesAsTsv(
   GRanges,
   filepath = tempdir(),
   filename = tempfile(),
+  col.names = NA,
+  row.names = TRUE,
+  sep = "\\t",
   force = FALSE,
   verbose = FALSE
 )
@@ -18,6 +21,17 @@ saveGRangesAsTsv(
 \item{filepath}{the path to store the files.}
 
 \item{filename}{the name to give to the files.}
+
+\item{col.names}{a logical value indicating whether the column names are to be
+written in the file, or a character vector indicating the column names, or
+NA for writing column names for writing a TAB for the column name of the
+row names, default is NA (see \link[utils]{write.table}).}
+
+\item{row.names}{a logical value indicating whether the row names are to be
+written in the file, or a character vector indicating the row names
+(see \link[utils]{write.table}).}
+
+\item{sep}{the column separator character (default is \"\t\").}
 
 \item{force}{force overwriting.}
 
