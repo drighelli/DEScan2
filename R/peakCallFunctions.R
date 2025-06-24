@@ -54,7 +54,7 @@
 #'                         save=FALSE,
 #'                         onlyStdChrs=TRUE,
 #'                         chr=NULL,
-#'                         verbose=FALSE)
+#'                         verbose=FALSE, BPPARAM=BiocParallel::SerialParam())
 #' head(peaks)
 findPeaks <- function(files, filetype=c("bam", "bed"),
                         genomeName=NULL,
