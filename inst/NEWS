@@ -1,3 +1,6 @@
+DEScan2 v1.29.1
+- updating extdata objects to the latest object versions
+
 DEScan2 v1.19.1
 - now save utilities produce warnings instead of errors in case of existing file
 - save as tsv has additional parameters based on write.table utils function
