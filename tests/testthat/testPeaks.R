@@ -39,9 +39,7 @@ test_that("Test if new findPeaks works with bam and bed files", {
                             package="DEScan2")
         bampeaksRef <- readRDS(grl.path)
         expect_identical(bampeaksGRL, bampeaksRef)
-    }
-    else
-    {
+    } else {
         warning("bam file does not exist!")
     }
 

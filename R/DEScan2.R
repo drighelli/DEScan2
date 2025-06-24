@@ -2,8 +2,7 @@
 #'
 #' integrated peak and differential caller,
 #' specifically designed for broad epigenomic signals.
-#' @docType package
-#' @author some authors
+#' @author Dario Righelli
 #' @importFrom Rcpp evalCpp
 #' @useDynLib DEScan2
 #' @name DEScan2
